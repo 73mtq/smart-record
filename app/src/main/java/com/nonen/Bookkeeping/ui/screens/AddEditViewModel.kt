@@ -4,9 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.core.Categories
+import com.nonen.Bookkeeping.core.CategorizationRules
 import com.nonen.Bookkeeping.core.HashUtil
+import com.nonen.Bookkeeping.core.RuleEngine
 import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.data.repo.TransactionRepository
+import com.nonen.Bookkeeping.parse.PaymentTextParser
+import com.nonen.Bookkeeping.data.repo.RuleRepository
 import kotlinx.coroutines.launch
 import java.util.Locale
 import androidx.compose.runtime.getValue
@@ -15,11 +19,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 /**
- * 「记一笔 / 编辑记录」表单状态与存删逻辑。
- * txId = 0 表示新建；否则载入该条记录进入编辑态。
+ * 「记一笔 / 编辑记录」表单状态与业务逻辑。
+ * 支持输入信息实时智能自动匹配分类（商户记忆 -> 自定义规则 -> 内置规则 -> 兜底）。
  */
 class AddEditViewModel(
     private val repo: TransactionRepository,
+    private val ruleEngine: RuleEngine? = null,
+    private val ruleRepo: RuleRepository? = null,
     private val txId: Long,
 ) : ViewModel() {
 
@@ -30,6 +36,7 @@ class AddEditViewModel(
     var note by mutableStateOf("")
     var merchant by mutableStateOf("")
     var timestamp by mutableLongStateOf(System.currentTimeMillis())
+    var saveAsRule by mutableStateOf(false)
     var loading by mutableStateOf(txId != 0L)
         private set
     var isEdit by mutableStateOf(false)
@@ -37,8 +44,17 @@ class AddEditViewModel(
     /** 表单校验/入库冲突的提示文案（资源 id，由 UI 层解析） */
     var errorMessageRes by mutableStateOf<Int?>(null)
 
+    /** 用户是否手动主动指定了分类；若主动选过，则不再被输入文字自动冲掉 */
+    var isCategoryManuallyChosen by mutableStateOf(false)
+        private set
+
+    /** 当前智能自动推荐并应用的分类（UI 可展示高亮气泡或角标） */
+    var autoSuggestedCategory by mutableStateOf<String?>(null)
+        private set
+
     private var original: TransactionEntity? = null
     private var originalCategory: String? = null
+    private var cachedRules: CategorizationRules? = null
 
     val categoryList: List<String>
         get() = if (isIncome) Categories.incomeCategories else Categories.expenseCategories
@@ -56,8 +72,13 @@ class AddEditViewModel(
                     note = t.note.orEmpty()
                     merchant = t.merchant.orEmpty()
                     timestamp = t.timestamp
+                    isCategoryManuallyChosen = true
                 }
                 loading = false
+            }
+        } else {
+            viewModelScope.launch {
+                cachedRules = ruleEngine?.loadRules()
             }
         }
     }
@@ -66,10 +87,92 @@ class AddEditViewModel(
         if (isIncome == income) return
         isIncome = income
         if (category !in categoryList) category = categoryList.first()
+        isCategoryManuallyChosen = true
     }
 
     fun setAmountInput(raw: String) {
         amount = raw.filter { it.isDigit() || it == '.' }.take(12)
+    }
+
+    fun selectCategoryManually(cat: String) {
+        category = cat
+        isCategoryManuallyChosen = true
+    }
+
+    fun resetManualCategory() {
+        isCategoryManuallyChosen = false
+        triggerAutoClassify()
+    }
+
+    fun setMerchantInput(v: String) {
+        merchant = v
+        triggerAutoClassify()
+    }
+
+    fun setNoteInput(v: String) {
+        note = v
+        triggerAutoClassify()
+    }
+
+    /** 快速自然文本智能识别填入（如：“妈妈微信转账生活费2000”或“麦当劳汉堡38.5”） */
+    fun applyQuickText(raw: String) {
+        val text = raw.trim()
+        if (text.isEmpty()) return
+
+        // 1. 尝试提取金额
+        val amt = PaymentTextParser.extractAmount(text)
+            ?: Regex("""(?:^|\s|[^\d.])([0-9]+(?:\.[0-9]{1,2})?)(?:$|\s|[^\d.])""").find(text)?.groupValues?.get(1)?.toDoubleOrNull()
+        if (amt != null && amt > 0.0) {
+            amount = String.format(Locale.US, "%.2f", amt)
+        }
+
+        note = text
+        isCategoryManuallyChosen = false
+        triggerAutoClassify()
+    }
+
+    /**
+     * 自动分类逻辑：
+     * 根据商户与备注文字，在规则引擎快照中查找最优分类并联动切换收支方向与分类高亮。
+     */
+    private fun triggerAutoClassify() {
+        if (isEdit || isCategoryManuallyChosen) return
+        val rules = cachedRules ?: return
+        val combined = listOf(merchant.trim(), note.trim()).filter { it.isNotEmpty() }.joinToString(" ")
+        if (combined.isEmpty()) {
+            autoSuggestedCategory = null
+            return
+        }
+
+        // 1. 先在当前收支方向中寻找
+        val currentMatch = RuleEngine.classify(
+            text = combined,
+            isIncome = isIncome,
+            rules = rules,
+            merchant = merchant.trim().ifEmpty { null },
+        )
+        val defaultFallback = if (isIncome) Categories.OTHER_INCOME else Categories.OTHER_EXPENSE
+        if (currentMatch != defaultFallback) {
+            category = currentMatch
+            autoSuggestedCategory = currentMatch
+            return
+        }
+
+        // 2. 若当前方向未命中特异规则，探查另一方向是否强命中（例如当前为默认支出，但用户输入了“生活费”或“妈妈转账”）
+        val oppositeMatch = RuleEngine.classify(
+            text = combined,
+            isIncome = !isIncome,
+            rules = rules,
+            merchant = merchant.trim().ifEmpty { null },
+        )
+        val oppositeFallback = if (!isIncome) Categories.OTHER_INCOME else Categories.OTHER_EXPENSE
+        if (oppositeMatch != oppositeFallback) {
+            isIncome = !isIncome
+            category = oppositeMatch
+            autoSuggestedCategory = oppositeMatch
+        } else {
+            autoSuggestedCategory = null
+        }
     }
 
     fun save(onDone: () -> Unit) {
@@ -79,6 +182,12 @@ class AddEditViewModel(
             return
         }
         viewModelScope.launch {
+            if (saveAsRule) {
+                val keyword = merchant.trim().ifEmpty { note.trim() }
+                if (keyword.isNotEmpty()) {
+                    ruleRepo?.add(keyword, category, isIncome)
+                }
+            }
             val existing = original
             if (existing != null) {
                 val updated = existing.copy(

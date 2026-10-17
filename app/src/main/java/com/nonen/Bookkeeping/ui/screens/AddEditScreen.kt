@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -106,26 +107,74 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            if (!vm.isEdit) {
+                Spacer(Modifier.height(14.dp))
+                var quickText by remember { mutableStateOf("") }
+                OutlinedTextField(
+                    value = quickText,
+                    onValueChange = {
+                        quickText = it
+                        vm.applyQuickText(it)
+                    },
+                    label = { Text("智能速记（如：妈妈转账生活费2000 或 汉堡35）") },
+                    shape = fieldShape,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+            }
+
             Spacer(Modifier.height(16.dp))
             AmountField(value = vm.amount, onValueChange = vm::setAmountInput)
 
             Spacer(Modifier.height(20.dp))
-            Text(stringResource(R.string.label_category), style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(stringResource(R.string.label_category), style = MaterialTheme.typography.titleSmall)
+                if (vm.autoSuggestedCategory != null) {
+                    Text(
+                        text = "✨ 智能匹配: ${vm.autoSuggestedCategory}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    )
+                } else if (vm.isCategoryManuallyChosen && !vm.isEdit) {
+                    Text(
+                        text = "重置智能匹配",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { vm.resetManualCategory() }
+                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                    )
+                }
+            }
             Spacer(Modifier.height(10.dp))
             CategoryGrid(
                 categories = vm.categoryList,
                 selected = vm.category,
-                onSelect = { vm.category = it },
+                onSelect = { vm.selectCategoryManually(it) },
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = vm.merchant,
-                onValueChange = { vm.merchant = it },
+                onValueChange = { vm.setMerchantInput(it) },
                 label = { Text(stringResource(R.string.field_merchant)) },
                 shape = fieldShape,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AppleBlue,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 ),
                 modifier = Modifier.fillMaxWidth(),
@@ -134,15 +183,48 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = vm.note,
-                onValueChange = { vm.note = it },
+                onValueChange = { vm.setNoteInput(it) },
                 label = { Text(stringResource(R.string.field_note)) },
                 shape = fieldShape,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AppleBlue,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            val candidateKeyword = vm.merchant.trim().ifEmpty { vm.note.trim() }
+            if (candidateKeyword.isNotEmpty()) {
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .clickable { vm.saveAsRule = !vm.saveAsRule }
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                        Text(
+                            text = "记住为自动分类规则",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = "包含「$candidateKeyword」将自动归为「${vm.category}」",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(
+                        checked = vm.saveAsRule,
+                        onCheckedChange = { vm.saveAsRule = it },
+                    )
+                }
+            }
+
 
             vm.errorMessageRes?.let {
                 Spacer(Modifier.height(8.dp))
@@ -354,10 +436,10 @@ private fun CategoryCell(
         modifier = modifier
             .then(scale)
             .clip(RoundedCornerShape(18.dp))
-            .background(if (selected) AppleBlue.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
+            .background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
             .then(
                 if (selected) {
-                    Modifier.border(1.dp, AppleBlue.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+                    Modifier.border(1.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(18.dp))
                 } else {
                     Modifier
                 }
@@ -372,7 +454,8 @@ private fun CategoryCell(
             text = name,
             fontSize = 12.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (selected) AppleBlue else MaterialTheme.colorScheme.onSurface,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
         )
     }
+
 }

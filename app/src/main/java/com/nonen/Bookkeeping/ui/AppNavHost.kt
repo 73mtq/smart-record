@@ -89,7 +89,14 @@ fun AppNavHost() {
             val txId = entry.arguments?.getLong("txId") ?: 0L
             val vm: AddEditViewModel = viewModel(
                 key = "add_edit_$txId",
-                factory = vmFactory { AddEditViewModel(container.transactionRepository, txId) },
+                factory = vmFactory {
+                    AddEditViewModel(
+                        repo = container.transactionRepository,
+                        ruleEngine = container.ruleEngine,
+                        ruleRepo = container.ruleRepository,
+                        txId = txId,
+                    )
+                },
             )
             AddEditScreen(vm = vm, onBack = { nav.popBackStack() })
         }
@@ -100,7 +107,14 @@ fun AppNavHost() {
         }
 
         composable(Routes.RULES) {
-            val vm: RulesViewModel = viewModel(factory = vmFactory { RulesViewModel(container.ruleRepository) })
+            val vm: RulesViewModel = viewModel(
+                factory = vmFactory {
+                    RulesViewModel(
+                        ruleRepo = container.ruleRepository,
+                        ruleEngine = container.ruleEngine,
+                    )
+                },
+            )
             RulesScreen(vm = vm, onBack = { nav.popBackStack() })
         }
     }

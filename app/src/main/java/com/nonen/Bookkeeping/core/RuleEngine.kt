@@ -52,22 +52,24 @@ class RuleEngine(
         platformCategory = platformCategory,
     )
 
+    data class MatchDetail(
+        val category: String,
+        val levelName: String,
+        val matchedRule: String?,
+    )
+
     companion object {
 
         /**
-         * 分类优先链的纯函数实现（无 IO，便于单测覆盖各层与层间覆盖关系）。
-         *
-         * @param text 用于关键词匹配的文本（商户 + 备注）
-         * @param merchant 原始商户名，用于商户记忆匹配（内部会归一化）
-         * @param platformCategory 平台自带分类值（支付宝「交易分类」/ 微信「交易类型」）
+         * 分类优先链匹配并附带详细层级结果（供规则测试演练场与调试使用）。
          */
-        fun classify(
+        fun classifyDetail(
             text: String?,
             isIncome: Boolean,
             rules: CategorizationRules,
             merchant: String? = null,
             platformCategory: String? = null,
-        ): String {
+        ): MatchDetail {
             val fallback = if (isIncome) Categories.OTHER_INCOME else Categories.OTHER_EXPENSE
             val allowed = PlatformCategories.allowedCategories(isIncome)
 
@@ -79,7 +81,7 @@ class RuleEngine(
                         it.category in allowed &&
                         MerchantKey.matches(it.merchantKey, merchantKey)
                 }
-                if (hit != null) return hit.category
+                if (hit != null) return MatchDetail(hit.category, "商户记忆", hit.merchantKey)
             }
 
             val body = text.orEmpty()
@@ -88,21 +90,40 @@ class RuleEngine(
 
             // 2. 自定义关键词（用户显式配置，先于平台分类）
             if (body.isNotBlank()) {
-                custom.forEach { if (body.contains(it.keyword, ignoreCase = true)) return it.category }
+                custom.forEach {
+                    if (body.contains(it.keyword, ignoreCase = true)) {
+                        return MatchDetail(it.category, "自定义规则", it.keyword)
+                    }
+                }
             }
 
             // 3. 平台自带分类
             PlatformCategories.resolve(platformCategory, isIncome)
                 ?.takeIf { it in allowed }
-                ?.let { return it }
+                ?.let { return MatchDetail(it, "平台分类", platformCategory) }
 
             // 4. 内置关键词
             if (body.isNotBlank()) {
-                builtin.forEach { if (body.contains(it.keyword, ignoreCase = true)) return it.category }
+                builtin.forEach {
+                    if (body.contains(it.keyword, ignoreCase = true)) {
+                        return MatchDetail(it.category, "内置规则", it.keyword)
+                    }
+                }
             }
 
-            return fallback
+            return MatchDetail(fallback, "兜底分类", null)
         }
+
+        /**
+         * 分类优先链的纯函数实现（无 IO，便于单测覆盖各层与层间覆盖关系）。
+         */
+        fun classify(
+            text: String?,
+            isIncome: Boolean,
+            rules: CategorizationRules,
+            merchant: String? = null,
+            platformCategory: String? = null,
+        ): String = classifyDetail(text, isIncome, rules, merchant, platformCategory).category
 
         /**
          * 仅关键词匹配（自定义优先于内置），不含商户记忆与平台分类。

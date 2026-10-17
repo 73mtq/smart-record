@@ -16,6 +16,40 @@ import org.w3c.dom.Element
  */
 object XlsxSupport {
 
+    fun readAnyTable(bytes: ByteArray): List<List<String?>> {
+        if (bytes.size >= 4 &&
+            bytes[0] == 0xD0.toByte() && bytes[1] == 0xCF.toByte() &&
+            bytes[2] == 0x11.toByte() && bytes[3] == 0xE0.toByte()
+        ) {
+            return readXlsSheet(bytes)
+        }
+        return readFirstSheet(bytes)
+    }
+
+    /** 读取 BIFF8 格式的 .xls 文件首个工作表 */
+    fun readXlsSheet(bytes: ByteArray): List<List<String?>> {
+        val wb = jxl.Workbook.getWorkbook(ByteArrayInputStream(bytes))
+        return try {
+            if (wb.numberOfSheets == 0) return emptyList()
+            val sheet = wb.getSheet(0)
+            val numRows = sheet.rows
+            val numCols = sheet.columns
+            val rowsOut = ArrayList<List<String?>>(numRows)
+            for (r in 0 until numRows) {
+                val row = ArrayList<String?>(numCols)
+                for (c in 0 until numCols) {
+                    val cell = sheet.getCell(c, r)
+                    val str = cell.contents?.trim()
+                    row.add(str?.ifBlank { null })
+                }
+                rowsOut.add(row)
+            }
+            rowsOut
+        } finally {
+            wb.close()
+        }
+    }
+
     fun readFirstSheet(bytes: ByteArray): List<List<String?>> {
         var shared: List<String> = emptyList()
         var sheet1Xml: String? = null

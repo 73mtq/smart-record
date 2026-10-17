@@ -71,7 +71,7 @@ internal fun SubFilterBar(options: List<String>, selectedIndex: Int?, onSelect: 
             .padding(4.dp),
     ) {
         options.forEachIndexed { idx, label ->
-            val selected = selectedIndex != null && (if (idx == 0) selectedIndex == null else selectedIndex == idx)
+            val selected = if (selectedIndex == null) idx == 0 else selectedIndex == idx
             Box(
                 Modifier
                     .clip(RoundedCornerShape(12.dp))
@@ -374,8 +374,20 @@ internal fun RankCard(c: CategoryStat, color: Color) {
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
                 )
+                if (c.category in Categories.incomeCategories) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = Categories.incomeGroupOf(c.category).displayName,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
+                Spacer(Modifier.weight(1f))
                 Text(
                     "¥${formatPlainAmount(c.amount)}",
                     fontSize = 15.sp,
@@ -383,6 +395,7 @@ internal fun RankCard(c: CategoryStat, color: Color) {
                     color = color,
                 )
             }
+
             Spacer(Modifier.height(10.dp))
             val progress by animateFloatAsState(
                 targetValue = c.percent.coerceIn(0.02f, 1f),

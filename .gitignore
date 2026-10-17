@@ -21,3 +21,9 @@
 
 # 本地构建产物
 /app/release/
+
+# 工作区状态与参考产物
+work/
+reference_apk/
+参考导出账单excel/
+

@@ -316,13 +316,14 @@ private fun StatsHeaderSection(
 
         if (stats.categories.isNotEmpty()) {
             Text(
-                stringResource(R.string.stats_rank_title),
+                if (vm.isIncome) "收入来源构成（钱从哪来）" else stringResource(R.string.stats_rank_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             )
         }
     }
 }
+
 
 /**
  * 自定义区间的起止日期选择。

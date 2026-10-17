@@ -134,4 +134,25 @@ class ClassifyChainTest {
         assertEquals("其他", RuleEngine.classify("", false, r, merchant = null))
         assertEquals("其他", RuleEngine.classify("", false, r, merchant = "   "))
     }
+
+    @Test
+    fun `living expenses and scholarships match with priority`() {
+        val r = rules(
+            rules = listOf(
+                builtin("妈妈转账", "生活费"),
+                builtin("生活费", "生活费"),
+                builtin("国家奖学金", "奖学金"),
+                builtin("奖学金", "奖学金"),
+                builtin("转账", "其他收入"),
+            ),
+        )
+        // 妈妈转账先于泛词转账命中生活费
+        assertEquals("生活费", RuleEngine.classify("妈妈转账2000元", true, r))
+        assertEquals("生活费", RuleEngine.classify("本月生活费已到账", true, r))
+        assertEquals("奖学金", RuleEngine.classify("国家奖学金8000到账", true, r))
+        assertEquals("奖学金", RuleEngine.classify("校级优秀奖学金", true, r))
+        // 泛词转账兜底
+        assertEquals("其他收入", RuleEngine.classify("朋友普通转账", true, r))
+    }
 }
+

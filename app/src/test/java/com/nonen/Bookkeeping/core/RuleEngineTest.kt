@@ -96,10 +96,55 @@ class RuleEngineTest {
         assertEquals("金融", cat("银行罚款滞纳金"))
         assertEquals("服饰美容", cat("优衣库换季服装"))
         assertEquals("人情", cat("婚礼随礼"))
+        assertEquals("餐饮", cat("晚饭吃抄手"))
+        assertEquals("餐饮", cat("午饭两荤一素"))
+        assertEquals("餐饮", cat("早饭包子豆浆"))
+        assertEquals("居住", cat("在宿舍洗衣服"))
+        assertEquals("居住", cat("洗澡刷水卡"))
+        assertEquals("居住", cat("宿舍空调费分摊"))
+        assertEquals("交通", cat("校区班车车票"))
+        assertEquals("教育", cat("打印期末复习学习资料"))
+        assertEquals("教育", cat("蓝桥比赛报名费"))
         // 收入方向
         assertEquals("工资", cat("XX公司工资代发", income = true))
         assertEquals("兼职", cat("劳务报酬结算", income = true))
+        assertEquals("兼职", cat("期末监考费发放", income = true))
+        assertEquals("其他收入", cat("闲置卖书收入", income = true))
         assertEquals("理财", cat("余额宝收益发放", income = true))
         assertEquals("红包", cat("收到微信红包", income = true))
+        assertEquals("生活费", cat("妈妈微信转账生活费2000", income = true))
+        assertEquals("生活费", cat("爸爸转账", income = true))
+        assertEquals("生活费", cat("生活补助到账", income = true))
+        assertEquals("奖学金", cat("2026学年国家奖学金", income = true))
+        assertEquals("奖学金", cat("高校助学金拨款", income = true))
+    }
+
+    @Test
+    fun `classifyDetail returns correct level and matched rule`() {
+        val rules = CategorizationRules(
+            rules = listOf(
+                rule("晚饭", "餐饮", custom = false),
+                rule("特长班", "教育", custom = true),
+            ),
+            merchants = emptyList(),
+        )
+        // 1. 自定义规则优先
+        val customDetail = RuleEngine.classifyDetail("报名了少儿特长班", isIncome = false, rules)
+        assertEquals("教育", customDetail.category)
+        assertEquals("自定义规则", customDetail.levelName)
+        assertEquals("特长班", customDetail.matchedRule)
+
+        // 2. 内置规则
+        val builtinDetail = RuleEngine.classifyDetail("晚上和室友去吃晚饭", isIncome = false, rules)
+        assertEquals("餐饮", builtinDetail.category)
+        assertEquals("内置规则", builtinDetail.levelName)
+        assertEquals("晚饭", builtinDetail.matchedRule)
+
+        // 3. 兜底分类
+        val fallbackDetail = RuleEngine.classifyDetail("火星探测器购买", isIncome = false, rules)
+        assertEquals("其他", fallbackDetail.category)
+        assertEquals("兜底分类", fallbackDetail.levelName)
+        assertEquals(null, fallbackDetail.matchedRule)
     }
 }
+
