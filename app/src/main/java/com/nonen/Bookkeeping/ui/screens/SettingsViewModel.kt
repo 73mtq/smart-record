@@ -192,10 +192,14 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                                         isIncome = row.isIncome,
                                         merchant = row.merchant,
                                     ),
+                                subCategory = row.subCategory,
                                 note = row.note,
                                 merchant = row.merchant,
                                 timestamp = timestamp,
                                 source = source,
+                                account = row.account,
+                                tag = row.tag,
+                                transactionType = if (row.refund != null && row.refund.isNotBlank()) "REFUND" else (if (row.isIncome) "INCOME" else "EXPENSE"),
                                 hash = row.hash
                                     ?: HashUtil.transactionHash(timestamp, signed, row.merchant, source),
                             )

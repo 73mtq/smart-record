@@ -33,8 +33,14 @@ class AddEditViewModel(
         private set
     var amount by mutableStateOf("")
     var category by mutableStateOf(Categories.expenseCategories.first())
+    var subCategory by mutableStateOf("")
     var note by mutableStateOf("")
     var merchant by mutableStateOf("")
+    var account by mutableStateOf(Categories.defaultAccounts.first())
+    var tag by mutableStateOf("")
+    var transactionType by mutableStateOf("EXPENSE")
+    var refundOriginalId by mutableStateOf<Long?>(null)
+    var targetAccount by mutableStateOf(Categories.defaultAccounts.getOrElse(1) { "支付宝" })
     var timestamp by mutableLongStateOf(System.currentTimeMillis())
     var saveAsRule by mutableStateOf(false)
     var loading by mutableStateOf(txId != 0L)
@@ -59,6 +65,23 @@ class AddEditViewModel(
     val categoryList: List<String>
         get() = if (isIncome) Categories.incomeCategories else Categories.expenseCategories
 
+    val notePlaceholder: String
+        get() = when (category) {
+            "餐饮" -> "输入餐厅名称、商圈或外卖平台"
+            "软件服务" -> "输入服务商、充值额度或订阅期限"
+            "教育" -> "输入培训项目、考试科目或资料名称"
+            "交通" -> "输入起止地点、共享单车平台或车次"
+            "医疗" -> "输入就诊项目、药品名称或视力矫正"
+            "娱乐" -> "输入影院、游戏名称或活动项目"
+            else -> "备注（可选）"
+        }
+
+    val repeatedNoteWarning: Boolean
+        get() = category == "餐饮" && note.trim() in setOf("早饭", "午饭", "晚饭", "早餐", "午餐", "晚餐")
+
+    val largeExpenseWarning: Boolean
+        get() = !isIncome && (amount.toDoubleOrNull() ?: 0.0) >= 100.0 && note.isBlank()
+
     init {
         if (txId != 0L) {
             viewModelScope.launch {
@@ -69,8 +92,14 @@ class AddEditViewModel(
                     isIncome = t.amount > 0
                     amount = String.format(Locale.US, "%.2f", kotlin.math.abs(t.amount))
                     category = t.category
+                    subCategory = t.subCategory.orEmpty()
                     note = t.note.orEmpty()
                     merchant = t.merchant.orEmpty()
+                    account = t.account ?: Categories.defaultAccounts.first()
+                    tag = t.tag.orEmpty()
+                    transactionType = t.transactionType
+                    refundOriginalId = t.refundOriginalId
+                    targetAccount = t.targetAccount ?: Categories.defaultAccounts.getOrElse(1) { "支付宝" }
                     timestamp = t.timestamp
                     isCategoryManuallyChosen = true
                 }
@@ -193,8 +222,14 @@ class AddEditViewModel(
                 val updated = existing.copy(
                     amount = if (isIncome) value else -value,
                     category = category,
+                    subCategory = subCategory.trim().ifEmpty { null },
                     note = note.trim().ifEmpty { null },
                     merchant = merchant.trim().ifEmpty { null },
+                    account = account.trim().ifEmpty { null },
+                    tag = tag.trim().ifEmpty { null },
+                    transactionType = if (isIncome) "INCOME" else "EXPENSE",
+                    refundOriginalId = refundOriginalId,
+                    targetAccount = targetAccount.trim().ifEmpty { null },
                     timestamp = timestamp,
                 )
                 repo.update(updated)
@@ -206,8 +241,14 @@ class AddEditViewModel(
                 val entity = TransactionEntity(
                     amount = signed,
                     category = category,
+                    subCategory = subCategory.trim().ifEmpty { null },
                     note = note.trim().ifEmpty { null },
                     merchant = m,
+                    account = account.trim().ifEmpty { null },
+                    tag = tag.trim().ifEmpty { null },
+                    transactionType = if (isIncome) "INCOME" else "EXPENSE",
+                    refundOriginalId = refundOriginalId,
+                    targetAccount = targetAccount.trim().ifEmpty { null },
                     timestamp = timestamp,
                     source = "manual",
                     hash = HashUtil.transactionHash(timestamp, signed, m, "manual"),

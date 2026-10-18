@@ -39,10 +39,15 @@ object StatsCalculator {
         val bucketTotals = HashMap<Int, Double>()
         val catAmount = HashMap<String, Double>()
         val catCount = HashMap<String, Int>()
+        val tagAmount = HashMap<String, Double>()
+        val tagCount = HashMap<String, Int>()
 
         for (t in fetch(startMillis(start), endMillis(end))) {
             if (!signMatch(t.amount)) continue
             val v = abs(t.amount)
+            if (query.excludeOutliers && !query.isIncome && v >= 1000.0) continue
+            if (query.tagFilter != null && t.tag != query.tagFilter) continue
+
             total += v
             count++
             val d = localDateOf(t.timestamp, zone)
@@ -54,6 +59,11 @@ object StatsCalculator {
             if (bIdx >= 0) bucketTotals[bIdx] = (bucketTotals[bIdx] ?: 0.0) + v
             catAmount[t.category] = (catAmount[t.category] ?: 0.0) + v
             catCount[t.category] = (catCount[t.category] ?: 0) + 1
+
+            if (!t.tag.isNullOrBlank()) {
+                tagAmount[t.tag] = (tagAmount[t.tag] ?: 0.0) + v
+                tagCount[t.tag] = (tagCount[t.tag] ?: 0) + 1
+            }
         }
 
         // 趋势分桶：年(整年)/超长自定义 → 按月；年+选月 → 按日；周/月切片 → 7 天；其余 → 按日
@@ -105,7 +115,11 @@ object StatsCalculator {
             .map { (c, v) -> CategoryStat(c, v, catCount[c] ?: 0, if (total > 0) (v / total).toFloat() else 0f) }
             .sortedByDescending { it.amount }
 
-        return StatsData(range.title, total, count, prevTotal, total / days, buckets, categories)
+        val tags = tagAmount.entries
+            .map { (tag, v) -> CategoryStat(tag, v, tagCount[tag] ?: 0, if (total > 0) (v / total).toFloat() else 0f) }
+            .sortedByDescending { it.amount }
+
+        return StatsData(range.title, total, count, prevTotal, total / days, buckets, categories, tags)
     }
 
     /** 解析后的统计区间 */

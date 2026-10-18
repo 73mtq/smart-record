@@ -10,9 +10,13 @@ data class BackupRow(
     /** 类型列缺失/非法时为 false，按失败行计 */
     val typeValid: Boolean = true,
     val category: String? = null,
+    val subCategory: String? = null,
     val merchant: String? = null,
     val note: String? = null,
     val source: String? = null,
+    val account: String? = null,
+    val tag: String? = null,
+    val refund: String? = null,
     /** 导出时的去重哈希，原样回灌保证「导出→导入」幂等 */
     val hash: String? = null,
 )
@@ -47,9 +51,13 @@ object BackupExcelParser {
                 "生活费", "补贴" -> return "生活费"
                 "奖学金" -> return "奖学金"
                 "工资" -> return "工资"
-                "兼职" -> return "兼职"
+                "兼职", "兼职劳务", "监考费" -> return "兼职"
                 "退款" -> return "退款"
                 "理财" -> return if (isIncome) "理财" else "金融"
+                "软件服务", "AI/API", "云服务", "会员订阅" -> return "软件服务"
+                "闲置出售", "卖书", "转卖" -> return "闲置出售"
+                "平台收益" -> return "平台收益"
+                "退税" -> return "退税"
             }
         }
         if (m.isNotEmpty()) {
@@ -63,6 +71,7 @@ object BackupExcelParser {
                 "健康医疗" -> return "医疗"
                 "文化教育" -> return "教育"
                 "送礼人情" -> return "人情"
+                "软件服务" -> return "软件服务"
                 "收入" -> return if (s.isNotBlank()) s else "其他收入"
             }
         }
@@ -105,6 +114,8 @@ object BackupExcelParser {
         val cMerchant = col(BackupExporter.HEADER_MERCHANT, "商户")
         val cNote = col("备注", BackupExporter.HEADER_NOTE)
         val cAccount = col("账户", BackupExporter.HEADER_SOURCE, "来源")
+        val cRefund = col("退款")
+        val cTag = col("标签")
         val cHash = col("其他", BackupExporter.HEADER_HASH, "校验码")
 
         if (cTime < 0 || cType < 0 || cAmount < 0) return null
@@ -142,8 +153,10 @@ object BackupExcelParser {
                 val explicitMerchant = if (cMerchant >= 0) row.getOrNull(cMerchant)?.trim()?.ifBlank { null } else null
                 val merchant = explicitMerchant ?: otherMerchant
                 val note = if (cNote >= 0) row.getOrNull(cNote)?.trim()?.ifBlank { null } else null
-                val rawSource = if (cAccount >= 0) row.getOrNull(cAccount)?.trim()?.ifBlank { null } else null
-                val source = mapAccountToSource(rawSource)
+                val rawAccount = if (cAccount >= 0) row.getOrNull(cAccount)?.trim()?.ifBlank { null } else null
+                val source = mapAccountToSource(rawAccount)
+                val rawRefund = if (cRefund >= 0) row.getOrNull(cRefund)?.trim()?.ifBlank { null } else null
+                val rawTag = if (cTag >= 0) row.getOrNull(cTag)?.trim()?.ifBlank { null } else null
 
                 val timestamp = CsvSupport.parseFlexibleTimestamp(row.getOrNull(cTime))
 
@@ -158,9 +171,13 @@ object BackupExcelParser {
                     isIncome = isIncome,
                     typeValid = typeValid,
                     category = finalCategory,
+                    subCategory = subCategory,
                     merchant = merchant,
                     note = note,
                     source = source,
+                    account = rawAccount,
+                    tag = rawTag,
+                    refund = rawRefund,
                     hash = hash,
                 )
             }

@@ -58,6 +58,15 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
     suspend fun getAll(): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions WHERE parentCategoryId IS NULL ORDER BY id ASC")
+    suspend fun getUnmigratedCategories(): List<TransactionEntity>
+
+    @Query("UPDATE transactions SET parentCategoryId = :parentCategoryId, childCategoryId = :childCategoryId WHERE id = :id")
+    suspend fun updateCategoryIds(id: Long, parentCategoryId: Int, childCategoryId: Int?)
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE parentCategoryId IS NULL")
+    suspend fun countUnmigrated(): Int
 }
 
 @Dao

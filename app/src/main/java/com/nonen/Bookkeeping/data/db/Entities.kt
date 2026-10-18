@@ -9,6 +9,10 @@ import androidx.room.PrimaryKey
     indices = [
         Index("timestamp"),
         Index("category"),
+        Index("account"),
+        Index("tag"),
+        Index("assetId"),
+        Index("bookId"),
         Index(value = ["hash"], unique = true),
     ],
 )
@@ -17,11 +21,25 @@ data class TransactionEntity(
     /** 金额：正数为收入，负数为支出 */
     val amount: Double,
     val category: String,
+    val subCategory: String? = null,
     val note: String? = null,
     val merchant: String? = null,
     val timestamp: Long,
     /** 来源：manual / wechat / alipay / auto */
     val source: String,
+    val account: String? = null,
+    val tag: String? = null,
+    val transactionType: String = if (amount >= 0) "INCOME" else "EXPENSE",
+    val refundOriginalId: Long? = null,
+    val targetAccount: String? = null,
+    /** 关联资产账户 ID（默认 1L 对应默认现金账户） */
+    val assetId: Long = 1L,
+    /** 关联账本 ID（默认 1L 对应默认账本） */
+    val bookId: Long = 1L,
+    /** 关联一级分类 ID（可选） */
+    val parentCategoryId: Int? = null,
+    /** 关联二级分类 ID（可选） */
+    val childCategoryId: Int? = null,
     /** 原始数据（JSON，便于回溯） */
     val rawData: String? = null,
     /** 去重哈希：MD5(时间 + 金额 + 商户 + 来源)，唯一 */

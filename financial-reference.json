@@ -1,0 +1,1749 @@
+{
+  "apk": {
+    "package_name": "com.wangc.bill",
+    "version_name": "6.1.8",
+    "version_code": 378,
+    "sha256": "e5ec945aa290c6f66fcd43c3f4307eebc5c7796d188e41895dcdf7fed599f8fd"
+  },
+  "database_framework": {
+    "engine": "LitePal",
+    "db_name": "Custom",
+    "db_version": 2707,
+    "evidence_source": "assets/litepal.xml",
+    "total_mappings": 82
+  },
+  "scope_decisions": {
+    "architecture_pattern": "dedicated_room_tables",
+    "amount_precision_storage": "Double",
+    "migration_strategy": "in_place_smooth_migration",
+    "state_machine_coverage": "5_dimensional_matrix",
+    "excluded_domains": [
+      "Loan"
+    ]
+  },
+  "entities": {
+    "Bill": {
+      "className": "com.wangc.bill.database.entity.Bill",
+      "evidence_id": "ev_c6379d7d2adf192330cf38b56d9564191235f5a06cea38d327bc78350b4d8594",
+      "totalFields": 33,
+      "fields": [
+        {
+          "name": "CREATOR",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_AI",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_AUTO",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_CYCLE",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_IMPORT",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_MANUAL",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_MODULE",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "assetId",
+          "type": "long",
+          "getter": "getAssetId",
+          "setter": "setAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "billId",
+          "type": "int",
+          "getter": "getBillId",
+          "setter": "setBillId",
+          "isStatic": false
+        },
+        {
+          "name": "billShareInfo",
+          "type": "java.lang.String",
+          "getter": "getBillShareInfo",
+          "setter": "setBillShareInfo",
+          "isStatic": false
+        },
+        {
+          "name": "billType",
+          "type": "int",
+          "getter": "getBillType",
+          "setter": "setBillType",
+          "isStatic": false
+        },
+        {
+          "name": "bookId",
+          "type": "long",
+          "getter": "getBookId",
+          "setter": "setBookId",
+          "isStatic": false
+        },
+        {
+          "name": "childCategoryId",
+          "type": "int",
+          "getter": "getChildCategoryId",
+          "setter": "setChildCategoryId",
+          "isStatic": false
+        },
+        {
+          "name": "cost",
+          "type": "double",
+          "getter": "getCost",
+          "setter": "setCost",
+          "isStatic": false
+        },
+        {
+          "name": "currencyAssetNumber",
+          "type": "double",
+          "getter": "getCurrencyAssetNumber",
+          "setter": "setCurrencyAssetNumber",
+          "isStatic": false
+        },
+        {
+          "name": "currencyDiscountNumber",
+          "type": "double",
+          "getter": "getCurrencyDiscountNumber",
+          "setter": "setCurrencyDiscountNumber",
+          "isStatic": false
+        },
+        {
+          "name": "currencyInfo",
+          "type": "java.lang.String",
+          "getter": "getCurrencyInfo",
+          "setter": "setCurrencyInfo",
+          "isStatic": false
+        },
+        {
+          "name": "discountNumber",
+          "type": "double",
+          "getter": "getDiscountNumber",
+          "setter": "setDiscountNumber",
+          "isStatic": false
+        },
+        {
+          "name": "fromUserId",
+          "type": "int",
+          "getter": "getFromUserId",
+          "setter": "setFromUserId",
+          "isStatic": false
+        },
+        {
+          "name": "inAssetTime",
+          "type": "long",
+          "getter": "getInAssetTime",
+          "setter": "setInAssetTime",
+          "isStatic": false
+        },
+        {
+          "name": "notIntoBudget",
+          "type": "boolean",
+          "getter": "isNotIntoBudget",
+          "setter": "setNotIntoBudget",
+          "isStatic": false
+        },
+        {
+          "name": "notIntoTotal",
+          "type": "boolean",
+          "getter": "isNotIntoTotal",
+          "setter": "setNotIntoTotal",
+          "isStatic": false
+        },
+        {
+          "name": "parentCategoryId",
+          "type": "int",
+          "getter": "getParentCategoryId",
+          "setter": "setParentCategoryId",
+          "isStatic": false
+        },
+        {
+          "name": "poiAddress",
+          "type": "java.lang.String",
+          "getter": "getPoiAddress",
+          "setter": "setPoiAddress",
+          "isStatic": false
+        },
+        {
+          "name": "recordTime",
+          "type": "long",
+          "getter": "getRecordTime",
+          "setter": "setRecordTime",
+          "isStatic": false
+        },
+        {
+          "name": "reimbursement",
+          "type": "boolean",
+          "getter": "isReimbursement",
+          "setter": "setReimbursement",
+          "isStatic": false
+        },
+        {
+          "name": "reimbursementEnd",
+          "type": "boolean",
+          "getter": "isReimbursementEnd",
+          "setter": "setReimbursementEnd",
+          "isStatic": false
+        },
+        {
+          "name": "remark",
+          "type": "java.lang.String",
+          "getter": "getRemark",
+          "setter": "setRemark",
+          "isStatic": false
+        },
+        {
+          "name": "tags",
+          "type": "java.util.List<java.lang.Long>",
+          "getter": "getTags",
+          "setter": "setTags",
+          "isStatic": false
+        },
+        {
+          "name": "time",
+          "type": "long",
+          "getter": "getTime",
+          "setter": "setTime",
+          "isStatic": false
+        },
+        {
+          "name": "totalAddress",
+          "type": "java.lang.String",
+          "getter": "getTotalAddress",
+          "setter": "setTotalAddress",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "Asset": {
+      "className": "com.wangc.bill.database.entity.Asset",
+      "evidence_id": "ev_145186bcbd19b32cf5be19ea0cdcd898e15456301b0d70d6597808eeedaf70a3",
+      "totalFields": 25,
+      "fields": [
+        {
+          "name": "CREATOR",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "assetIcon",
+          "type": "java.lang.String",
+          "getter": "getAssetIcon",
+          "setter": "setAssetIcon",
+          "isStatic": false
+        },
+        {
+          "name": "assetId",
+          "type": "long",
+          "getter": "getAssetId",
+          "setter": "setAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "assetName",
+          "type": "java.lang.String",
+          "getter": "getAssetName",
+          "setter": "setAssetName",
+          "isStatic": false
+        },
+        {
+          "name": "assetNumber",
+          "type": "double",
+          "getter": "getAssetNumber",
+          "setter": "setAssetNumber",
+          "isStatic": false
+        },
+        {
+          "name": "assetType",
+          "type": "int",
+          "getter": "getAssetType",
+          "setter": "setAssetType",
+          "isStatic": false
+        },
+        {
+          "name": "bookId",
+          "type": "long",
+          "getter": "getBookId",
+          "setter": "setBookId",
+          "isStatic": false
+        },
+        {
+          "name": "cardCode",
+          "type": "java.lang.String",
+          "getter": "getCardCode",
+          "setter": "setCardCode",
+          "isStatic": false
+        },
+        {
+          "name": "currency",
+          "type": "java.lang.String",
+          "getter": "getCurrency",
+          "setter": "setCurrency",
+          "isStatic": false
+        },
+        {
+          "name": "groupName",
+          "type": "java.lang.String",
+          "getter": "getGroupName",
+          "setter": "setGroupName",
+          "isStatic": false
+        },
+        {
+          "name": "hide",
+          "type": "boolean",
+          "getter": "isHide",
+          "setter": "setHide",
+          "isStatic": false
+        },
+        {
+          "name": "iconUrlNight",
+          "type": "java.lang.String",
+          "getter": "getIconUrlNight",
+          "setter": "setIconUrlNight",
+          "isStatic": false
+        },
+        {
+          "name": "inAccountDate",
+          "type": "java.lang.String",
+          "getter": "getInAccountDate",
+          "setter": "setInAccountDate",
+          "isStatic": false
+        },
+        {
+          "name": "intoTotalAsset",
+          "type": "boolean",
+          "getter": "isIntoTotalAsset",
+          "setter": "setIntoTotalAsset",
+          "isStatic": false
+        },
+        {
+          "name": "outAccountDate",
+          "type": "java.lang.String",
+          "getter": "getOutAccountDate",
+          "setter": "setOutAccountDate",
+          "isStatic": false
+        },
+        {
+          "name": "outDayNotNext",
+          "type": "boolean",
+          "getter": "isOutDayNotNext",
+          "setter": "setOutDayNotNext",
+          "isStatic": false
+        },
+        {
+          "name": "positionWeight",
+          "type": "int",
+          "getter": "getPositionWeight",
+          "setter": "setPositionWeight",
+          "isStatic": false
+        },
+        {
+          "name": "reimAssetNumber",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "remark",
+          "type": "java.lang.String",
+          "getter": "getRemark",
+          "setter": "setRemark",
+          "isStatic": false
+        },
+        {
+          "name": "shareQuotaAsset",
+          "type": "long",
+          "getter": "getShareQuotaAsset",
+          "setter": "setShareQuotaAsset",
+          "isStatic": false
+        },
+        {
+          "name": "showBook",
+          "type": "java.util.List<java.lang.Long>",
+          "getter": "getShowBook",
+          "setter": "setShowBook",
+          "isStatic": false
+        },
+        {
+          "name": "simpleName",
+          "type": "java.lang.String",
+          "getter": "getSimpleName",
+          "setter": "setSimpleName",
+          "isStatic": false
+        },
+        {
+          "name": "totalQuota",
+          "type": "double",
+          "getter": "getTotalQuota",
+          "setter": "setTotalQuota",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "Transfer": {
+      "className": "com.wangc.bill.database.entity.Transfer",
+      "evidence_id": "ev_ecf5c9124ba873f63e6b66df49958bf3abea529031faf0abbc2262288b47a84d",
+      "totalFields": 12,
+      "fields": [
+        {
+          "name": "billId",
+          "type": "int",
+          "getter": "getBillId",
+          "setter": "setBillId",
+          "isStatic": false
+        },
+        {
+          "name": "cost",
+          "type": "double",
+          "getter": "getCost",
+          "setter": "setCost",
+          "isStatic": false
+        },
+        {
+          "name": "fromAssetId",
+          "type": "long",
+          "getter": "getFromAssetId",
+          "setter": "setFromAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "remark",
+          "type": "java.lang.String",
+          "getter": "getRemark",
+          "setter": "setRemark",
+          "isStatic": false
+        },
+        {
+          "name": "serviceCharge",
+          "type": "double",
+          "getter": "getServiceCharge",
+          "setter": "setServiceCharge",
+          "isStatic": false
+        },
+        {
+          "name": "tags",
+          "type": "java.util.List<java.lang.Long>",
+          "getter": "getTags",
+          "setter": "setTags",
+          "isStatic": false
+        },
+        {
+          "name": "time",
+          "type": "long",
+          "getter": "getTime",
+          "setter": "setTime",
+          "isStatic": false
+        },
+        {
+          "name": "toAssetId",
+          "type": "long",
+          "getter": "getToAssetId",
+          "setter": "setToAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "toCost",
+          "type": "double",
+          "getter": "getToCost",
+          "setter": "setToCost",
+          "isStatic": false
+        },
+        {
+          "name": "transferId",
+          "type": "long",
+          "getter": "getTransferId",
+          "setter": "setTransferId",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "Refund": {
+      "className": "com.wangc.bill.database.entity.Refund",
+      "evidence_id": "ev_ec4a06cdf2a71834137dea7a324aa0ef1a9b8e6746d23ff1e40363be179f12a4",
+      "totalFields": 6,
+      "fields": [
+        {
+          "name": "billId",
+          "type": "int",
+          "getter": "getBillId",
+          "setter": "setBillId",
+          "isStatic": false
+        },
+        {
+          "name": "refundId",
+          "type": "long",
+          "getter": "getRefundId",
+          "setter": "setRefundId",
+          "isStatic": false
+        },
+        {
+          "name": "refundInfos",
+          "type": "java.util.List<java.lang.String>",
+          "getter": "getRefundInfos",
+          "setter": "setRefundInfos",
+          "isStatic": false
+        },
+        {
+          "name": "refundNum",
+          "type": "double",
+          "getter": "getRefundNum",
+          "setter": "setRefundNum",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "Reimbursement": {
+      "className": "com.wangc.bill.database.entity.Reimbursement",
+      "evidence_id": "ev_390abb41b34264b7e65ccf168cbfac91488d67f1b35053e068750aa289daed14",
+      "totalFields": 10,
+      "fields": [
+        {
+          "name": "assetId",
+          "type": "long",
+          "getter": "getAssetId",
+          "setter": "setAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "billId",
+          "type": "int",
+          "getter": "getBillId",
+          "setter": "setBillId",
+          "isStatic": false
+        },
+        {
+          "name": "createTime",
+          "type": "long",
+          "getter": "getCreateTime",
+          "setter": "setCreateTime",
+          "isStatic": false
+        },
+        {
+          "name": "end",
+          "type": "boolean",
+          "getter": "isEnd",
+          "setter": "setEnd",
+          "isStatic": false
+        },
+        {
+          "name": "reimbursementAssetId",
+          "type": "long",
+          "getter": "getReimbursementAssetId",
+          "setter": "setReimbursementAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "reimbursementId",
+          "type": "long",
+          "getter": "getReimbursementId",
+          "setter": "setReimbursementId",
+          "isStatic": false
+        },
+        {
+          "name": "reimbursementNum",
+          "type": "double",
+          "getter": "getReimbursementNum",
+          "setter": "setReimbursementNum",
+          "isStatic": false
+        },
+        {
+          "name": "reimbursementNumbers",
+          "type": "java.util.List<java.lang.String>",
+          "getter": "getReimbursementNumbers",
+          "setter": "setReimbursementNumbers",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "Lend": {
+      "className": "com.wangc.bill.database.entity.Lend",
+      "evidence_id": "ev_e61cd039706f1b13206282f6487005dfe8a22be1a4ced497e0d9664169f438de",
+      "totalFields": 19,
+      "fields": [
+        {
+          "name": "BORROW",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "BORROW_REPAYMENT",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "LEND",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "LEND_COLLECTION",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "assetId",
+          "type": "long",
+          "getter": "getAssetId",
+          "setter": "setAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "billId",
+          "type": "int",
+          "getter": "getBillId",
+          "setter": "setBillId",
+          "isStatic": false
+        },
+        {
+          "name": "createTime",
+          "type": "long",
+          "getter": "getCreateTime",
+          "setter": "setCreateTime",
+          "isStatic": false
+        },
+        {
+          "name": "fromCost",
+          "type": "double",
+          "getter": "getFromCost",
+          "setter": "setFromCost",
+          "isStatic": false
+        },
+        {
+          "name": "generalServiceBill",
+          "type": "boolean",
+          "getter": "isGeneralServiceBill",
+          "setter": "setGeneralServiceBill",
+          "isStatic": false
+        },
+        {
+          "name": "inTime",
+          "type": "long",
+          "getter": "getInTime",
+          "setter": "setInTime",
+          "isStatic": false
+        },
+        {
+          "name": "interest",
+          "type": "double",
+          "getter": "getInterest",
+          "setter": "setInterest",
+          "isStatic": false
+        },
+        {
+          "name": "lendId",
+          "type": "int",
+          "getter": "getLendId",
+          "setter": "setLendId",
+          "isStatic": false
+        },
+        {
+          "name": "number",
+          "type": "double",
+          "getter": "getNumber",
+          "setter": "setNumber",
+          "isStatic": false
+        },
+        {
+          "name": "outTime",
+          "type": "long",
+          "getter": "getOutTime",
+          "setter": "setOutTime",
+          "isStatic": false
+        },
+        {
+          "name": "remark",
+          "type": "java.lang.String",
+          "getter": "getRemark",
+          "setter": "setRemark",
+          "isStatic": false
+        },
+        {
+          "name": "repaymentAssetId",
+          "type": "long",
+          "getter": "getRepaymentAssetId",
+          "setter": "setRepaymentAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "type",
+          "type": "int",
+          "getter": "getType",
+          "setter": "setType",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "Instalment": {
+      "className": "com.wangc.bill.database.entity.Instalment",
+      "evidence_id": "ev_3e18bc544be6ed22ad64b6aeb54ff1a021940fba4bc58b567c0f7aa83fd2556c",
+      "totalFields": 27,
+      "fields": [
+        {
+          "name": "INSTALMENT_TYPE_BILL",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "INSTALMENT_TYPE_HOME_LOAN",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "INSTALMENT_TYPE_REPAYMENT",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REMINDER_TYPE_END",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REMINDER_TYPE_FIRST",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REMINDER_TYPE_WITHOUT_END",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REMINDER_TYPE_WITHOUT_FIRST",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "SERVICE_TYPE_AVERAGE",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "SERVICE_TYPE_CORPUS",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "SERVICE_TYPE_FIRST",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "SERVICE_TYPE_INTEREST",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "SERVICE_TYPE_LAST",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "SERVICE_TYPE_NOW",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "accountMonth",
+          "type": "java.lang.String",
+          "getter": "getAccountMonth",
+          "setter": "setAccountMonth",
+          "isStatic": false
+        },
+        {
+          "name": "assetId",
+          "type": "long",
+          "getter": "getAssetId",
+          "setter": "setAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "billId",
+          "type": "int",
+          "getter": "getBillId",
+          "setter": "setBillId",
+          "isStatic": false
+        },
+        {
+          "name": "inAssetTime",
+          "type": "long",
+          "getter": "getInAssetTime",
+          "setter": "setInAssetTime",
+          "isStatic": false
+        },
+        {
+          "name": "instalmentId",
+          "type": "long",
+          "getter": "getInstalmentId",
+          "setter": "setInstalmentId",
+          "isStatic": false
+        },
+        {
+          "name": "instalmentType",
+          "type": "int",
+          "getter": "getInstalmentType",
+          "setter": "setInstalmentType",
+          "isStatic": false
+        },
+        {
+          "name": "periods",
+          "type": "int",
+          "getter": "getPeriods",
+          "setter": "setPeriods",
+          "isStatic": false
+        },
+        {
+          "name": "remainderType",
+          "type": "int",
+          "getter": "getRemainderType",
+          "setter": "setRemainderType",
+          "isStatic": false
+        },
+        {
+          "name": "selfInfo",
+          "type": "java.lang.String",
+          "getter": "getSelfInfo",
+          "setter": "setSelfInfo",
+          "isStatic": false
+        },
+        {
+          "name": "serviceNumber",
+          "type": "double",
+          "getter": "getServiceNumber",
+          "setter": "setServiceNumber",
+          "isStatic": false
+        },
+        {
+          "name": "serviceType",
+          "type": "int",
+          "getter": "getServiceType",
+          "setter": "setServiceType",
+          "isStatic": false
+        },
+        {
+          "name": "totalNumber",
+          "type": "double",
+          "getter": "getTotalNumber",
+          "setter": "setTotalNumber",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "Loan": {
+      "className": "com.wangc.bill.database.entity.Loan",
+      "evidence_id": "ev_7ac425dda1da14e9b81bef0e314d9ddd7079d446666204a7355f01172cdb8254",
+      "totalFields": 29,
+      "fields": [
+        {
+          "name": "CREATOR",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "EQUALITY_CORPUS",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "EQUALITY_INTEREST",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "INTEREST_FIXED",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "INTEREST_LPR",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REPRICING_CYCLE_FIVE",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REPRICING_CYCLE_ONE",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REPRICING_CYCLE_SIX_MONTH",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "REPRICING_CYCLE_THREE_MONTH",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_COMMERCIAL",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_GROUP",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_PROVIDENT_FUND",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "adjustInterestMonth",
+          "type": "int",
+          "getter": "getAdjustInterestMonth",
+          "setter": "setAdjustInterestMonth",
+          "isStatic": false
+        },
+        {
+          "name": "assetId",
+          "type": "long",
+          "getter": "getAssetId",
+          "setter": "setAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "commercialLoanInterest",
+          "type": "double",
+          "getter": "getCommercialLoanInterest",
+          "setter": "setCommercialLoanInterest",
+          "isStatic": false
+        },
+        {
+          "name": "commercialLoanNum",
+          "type": "double",
+          "getter": "getCommercialLoanNum",
+          "setter": "setCommercialLoanNum",
+          "isStatic": false
+        },
+        {
+          "name": "firstRepaymentTime",
+          "type": "long",
+          "getter": "getFirstRepaymentTime",
+          "setter": "setFirstRepaymentTime",
+          "isStatic": false
+        },
+        {
+          "name": "interestType",
+          "type": "int",
+          "getter": "getInterestType",
+          "setter": "setInterestType",
+          "isStatic": false
+        },
+        {
+          "name": "loanId",
+          "type": "long",
+          "getter": "getLoanId",
+          "setter": "setLoanId",
+          "isStatic": false
+        },
+        {
+          "name": "loanType",
+          "type": "int",
+          "getter": "getLoanType",
+          "setter": "setLoanType",
+          "isStatic": false
+        },
+        {
+          "name": "lprAddNum",
+          "type": "double",
+          "getter": "getLprAddNum",
+          "setter": "setLprAddNum",
+          "isStatic": false
+        },
+        {
+          "name": "periodsNum",
+          "type": "int",
+          "getter": "getPeriodsNum",
+          "setter": "setPeriodsNum",
+          "isStatic": false
+        },
+        {
+          "name": "providentFundLoanInterest",
+          "type": "double",
+          "getter": "getProvidentFundLoanInterest",
+          "setter": "setProvidentFundLoanInterest",
+          "isStatic": false
+        },
+        {
+          "name": "providentFundLoanNum",
+          "type": "double",
+          "getter": "getProvidentFundLoanNum",
+          "setter": "setProvidentFundLoanNum",
+          "isStatic": false
+        },
+        {
+          "name": "repaymentType",
+          "type": "int",
+          "getter": "getRepaymentType",
+          "setter": "setRepaymentType",
+          "isStatic": false
+        },
+        {
+          "name": "repricingCycleType",
+          "type": "int",
+          "getter": "getRepricingCycleType",
+          "setter": "setRepricingCycleType",
+          "isStatic": false
+        },
+        {
+          "name": "repricingDate",
+          "type": "java.lang.String",
+          "getter": "getRepricingDate",
+          "setter": "setRepricingDate",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "LoanCustomize": {
+      "className": "com.wangc.bill.database.entity.LoanCustomize",
+      "evidence_id": "ev_b5e4bb8ee7f67a7b72cad3d2c1c2bdb31d064a40b49641f8e2ff558380cf7fd0",
+      "totalFields": 11,
+      "fields": [
+        {
+          "name": "commercialLoanInterest",
+          "type": "double",
+          "getter": "getCommercialLoanInterest",
+          "setter": "setCommercialLoanInterest",
+          "isStatic": false
+        },
+        {
+          "name": "commercialLoanInterestNumber",
+          "type": "double",
+          "getter": "getCommercialLoanInterestNumber",
+          "setter": "setCommercialLoanInterestNumber",
+          "isStatic": false
+        },
+        {
+          "name": "commercialLoanPrincipal",
+          "type": "double",
+          "getter": "getCommercialLoanPrincipal",
+          "setter": "setCommercialLoanPrincipal",
+          "isStatic": false
+        },
+        {
+          "name": "loanCustomizeId",
+          "type": "long",
+          "getter": "getLoanCustomizeId",
+          "setter": "setLoanCustomizeId",
+          "isStatic": false
+        },
+        {
+          "name": "loanId",
+          "type": "long",
+          "getter": "getLoanId",
+          "setter": "setLoanId",
+          "isStatic": false
+        },
+        {
+          "name": "periods",
+          "type": "int",
+          "getter": "getPeriods",
+          "setter": "setPeriods",
+          "isStatic": false
+        },
+        {
+          "name": "providentFundLoanInterest",
+          "type": "double",
+          "getter": "getProvidentFundLoanInterest",
+          "setter": "setProvidentFundLoanInterest",
+          "isStatic": false
+        },
+        {
+          "name": "providentFundLoanInterestNumber",
+          "type": "double",
+          "getter": "getProvidentFundLoanInterestNumber",
+          "setter": "setProvidentFundLoanInterestNumber",
+          "isStatic": false
+        },
+        {
+          "name": "providentFundLoanPrincipal",
+          "type": "double",
+          "getter": "getProvidentFundLoanPrincipal",
+          "setter": "setProvidentFundLoanPrincipal",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "RepaymentClose": {
+      "className": "com.wangc.bill.database.entity.RepaymentClose",
+      "evidence_id": "ev_e661b394962ebc145513099e24b682edbd855f2bcdcc3423a53beec88834f84f",
+      "totalFields": 5,
+      "fields": [
+        {
+          "name": "TYPE_BILL_REPAYMENT",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_LOAN_REPAYMENT",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "repaymentKey",
+          "type": "java.lang.String",
+          "getter": "getRepaymentKey",
+          "setter": "setRepaymentKey",
+          "isStatic": false
+        },
+        {
+          "name": "repaymentType",
+          "type": "int",
+          "getter": "getRepaymentType",
+          "setter": "setRepaymentType",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "AssetFixedDeposit": {
+      "className": "com.wangc.bill.database.entity.AssetFixedDeposit",
+      "evidence_id": "ev_0f0af4124155bef5795be20e5667083ee651a7bd60270b014235f4528186e9ea",
+      "totalFields": 12,
+      "fields": [
+        {
+          "name": "CREATOR",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "assetId",
+          "type": "long",
+          "getter": "getAssetId",
+          "setter": "setAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "billId",
+          "type": "long",
+          "getter": "getBillId",
+          "setter": "setBillId",
+          "isStatic": false
+        },
+        {
+          "name": "depositNum",
+          "type": "double",
+          "getter": "getDepositNum",
+          "setter": "setDepositNum",
+          "isStatic": false
+        },
+        {
+          "name": "depositRate",
+          "type": "double",
+          "getter": "getDepositRate",
+          "setter": "setDepositRate",
+          "isStatic": false
+        },
+        {
+          "name": "depositTerm",
+          "type": "int",
+          "getter": "getDepositTerm",
+          "setter": "setDepositTerm",
+          "isStatic": false
+        },
+        {
+          "name": "fixedDepositId",
+          "type": "long",
+          "getter": "getFixedDepositId",
+          "setter": "setFixedDepositId",
+          "isStatic": false
+        },
+        {
+          "name": "remark",
+          "type": "java.lang.String",
+          "getter": "getRemark",
+          "setter": "setRemark",
+          "isStatic": false
+        },
+        {
+          "name": "startTime",
+          "type": "long",
+          "getter": "getStartTime",
+          "setter": "setStartTime",
+          "isStatic": false
+        },
+        {
+          "name": "termUnit",
+          "type": "java.lang.String",
+          "getter": "getTermUnit",
+          "setter": "setTermUnit",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    },
+    "StockAsset": {
+      "className": "com.wangc.bill.database.entity.StockAsset",
+      "evidence_id": "ev_ddec4e716ef140912d9eeee680d21915ed3aa828e3f0212bfb5836409d8443fb",
+      "totalFields": 27,
+      "fields": [
+        {
+          "name": "TYPE_FUND",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_FUTURE",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_SELF",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_STOCK_CN_LOCAL",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_STOCK_HK",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "TYPE_STOCK_USA",
+          "type": "unknown",
+          "getter": null,
+          "setter": null,
+          "isStatic": false
+        },
+        {
+          "name": "addBill",
+          "type": "boolean",
+          "getter": "isAddBill",
+          "setter": "setAddBill",
+          "isStatic": false
+        },
+        {
+          "name": "assetType",
+          "type": "int",
+          "getter": "getAssetType",
+          "setter": "setAssetType",
+          "isStatic": false
+        },
+        {
+          "name": "bookId",
+          "type": "long",
+          "getter": "getBookId",
+          "setter": "setBookId",
+          "isStatic": false
+        },
+        {
+          "name": "code",
+          "type": "java.lang.String",
+          "getter": "getCode",
+          "setter": "setCode",
+          "isStatic": false
+        },
+        {
+          "name": "groupName",
+          "type": "java.lang.String",
+          "getter": "getGroupName",
+          "setter": "setGroupName",
+          "isStatic": false
+        },
+        {
+          "name": "hide",
+          "type": "boolean",
+          "getter": "isHide",
+          "setter": "setHide",
+          "isStatic": false
+        },
+        {
+          "name": "historyIncome",
+          "type": "double",
+          "getter": "getHistoryIncome",
+          "setter": "setHistoryIncome",
+          "isStatic": false
+        },
+        {
+          "name": "intoTotalAsset",
+          "type": "boolean",
+          "getter": "isIntoTotalAsset",
+          "setter": "setIntoTotalAsset",
+          "isStatic": false
+        },
+        {
+          "name": "lastSyncTime",
+          "type": "long",
+          "getter": "getLastSyncTime",
+          "setter": "setLastSyncTime",
+          "isStatic": false
+        },
+        {
+          "name": "monetary",
+          "type": "boolean",
+          "getter": "isMonetary",
+          "setter": "setMonetary",
+          "isStatic": false
+        },
+        {
+          "name": "name",
+          "type": "java.lang.String",
+          "getter": "getName",
+          "setter": "setName",
+          "isStatic": false
+        },
+        {
+          "name": "offsetNum",
+          "type": "double",
+          "getter": "getOffsetNum",
+          "setter": "setOffsetNum",
+          "isStatic": false
+        },
+        {
+          "name": "positionWeight",
+          "type": "int",
+          "getter": "getPositionWeight",
+          "setter": "setPositionWeight",
+          "isStatic": false
+        },
+        {
+          "name": "primeCost",
+          "type": "double",
+          "getter": "getPrimeCost",
+          "setter": "setPrimeCost",
+          "isStatic": false
+        },
+        {
+          "name": "primeNum",
+          "type": "double",
+          "getter": "getPrimeNum",
+          "setter": "setPrimeNum",
+          "isStatic": false
+        },
+        {
+          "name": "remark",
+          "type": "java.lang.String",
+          "getter": "getRemark",
+          "setter": "setRemark",
+          "isStatic": false
+        },
+        {
+          "name": "showBook",
+          "type": "java.util.List<java.lang.Long>",
+          "getter": "getShowBook",
+          "setter": "setShowBook",
+          "isStatic": false
+        },
+        {
+          "name": "stockAssetId",
+          "type": "long",
+          "getter": "getStockAssetId",
+          "setter": "setStockAssetId",
+          "isStatic": false
+        },
+        {
+          "name": "upDownToTotal",
+          "type": "boolean",
+          "getter": "isUpDownToTotal",
+          "setter": "setUpDownToTotal",
+          "isStatic": false
+        },
+        {
+          "name": "updateTime",
+          "type": "long",
+          "getter": "getUpdateTime",
+          "setter": "setUpdateTime",
+          "isStatic": false
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "getter": "getUserId",
+          "setter": "setUserId",
+          "isStatic": false
+        }
+      ]
+    }
+  },
+  "business_rules": {
+    "bill": {
+      "entity": "com.wangc.bill.database.entity.Bill",
+      "action_class": "com.wangc.bill.database.action.a0",
+      "activity": "com.wangc.bill.activity.AddBillActivity",
+      "save_method": {
+        "signature": "h(com.wangc.bill.database.entity.Bill): int",
+        "evidence_id": "ev_0641673ac597f98f7fb37701fe65d9e0c24f2cb9a1f9be429d18138d51de13c4"
+      },
+      "asset_sync_method": {
+        "signature": "s1(com.wangc.bill.database.entity.Bill): void",
+        "evidence_id": "ev_4e4728f40ec7e3d00f5916badb89047dc803880b9db4dc95f923e157607a6830"
+      },
+      "delete_method": {
+        "signature": "r(com.wangc.bill.database.entity.Bill, boolean): void",
+        "evidence_id": "ev_21b4a12be0b8d2b92933ebbd263d8d1906e99a385d739f0c617805dff84090e6"
+      },
+      "balance_formula": {
+        "income": "asset.assetNumber += Math.abs(bill.getCurrencyCost()) + refundedAmount",
+        "expense": "asset.assetNumber -= (Math.abs(bill.getCurrencyCost()) + refundedAmount)",
+        "edit_rollback": "if old was income: assetOld.reduceNumber(oldCost); else assetOld.addNumber(oldCost)",
+        "edit_apply": "if new is income: assetNew.addNumber(newCost); else assetNew.reduceNumber(newCost)"
+      },
+      "statistics_rules": {
+        "not_into_budget_field": "notIntoBudget",
+        "not_into_total_field": "notIntoTotal",
+        "income_parent_id": 9
+      }
+    },
+    "transfer": {
+      "entity": "com.wangc.bill.database.entity.Transfer",
+      "action_class": "com.wangc.bill.database.action.u2",
+      "activity": "com.wangc.bill.activity.asset.TransferAddActivity",
+      "save_method": {
+        "signature": "g(com.wangc.bill.database.entity.Transfer): long",
+        "evidence_id": "ev_aa5696aec9ee0069e4c8b27b8cde1a6a2f10fb25e3acea372949f0ba5fe9a930"
+      },
+      "delete_method": {
+        "signature": "p(com.wangc.bill.database.entity.Transfer): int",
+        "evidence_id": "ev_67f2f18a07a0683410bd974e947ad8d820f7c2d87431db5940d75ee79706d55e"
+      },
+      "balance_formula": {
+        "out_account": "fromAsset.reduceNumber(cost)",
+        "in_account": "toAsset.addNumber(toCost)",
+        "currency_rate_formula": "toCost = g2.q((amount * s0.i(fromCurrency)) / s0.i(toCurrency))",
+        "service_charge": "if serviceCharge > 0: generates Bill (billType = 1, cost = serviceCharge, assetId = fromAssetId, remark = fromAssetName + \" 转账手续费\")"
+      }
+    },
+    "refund": {
+      "entity": "com.wangc.bill.database.entity.Refund",
+      "action_class": "com.wangc.bill.database.action.y1",
+      "activity": "com.wangc.bill.activity.refund.AddRefundActivity",
+      "save_method": {
+        "signature": "g(com.wangc.bill.database.entity.Refund): long",
+        "evidence_id": "ev_8a25c891b99872963c355252d9377f6005db94b9936e0b901a0845d4baa3d09d"
+      },
+      "rollback_on_bill_delete": {
+        "signature": "i(com.wangc.bill.database.entity.Bill): void",
+        "evidence_id": "ev_b43ef28fda1cdcf813691311d3732c5a80d9224de6476548ffc714b6b74e5c67"
+      },
+      "balance_formula": {
+        "expense_refund": "refundAsset.addNumber(refundAmount); originalBill.cost -= refundCost",
+        "overflow_handling": "if refundCost > originalBill.cost: difference generates new Bill(\"退款差额\", parentCategoryId=9, billType=1), linked via relatedBillId",
+        "rollback": "refundAsset.reduceNumber(refundAmount); deletes difference bill if exists"
+      }
+    },
+    "reimbursement": {
+      "entity": "com.wangc.bill.database.entity.Reimbursement",
+      "action_class": "com.wangc.bill.database.action.z1",
+      "activity": "com.wangc.bill.activity.asset.reimbursement.ReimbursementAssetInfoActivity",
+      "save_method": {
+        "signature": "g(com.wangc.bill.database.entity.Reimbursement, boolean): long",
+        "evidence_id": "ev_f8bd4ac30505dc326f64ad0e01951d1a047213b6a80727af34f0a75e7b6dd780"
+      },
+      "delete_method": {
+        "signature": "k(com.wangc.bill.database.entity.Reimbursement): void",
+        "evidence_id": "ev_55b7fc37a6a4f06412737be137a65f3f813ccea105390441cb4bb71e2abbb7d0"
+      },
+      "balance_formula": {
+        "settlement_format": "reimbursementNumbers: List of \"{assetId}:{number}\" strings",
+        "on_settle": "reimbursementAsset.addNumber(number)",
+        "on_delete": "reimbursementAsset.reduceNumber(number, \"删除报销\")"
+      }
+    },
+    "lend": {
+      "entity": "com.wangc.bill.database.entity.Lend",
+      "action_class": "com.wangc.bill.database.action.h1",
+      "activity": "com.wangc.bill.activity.asset.LendAddActivity",
+      "save_method": {
+        "signature": "d(com.wangc.bill.database.entity.Lend): long",
+        "evidence_id": "ev_75b5f9b141c171a8f48db41a9070ef3f86aabf0238021a1f0c28925e91871db5"
+      },
+      "delete_method": {
+        "signature": "k(com.wangc.bill.database.entity.Lend): int",
+        "evidence_id": "ev_4e9706221bed617de3d0434ad974f380b68ba6d3834f3a6af4745889740fa4b1"
+      },
+      "balance_formula": {
+        "lend_out": "type = 1: lendAsset.addNumber(number, \"追加借出\"); repaymentAsset.reduceNumber(fromCost, \"资金借出\")",
+        "borrow_in": "type = 3: lendAsset.reduceNumber(number, \"追加借入\"); repaymentAsset.addNumber(fromCost, \"资金借入\")",
+        "bill_integration": "switchAddBill: generates Bill (billType = 1, cost = fromCost, assetId = repaymentAssetId), linked via lend.billId"
+      }
+    },
+    "instalment": {
+      "entity": "com.wangc.bill.database.entity.Instalment",
+      "action_class": "com.wangc.bill.database.action.f1",
+      "activity": "com.wangc.bill.activity.instalment.AddInstalmentActivity",
+      "save_method": {
+        "signature": "complete(): void",
+        "evidence_id": "ev_67c3d1da033ec9c28886a8d648f6f942deafcb8795831a7812cd826d6e22c4df"
+      },
+      "rounding_formula": {
+        "method": "z(com.wangc.bill.database.entity.Instalment, double, int): double",
+        "evidence_id": "ev_787116f653945e6ba13a0e8091bb37bc9b2df4716802cb189ed165fa2300f243",
+        "types": {
+          "remainder_type_0": "零头计入首期: i == 1 ? q(baseAmount + remainder) : baseAmount",
+          "remainder_type_1": "零头计入末期: i == periods ? q(baseAmount + remainder) : baseAmount",
+          "remainder_type_2": "均摊保留2位，差额补在首期: i == 1 ? q(total - (periods - 1) * perPeriod) : perPeriod",
+          "remainder_type_3": "均摊保留2位，差额补在末期: i == periods ? q(total - (periods - 1) * perPeriod) : perPeriod"
+        }
+      },
+      "bill_sync_method": {
+        "signature": "D(com.wangc.bill.database.entity.Bill): void",
+        "evidence_id": "ev_da7464bbf59419fcfc6e58a719d57d264fa30698d2a04f7b92f173343c8d9119",
+        "rules": "bill.cost == 0 => deletes instalment; totalNumber > bill.cost => caps totalNumber = bill.cost"
+      }
+    }
+  }
+}

@@ -167,6 +167,85 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
                 onSelect = { vm.selectCategoryManually(it) },
             )
 
+            val currentSubCats = Categories.subCategories[vm.category]
+            if (!currentSubCats.isNullOrEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    currentSubCats.forEach { sub ->
+                        val isSelected = vm.subCategory == sub
+                        Text(
+                            text = sub,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                                .clickable { vm.subCategory = if (isSelected) "" else sub }
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Text("资金账户", style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Categories.defaultAccounts.forEach { acc ->
+                    val isSelected = vm.account == acc
+                    Text(
+                        text = acc,
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            .clickable { vm.account = acc }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Text("项目标签", style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Categories.defaultTags.forEach { t ->
+                    val isSelected = vm.tag == t
+                    Text(
+                        text = "#$t",
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            .clickable { vm.tag = if (isSelected) "" else t }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
+            }
+
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = vm.merchant,
@@ -185,6 +264,7 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
                 value = vm.note,
                 onValueChange = { vm.setNoteInput(it) },
                 label = { Text(stringResource(R.string.field_note)) },
+                placeholder = { Text(vm.notePlaceholder, color = MaterialTheme.colorScheme.outline) },
                 shape = fieldShape,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -192,6 +272,48 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            if (vm.repeatedNoteWarning) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "💡 提示：当前分类已是餐饮，建议补充具体餐厅或外卖信息，避免与分类重复",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            } else if (vm.largeExpenseWarning) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "💡 大额消费提示：建议补充商品型号或购买凭证信息，方便对账",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+
+            if (vm.category == "人情" || vm.note.contains("请客") || vm.note.contains("聚餐")) {
+                Spacer(Modifier.height(6.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("聚餐分摊:", style = MaterialTheme.typography.bodySmall)
+                    listOf("请客", "AA分摊", "个人承担").forEach { chip ->
+                        Text(
+                            text = chip,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                                .clickable {
+                                    if (!vm.note.contains(chip)) {
+                                        vm.setNoteInput(if (vm.note.isBlank()) chip else "${vm.note} ($chip)")
+                                    }
+                                }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+            }
 
             val candidateKeyword = vm.merchant.trim().ifEmpty { vm.note.trim() }
             if (candidateKeyword.isNotEmpty()) {

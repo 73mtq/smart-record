@@ -168,5 +168,57 @@ class StatsCalculatorTest {
         assertEquals(0, data.count)
         assertEquals(0.0, data.dailyAvg, 0.001)
         assertEquals(0, data.categories.size)
+        assertEquals(0, data.tags.size)
+    }
+
+    @Test
+    fun `tag aggregation and outlier exclusion work as expected`() {
+        val today = LocalDate.of(2026, 3, 15)
+        val bills = listOf(
+            TransactionEntity(
+                amount = -50.0,
+                category = "餐饮",
+                tag = "旅行",
+                timestamp = millisOf(today),
+                source = "manual",
+                hash = "h1",
+            ),
+            TransactionEntity(
+                amount = -200.0,
+                category = "交通",
+                tag = "旅行",
+                timestamp = millisOf(today),
+                source = "manual",
+                hash = "h2",
+            ),
+            TransactionEntity(
+                amount = -2889.0,
+                category = "购物",
+                tag = "数码",
+                timestamp = millisOf(today),
+                source = "manual",
+                hash = "h3",
+            ),
+        )
+        // 1. 全部统计包含离群大额
+        val fullData = compute(StatsQuery(StatsPeriod.MONTH, isIncome = false), bills, today)!!
+        assertEquals(3139.0, fullData.total, 0.001)
+        assertEquals(2, fullData.tags.size)
+        assertEquals("数码", fullData.tags[0].category)
+        assertEquals(2889.0, fullData.tags[0].amount, 0.001)
+        assertEquals("旅行", fullData.tags[1].category)
+        assertEquals(250.0, fullData.tags[1].amount, 0.001)
+
+        // 2. 剔除离群大额 (>= 1000)
+        val normalData = compute(StatsQuery(StatsPeriod.MONTH, isIncome = false, excludeOutliers = true), bills, today)!!
+        assertEquals(250.0, normalData.total, 0.001)
+        assertEquals(2, normalData.count)
+
+        // 3. 标签过滤 (仅查看「旅行」)
+        val travelData = compute(StatsQuery(StatsPeriod.MONTH, isIncome = false, tagFilter = "旅行"), bills, today)!!
+        assertEquals(250.0, travelData.total, 0.001)
+        assertEquals(2, travelData.count)
+        assertEquals(1, travelData.tags.size)
+        assertEquals("旅行", travelData.tags.first().category)
     }
 }

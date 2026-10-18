@@ -105,11 +105,15 @@ class RuleEngineTest {
         assertEquals("交通", cat("校区班车车票"))
         assertEquals("教育", cat("打印期末复习学习资料"))
         assertEquals("教育", cat("蓝桥比赛报名费"))
+        assertEquals("软件服务", cat("DeepSeek API Token充值"))
+        assertEquals("软件服务", cat("阿里云服务器续费"))
         // 收入方向
         assertEquals("工资", cat("XX公司工资代发", income = true))
         assertEquals("兼职", cat("劳务报酬结算", income = true))
         assertEquals("兼职", cat("期末监考费发放", income = true))
-        assertEquals("其他收入", cat("闲置卖书收入", income = true))
+        assertEquals("闲置出售", cat("闲置卖书收入", income = true))
+        assertEquals("平台收益", cat("快手创作者活动奖励", income = true))
+        assertEquals("退税", cat("个人所得税退税到账", income = true))
         assertEquals("理财", cat("余额宝收益发放", income = true))
         assertEquals("红包", cat("收到微信红包", income = true))
         assertEquals("生活费", cat("妈妈微信转账生活费2000", income = true))
@@ -117,6 +121,7 @@ class RuleEngineTest {
         assertEquals("生活费", cat("生活补助到账", income = true))
         assertEquals("奖学金", cat("2026学年国家奖学金", income = true))
         assertEquals("奖学金", cat("高校助学金拨款", income = true))
+        assertEquals("奖学金", cat("蓝桥杯竞赛奖励300元", income = true))
     }
 
     @Test

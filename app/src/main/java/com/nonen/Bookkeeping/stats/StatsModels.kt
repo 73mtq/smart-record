@@ -60,6 +60,7 @@ data class StatsData(
     val dailyAvg: Double,
     val buckets: List<StatsBucket>,
     val categories: List<CategoryStat>,
+    val tags: List<CategoryStat> = emptyList(),
 )
 
 /** 统计查询条件（与 UI 状态解耦，便于单测） */
@@ -72,4 +73,6 @@ data class StatsQuery(
     val weekSel: Int? = null,
     val customStart: java.time.LocalDate? = null,
     val customEnd: java.time.LocalDate? = null,
+    val tagFilter: String? = null,
+    val excludeOutliers: Boolean = false,
 )

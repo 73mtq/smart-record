@@ -59,6 +59,7 @@ object BackupExporter {
             "教育" -> "文化教育" to "教育"
             "人情" -> "送礼人情" to "人情"
             "金融" -> "其他" to "理财支出"
+            "软件服务" -> "软件服务" to "软件服务"
             "宠物" -> "居家生活" to "宠物"
             "母婴" -> "购物消费" to "母婴玩具"
             "其他" -> "其他" to "其他"
@@ -80,21 +81,26 @@ object BackupExporter {
             transactions.forEach { t ->
                 val isIncome = t.amount >= 0
                 val (mainCat, subCat) = resolveCategoryHierarchy(t.category, isIncome)
+                val finalSubCat = t.subCategory?.ifBlank { null } ?: subCat
+                val finalAccount = t.account?.ifBlank { null } ?: resolveAccount(t.source)
                 val amt = if (isIncome) abs(t.amount) else -abs(t.amount)
                 val otherVal = if (t.merchant.isNullOrBlank()) t.hash else "${t.hash}|${t.merchant}"
+                val refundVal = if (t.transactionType == "REFUND" || t.refundOriginalId != null) {
+                    t.refundOriginalId?.toString() ?: "退款"
+                } else ""
                 add(
                     listOf(
                         timeFormat.format(Instant.ofEpochMilli(t.timestamp).atZone(ZoneId.systemDefault())),
                         if (isIncome) "收入" else "支出",
                         amt,
                         mainCat,
-                        subCat,
-                        resolveAccount(t.source),
+                        finalSubCat,
+                        finalAccount,
                         "日常账本",
-                        "",
+                        refundVal,
                         "",
                         t.note.orEmpty(),
-                        "",
+                        t.tag.orEmpty(),
                         "",
                         "",
                         "",
