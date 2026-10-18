@@ -1,8 +1,11 @@
 package com.nonen.Bookkeeping.stats
 
+import com.nonen.Bookkeeping.data.db.AssetEntity
 import com.nonen.Bookkeeping.data.db.TransactionEntity
+import com.nonen.Bookkeeping.data.repo.AssetRepository
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
@@ -39,6 +42,9 @@ object StatsCalculator {
         val bucketTotals = HashMap<Int, Double>()
         val catAmount = HashMap<String, Double>()
         val catCount = HashMap<String, Int>()
+        val catParentId = HashMap<String, Long?>()
+        val catSubAmount = HashMap<String, HashMap<String, Double>>()
+        val catSubCount = HashMap<String, HashMap<String, Int>>()
         val tagAmount = HashMap<String, Double>()
         val tagCount = HashMap<String, Int>()
 
@@ -47,6 +53,9 @@ object StatsCalculator {
             val v = abs(t.amount)
             if (query.excludeOutliers && !query.isIncome && v >= 1000.0) continue
             if (query.tagFilter != null && t.tag != query.tagFilter) continue
+            if (query.bookId != null && t.bookId != query.bookId) continue
+            if (query.assetId != null && t.assetId != query.assetId) continue
+            if (query.parentCategoryId != null && t.parentCategoryId?.toLong() != query.parentCategoryId) continue
 
             total += v
             count++
@@ -59,6 +68,15 @@ object StatsCalculator {
             if (bIdx >= 0) bucketTotals[bIdx] = (bucketTotals[bIdx] ?: 0.0) + v
             catAmount[t.category] = (catAmount[t.category] ?: 0.0) + v
             catCount[t.category] = (catCount[t.category] ?: 0) + 1
+            if (t.parentCategoryId != null) {
+                catParentId[t.category] = t.parentCategoryId.toLong()
+            }
+
+            val subName = if (!t.subCategory.isNullOrBlank()) t.subCategory else t.category
+            val subMap = catSubAmount.getOrPut(t.category) { HashMap() }
+            subMap[subName] = (subMap[subName] ?: 0.0) + v
+            val subCnt = catSubCount.getOrPut(t.category) { HashMap() }
+            subCnt[subName] = (subCnt[subName] ?: 0) + 1
 
             if (!t.tag.isNullOrBlank()) {
                 tagAmount[t.tag] = (tagAmount[t.tag] ?: 0.0) + v
@@ -115,12 +133,194 @@ object StatsCalculator {
             .map { (c, v) -> CategoryStat(c, v, catCount[c] ?: 0, if (total > 0) (v / total).toFloat() else 0f) }
             .sortedByDescending { it.amount }
 
+        val categoryDetails = categories.map { cat ->
+            val subAmounts = catSubAmount[cat.category] ?: emptyMap<String, Double>()
+            val subCounts = catSubCount[cat.category] ?: emptyMap<String, Int>()
+            val subList = subAmounts.entries.map { (subName, subAmt) ->
+                SubCategoryStat(
+                    name = subName,
+                    amount = subAmt,
+                    count = subCounts[subName] ?: 0,
+                    percentInParent = if (cat.amount > 0) (subAmt / cat.amount).toFloat() else 0f,
+                )
+            }.sortedByDescending { it.amount }
+            CategoryDetailStat(
+                category = cat.category,
+                parentCategoryId = catParentId[cat.category],
+                amount = cat.amount,
+                count = cat.count,
+                percent = cat.percent,
+                subCategories = subList,
+            )
+        }
+
         val tags = tagAmount.entries
             .map { (tag, v) -> CategoryStat(tag, v, tagCount[tag] ?: 0, if (total > 0) (v / total).toFloat() else 0f) }
             .sortedByDescending { it.amount }
 
-        return StatsData(range.title, total, count, prevTotal, total / days, buckets, categories, tags)
+        return StatsData(range.title, total, count, prevTotal, total / days, buckets, categories, tags, categoryDetails)
     }
+
+    /**
+     * 计算指定月份每一天的收支总额与指示标记。
+     */
+    fun computeCalendarMonth(
+        yearMonth: YearMonth,
+        transactions: List<TransactionEntity>,
+        zone: ZoneId = ZoneId.systemDefault(),
+    ): List<CalendarDaySummary> {
+        val daysInMonth = yearMonth.lengthOfMonth()
+        val start = yearMonth.atDay(1)
+        val end = yearMonth.atEndOfMonth()
+        val startMillis = start.atStartOfDay(zone).toInstant().toEpochMilli()
+        val endMillis = end.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli() - 1
+
+        val dayExpense = HashMap<Int, Double>()
+        val dayIncome = HashMap<Int, Double>()
+        val dayCount = HashMap<Int, Int>()
+        val dayPreview = HashMap<Int, String>()
+        val dayMaxExpense = HashMap<Int, Double>()
+
+        for (t in transactions) {
+            if (t.timestamp < startMillis || t.timestamp > endMillis) continue
+            val d = localDateOf(t.timestamp, zone)
+            if (d.year != yearMonth.year || d.monthValue != yearMonth.monthValue) continue
+            val day = d.dayOfMonth
+            val v = abs(t.amount)
+            dayCount[day] = (dayCount[day] ?: 0) + 1
+            if (t.amount < 0) {
+                dayExpense[day] = (dayExpense[day] ?: 0.0) + v
+                val curMax = dayMaxExpense[day] ?: -1.0
+                if (v > curMax) {
+                    dayMaxExpense[day] = v
+                    dayPreview[day] = t.category
+                }
+            } else if (t.amount > 0) {
+                dayIncome[day] = (dayIncome[day] ?: 0.0) + v
+                if (!dayPreview.containsKey(day)) {
+                    dayPreview[day] = t.category
+                }
+            }
+        }
+
+        return (1..daysInMonth).map { day ->
+            val date = yearMonth.atDay(day)
+            CalendarDaySummary(
+                date = date,
+                totalExpense = dayExpense[day] ?: 0.0,
+                totalIncome = dayIncome[day] ?: 0.0,
+                transactionCount = dayCount[day] ?: 0,
+                previewCategory = dayPreview[day],
+            )
+        }
+    }
+
+    /**
+     * 对特定一级分类下的交易拆分下属二级分类明细。
+     */
+    fun computeSubCategoryBreakdown(
+        parentCategoryName: String,
+        transactions: List<TransactionEntity>,
+    ): List<SubCategoryStat> {
+        val subAmount = HashMap<String, Double>()
+        val subCount = HashMap<String, Int>()
+        var total = 0.0
+
+        for (t in transactions) {
+            if (t.category != parentCategoryName) continue
+            val v = abs(t.amount)
+            total += v
+            val sub = if (!t.subCategory.isNullOrBlank()) t.subCategory else t.category
+            subAmount[sub] = (subAmount[sub] ?: 0.0) + v
+            subCount[sub] = (subCount[sub] ?: 0) + 1
+        }
+
+        return subAmount.entries.map { (sub, amt) ->
+            SubCategoryStat(
+                name = sub,
+                amount = amt,
+                count = subCount[sub] ?: 0,
+                percentInParent = if (total > 0) (amt / total).toFloat() else 0f,
+            )
+        }.sortedByDescending { it.amount }
+    }
+
+    /**
+     * 依据当前账户余额与交易历史逆推指定区间内的资产走势。
+     */
+    fun computeAssetTrend(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        currentAssets: List<AssetEntity>,
+        transactions: List<TransactionEntity>,
+        zone: ZoneId = ZoneId.systemDefault(),
+    ): List<AssetTrendPoint> {
+        val start = minOf(startDate, endDate)
+        val end = maxOf(startDate, endDate)
+        val totalDays = ChronoUnit.DAYS.between(start, end).toInt()
+
+        val sortedTx = transactions.sortedBy { it.timestamp }
+
+        return (0..totalDays).map { offset ->
+            val curDate = start.plusDays(offset.toLong())
+            val dayEndMillis = curDate.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli() - 1
+
+            val deltaMap = HashMap<Long, Double>()
+            for (tx in sortedTx) {
+                if (tx.timestamp > dayEndMillis) {
+                    val assetId = tx.assetId ?: continue
+                    deltaMap[assetId] = (deltaMap[assetId] ?: 0.0) + tx.amount
+                }
+            }
+
+            var totalAsset = 0.0
+            var totalDebt = 0.0
+
+            for (asset in currentAssets) {
+                if (!asset.intoTotalAsset) continue
+                val delta = deltaMap[asset.assetId] ?: 0.0
+                val balanceAtDate = asset.assetNumber - delta
+
+                when (asset.assetType) {
+                    AssetRepository.TYPE_CREDIT -> {
+                        if (asset.totalQuota > 0.0) {
+                            if (balanceAtDate < asset.totalQuota) {
+                                totalDebt += (asset.totalQuota - balanceAtDate)
+                            } else {
+                                totalAsset += (balanceAtDate - asset.totalQuota)
+                            }
+                        } else {
+                            if (balanceAtDate < 0.0) {
+                                totalDebt += abs(balanceAtDate)
+                            } else {
+                                totalAsset += balanceAtDate
+                            }
+                        }
+                    }
+                    AssetRepository.TYPE_DEBT -> {
+                        totalDebt += abs(balanceAtDate)
+                    }
+                    else -> {
+                        if (balanceAtDate >= 0.0) {
+                            totalAsset += balanceAtDate
+                        } else {
+                            totalDebt += abs(balanceAtDate)
+                        }
+                    }
+                }
+            }
+
+            val netAsset = totalAsset - totalDebt
+            AssetTrendPoint(
+                date = curDate,
+                timestamp = dayEndMillis,
+                netAsset = netAsset,
+                totalAsset = totalAsset,
+                totalDebt = totalDebt,
+            )
+        }
+    }
+
 
     /** 解析后的统计区间 */
     private data class DateRange(

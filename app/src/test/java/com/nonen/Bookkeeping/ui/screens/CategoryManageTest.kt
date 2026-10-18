@@ -136,7 +136,12 @@ class CategoryManageTest {
             flowOf(storage.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end })
         override suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity> =
             storage.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end }
+        override fun observeFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): Flow<List<TransactionEntity>> =
+            flowOf(storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) })
+        override suspend fun getFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): List<TransactionEntity> =
+            storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) }
     }
+
 
     @Test
     fun `CategoryRepository create custom child category assigns proper ID and persists`() = runBlocking {

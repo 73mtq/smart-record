@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -136,6 +138,7 @@ fun HomeScreen(
     vm: HomeViewModel,
     onSearch: () -> Unit,
     onEdit: (Long) -> Unit,
+    onCalendar: () -> Unit = {},
 ) {
     val transactions by vm.transactions.collectAsState()
     val month by vm.month.collectAsState()
@@ -168,8 +171,12 @@ fun HomeScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
+            IconButton(onClick = onCalendar) {
+                Icon(Icons.Default.DateRange, contentDescription = "收支日历")
+            }
             IconButton(onClick = onSearch) { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.action_search)) }
         }
+
 
         // 概览卡、近7日卡、账单列表都在同一个滚动容器里，随页面整体滑动
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {

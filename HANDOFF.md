@@ -2,9 +2,9 @@
 
 ## 1. 状态
 
-- **阶段编号**：S07（T07：完成预算、周期、模板与储蓄目标）
+- **阶段编号**：S08（T08：完成报表与统计核算）
 - **当前状态**：完成
-- **阶段目标**：在统一数据模型（Room 版本 5）与资产账户管理（T06）基础之上，实现 Room 数据库平滑升级至版本 6（`MIGRATION_5_6` 与 `6.json` schema 导出）；构建月度与分类预算核算体系（`BudgetRepository`）、支持日历规则的周期任务幂等执行引擎（`PeriodicRepository`、`PeriodicTransactionExecutor`）、常用账单模板快速复用（`TemplateRepository`）以及愿望储蓄清单（`SavingsGoalRepository`）；实现 `BudgetScreen`、`PeriodicScreen`、`TemplateScreen`、`SavingsGoalScreen` 4 大界面，打通 `AddEditScreen` 记账联动与 `SettingsScreen` 导航入口；全量通过 138 个 JVM 单元测试、Lint 静态分析（0 错误 0 告警）、全量回归脚本演练验证，并成功构建生成 `app-debug.apk`。
+- **阶段目标**：在统一数据模型、资产账户管理与预算周期体系基础之上，完整实现执行单元 **T08：完成五个主页与统计**；构建多维聚合与统计核算引擎（`StatsModels`、`StatsCalculator`、`ReportRepository`），支持月度收支日历（`CalendarScreen`、`CalendarViewModel`）、分类二级穿透下钻（`SubCategoryBreakdown`、`RankDetailCard`）与基于历史流水逆推的资产负债变动趋势曲线（`computeAssetTrend`、`AssetTrendCard`）；全量通过 141 个 JVM 单元测试、Lint 静态分析（0 错误 0 告警）、全量回归脚本演练验证（T01-B 至 T08），并成功构建生成 `app-debug.apk`。
 
 ---
 
@@ -12,41 +12,24 @@
 
 | 文件路径 | 改动说明 | 变更原因 |
 |---|---|---|
-| `docs/plans/t07_budget_periodic_template_savings_plan.md` | 编写 T07 实施计划方案 | 规范预算计算、周期任务调度、模板管理与储蓄目标业务方案 |
-| `app/schemas/com.nonen.Bookkeeping.data.db.AppDatabase/6.json` | 导出 Room 版本 6 结构元数据 | 包含 7 张新数据表结构与复合索引定义 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/entity/BudgetEntities.kt` | 定义预算领域实体 | 映射 `budgets`、`category_budgets`、`budget_settings` 表 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/entity/PeriodicEntities.kt` | 定义周期任务领域实体 | 映射 `cycles`、`cycle_dates`、`cycle_logs` 表 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/entity/ModuleBillEntity.kt` | 定义常用账单模板实体 | 映射 `module_bills` 表 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/entity/DreamEntities.kt` | 定义储蓄目标与变动日志实体 | 映射 `dreams`、`dream_logs` 表 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/db/PlanDaos.kt` | 定义 4 大计划数据访问接口 | 涵盖 `BudgetDao`、`CycleDao`、`ModuleBillDao`、`DreamDao` |
-| `app/src/main/java/com/nonen/Bookkeeping/data/db/CategoryDao.kt` | 补充 `findParentCategory` 接口 | 支撑分类预算按一级分类 ID 获取分类实体 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/db/Daos.kt` | `TransactionDao` 扩充支出聚合查询方法 | 支撑分类与月度预算支出实时统计计算 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/db/AppDatabase.kt` | 升级至 version 6 并实现 `MIGRATION_5_6` | 完成平滑升级迁移与新实体注册 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/repo/BudgetRepository.kt` | 编写预算业务仓库 | 聚合计算总预算、分类预算、实时支出与超支比例 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/repo/PeriodicRepository.kt` | 编写周期任务配置仓库 | 维护周期账单与周期转账规则增删改查 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/service/PeriodicTransactionExecutor.kt` | 编写周期任务调度执行引擎 | 实现按日/周/月/月末自适应日期推算、双重幂等防护与账户余额原子变动 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/repo/TemplateRepository.kt` | 编写常用模板仓库 | 支撑记账模板增删与一键记账入库 |
-| `app/src/main/java/com/nonen/Bookkeeping/data/repo/SavingsGoalRepository.kt` | 编写储蓄目标愿望清单仓库 | 维护愿望清单创建、存入取出现金流变动与进度统计 |
-| `app/src/main/java/com/nonen/Bookkeeping/BookkeepingApp.kt` | 注册 4 大仓库与 1 个执行器并配置启动自动扫描 | 提供全局统一访问入口并在应用冷启动时自动补流入账 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/BudgetViewModel.kt` 与 `BudgetScreen.kt` | 编写预算管理界面与 ViewModel | 提供月度总预算、分类明细列表与月度切换视图 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/PeriodicViewModel.kt` 与 `PeriodicScreen.kt` | 编写周期任务管理界面与 ViewModel | 提供周期规则列表、新增对话框与执行历史记录抽屉 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/TemplateViewModel.kt` 与 `TemplateScreen.kt` | 编写常用模板界面与 ViewModel | 展示模板卡片列表并提供一键入账按钮 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/SavingsGoalViewModel.kt` 与 `SavingsGoalScreen.kt` | 编写储蓄目标界面与 ViewModel | 展示愿望目标进度条、存入弹窗与完成状态切换 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/AddEditViewModel.kt` | 增加从模板读取与存为模板能力 | 支撑记账页面与模板双向闭环 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/SettingsScreen.kt` | 添加预算、周期、模板与储蓄目标入口 | 提供系统设置页直接导航入口 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/MainScreen.kt` | 补充设置菜单跳转回调 | 支持向主导航分发路由指令 |
-| `app/src/main/java/com/nonen/Bookkeeping/ui/AppNavHost.kt` | 注册 4 条新增路由与工厂绑定 | 支撑新增二级页面的推入与弹出导航 |
-| `app/src/test/java/com/nonen/Bookkeeping/data/db/Migration5To6Test.kt` | 编写 5 到 6 数据库迁移单元测试 | 验证数据无损迁移与新表结构正确建立 |
-| `app/src/test/java/com/nonen/Bookkeeping/data/repo/BudgetRepositoryTest.kt` | 编写预算仓库单元测试 | 验证总预算、分类预算、实时支出与超支比例核算 |
-| `app/src/test/java/com/nonen/Bookkeeping/data/service/PeriodicExecutorTest.kt` | 编写周期任务执行引擎单元测试 | 验证周期匹配、跨日补记、幂等去重防重复与限次自动终止 |
-| `app/src/test/java/com/nonen/Bookkeeping/data/repo/TemplateRepositoryTest.kt` | 编写模板仓库单元测试 | 验证模板保存、列表查询与一键生成账单 |
-| `app/src/test/java/com/nonen/Bookkeeping/data/repo/SavingsGoalRepositoryTest.kt` | 编写储蓄目标仓库单元测试 | 验证储蓄目标增改、存入提取与达成率计算 |
-| `app/src/test/java/com/nonen/Bookkeeping/data/repo/AssetRepositoryTest.kt` | 适配 `FakeTransactionDao` 支出查询方法 | 保证既有资产测试在接口扩充后完全通过 |
-| `app/src/test/java/com/nonen/Bookkeeping/data/repo/FinancialSyncTest.kt` | 适配 `FakeTransactionDao` 支出查询方法 | 保证既有资金流转测试在接口扩充后完全通过 |
-| `app/src/test/java/com/nonen/Bookkeeping/ui/screens/CategoryManageTest.kt` | 补充 `findParentCategory` 与支出查询模拟实现 | 保证既有分类测试在接口扩充后完全通过 |
-| `work/scripts/yimu-offline-rebuild/t07/verify_T07_deliverables.js` | 编写 T07 独立验收演练脚本 | 校验真实 SQLite 下预算计算、周期幂等入账、模板入账与储蓄进度聚合 |
-| `work/tasks/yimu-offline-T07-state.md` | 记录 T07 阶段性任务状态 | 记录任务目标、验证命令与下一步规划 |
-| `work/tasks/yimu-offline-rebuild.md` | 更新总任务阶段进展 | 标记 T07 完成并指向 T08 |
+| `docs/plans/t08_reports_and_statistics_plan.md` | 编写 T08 实施方案文档 | 规范统计核算算法、日历视图、二级穿透与资产走势技术方案 |
+| `app/src/main/java/com/nonen/Bookkeeping/stats/StatsModels.kt` | 扩充报表与日历统计领域模型 | 新增 `CalendarDaySummary`、`SubCategoryStat`、`CategoryDetailStat`、`AssetTrendPoint` 并扩展 `StatsQuery` |
+| `app/src/main/java/com/nonen/Bookkeeping/stats/StatsCalculator.kt` | 扩充日历与趋势核心计算引擎 | 实现 `computeCalendarMonth`、`computeSubCategoryBreakdown` 与 `computeAssetTrend` 历史逆推算法 |
+| `app/src/main/java/com/nonen/Bookkeeping/data/db/Daos.kt` | `TransactionDao` 扩充多维区间查询接口 | 新增 `observeFilteredRange` 与 `getFilteredRange` 方法 |
+| `app/src/main/java/com/nonen/Bookkeeping/data/repo/ReportRepository.kt` | 新建多维报表与日历查询仓库 | 提供日历流水、分类下钻及多维过滤的统一业务访问服务 |
+| `app/src/main/java/com/nonen/Bookkeeping/BookkeepingApp.kt` | 注册 `ReportRepository` | 在 `AppContainer` 注入报表仓库实例 |
+| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/CalendarViewModel.kt` 与 `CalendarScreen.kt` | 新建收支日历界面与 ViewModel | 提供月份切换、单日收支圆点指示、单日明细展开与快捷记账跳转 |
+| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/StatsComponents.kt` | 增强分类穿透卡片与资产走势图表 | 实现 `RankDetailCard`（二级分类展开）与 `AssetTrendCard`（Canvas 曲线绘制） |
+| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/StatisticsScreen.kt` | 增强多维统计页面与模式切换 | 增加分类分析与资产走势双模式切换及 ViewModel 异步刷新 |
+| `app/src/main/java/com/nonen/Bookkeeping/ui/AppNavHost.kt` | 注册日历路由与导航构建 | 新增 `Routes.CALENDAR` 路由 |
+| `app/src/main/java/com/nonen/Bookkeeping/ui/screens/HomeScreen.kt` 与 `MainScreen.kt` | 增加日历跳转入口与回调 | 打通主页到日历视图的快速跳转链路 |
+| `app/src/test/java/com/nonen/Bookkeeping/stats/CalendarStatsTest.kt` | 新建日历聚合单元测试 | 验证跨月、闰月与单日聚合统计计算 |
+| `app/src/test/java/com/nonen/Bookkeeping/stats/AssetTrendTest.kt` | 新建资产走势逆推单元测试 | 验证历史流水逆推、资产/负债/净资产口径计算 |
+| `app/src/test/java/com/nonen/Bookkeeping/data/repo/ReportRepositoryTest.kt` | 新建报表仓库单元测试 | 验证多维筛选组合过滤与数据流 |
+| `app/src/test/java/com/nonen/Bookkeeping/data/repo/AssetRepositoryTest.kt` 等 5 个测试文件 | 适配 `FakeTransactionDao` 查询接口 | 保证既有全量测试在接口扩充后完全通过 |
+| `work/scripts/yimu-offline-rebuild/t08/verify_T08_deliverables.js` | 编写 T08 独立验收演练脚本 | 校验真实 SQLite 下日历聚合、二级下钻、资产走势逆推与多维过滤 |
+| `work/tasks/yimu-offline-T08-state.md` | 记录 T08 阶段性任务状态 | 记录任务目标、验证命令、真实结果与下一步规划 |
+| `work/tasks/yimu-offline-rebuild.md` | 更新总任务阶段进展 | 标记 T08 完成并指向 T09 |
 
 ---
 
@@ -114,10 +97,16 @@
     - **决策**：周期记账推算生成确定性防重键 `cycle_{cycleId}_{yyyyMMdd}`，在同一事务中完成记账、扣减账户余额与写入 `cycle_logs`；且在单次扫描循环中每次执行后重新获取最新的 `CycleEntity`，达到限制次数（`cycleTimes`）时标记 `end = true` 并终止调度。
     - **否决备选**：仅依靠定时任务启动时间判断，不记录历史执行日志；或仅在应用退出时统一保存状态。
     - **理由**：防止跨日补记、多次触发或冷启动时产生重复扣款与脏流水。
-20. **常用模板与愿望储蓄目标解耦独立存储【本阶段】**
+20. **常用模板与愿望储蓄目标解耦独立存储【长期】**
     - **决策**：模板存储于 `module_bills`，储蓄目标存储于 `dreams` 与 `dream_logs`，不直接入侵核心记账主表结构。
     - **否决备选**：在 `transactions` 表中增加模板标记字段或储蓄标记字段。
     - **理由**：保证业务实体职责单一清晰，记账主表保持高效。
+21. **资产变动趋势历史逆推算法模型【本阶段】**
+    - **决策**：以当前真实账户余额为基准，利用历史流水向后回溯扣减或加回推算历史各日资产与负债余额：$\text{balance}_t(A) = \text{current\_balance}(A) - \sum_{tx.timestamp > t.\text{end}, tx.assetId == A} tx.amount$。
+    - **理由**：保证资产走势期末值与账户列表当前总览严格自洽，杜绝从历史起点累加可能产生的漂移误差。
+22. **二级分类下钻穿透与占比计算【本阶段】**
+    - **决策**：一级分类排名与二级分类展开聚合统一通过 `computeSubCategoryBreakdown` 进行内存高速聚合，计算各二级分类占当前一级分类总支出的百分比。
+    - **理由**：兼顾列表首屏渲染性能与用户深层次查看消费结构的交互体验。
 
 ---
 
@@ -138,6 +127,12 @@
 - **现象**：`TodayWatcherTest` 在多核并发调度下偶发断言失败（预期注销 1 次但实际为 0 次）。
   - **原因**：测试用例先调用 `watcher.register(scope)`（内部走 `Dispatchers.Default` 异步注册），紧接着立即调用 `scope.cancel()`；若调度线程尚未执行到 `registrations()`，协程未启动便被取消，导致未能注销。
   - **正确做法**：在取消作用域之前，先循环等待注册回调执行完成，再执行 `scope.cancel()`，消除调度时序竞争。
+- **现象**：`verify_T08_deliverables.js` 模拟测试资产走势逆推时，计算 Day 4 净资产断言不匹配（预期 -765 实际为 -645）。
+  - **原因**：演练脚本在推导预期值的算术注释中，漏算了 Day 5 发生的第三笔交易（晚餐 -120），导致推导基准发生算术偏差。
+  - **正确做法**：将当期全部 3 笔流水变动（-35 + 500 - 120 = +345）完整计入推导，修正预期值为 -645 并顺利通过。
+- **现象**：在 Composable 内部使用 `String.format(Locale.getDefault(), ...)` 触发 Android Lint 报错 `NonObservableLocale`。
+  - **原因**：Material 3 Composable 内部调用 `Locale.getDefault()` 会被 Android Lint 判定为不可观察区域设置，系统语言切换时可能无法自动重组更新。
+  - **正确做法**：统一使用 `Format.kt` 的 `formatPlainAmount` 工具函数完成金额格式化，消除 Lint 告警。
 
 ---
 
@@ -145,12 +140,13 @@
 
 - **系统平台**：Windows 11，PowerShell 7.6.7，Node.js 24.16.0，JDK 21，Android SDK 37（路径 `D:\Android\Sdk`）。
 - **成果核验命令**：
-  - T07 独立验收：
+  - T08 独立验收：
+    ```powershell
+    node work/scripts/yimu-offline-rebuild/t08/verify_T08_deliverables.js
+    ```
+  - 前序独立验收（T01-B 至 T07）：
     ```powershell
     node work/scripts/yimu-offline-rebuild/t07/verify_T07_deliverables.js
-    ```
-  - 前序独立验收（T01-B 至 T06）：
-    ```powershell
     node work/scripts/yimu-offline-rebuild/t06/verify_T06_deliverables.js
     node work/scripts/yimu-offline-rebuild/t05/verify_T05_deliverables.js
     node work/scripts/yimu-offline-rebuild/t04/verify_T04_deliverables.js
@@ -183,19 +179,21 @@
 - [x] **分类管理与记账闭环**：实现 `CategoryEntity` `hideBook` 账本级过滤与 `MIGRATION_4_5`，完成 `CategoryManageScreen`、`CategoryManageViewModel`、`AddEditScreen`、`AddEditViewModel` 双外键驱动与商户自主学习记忆闭环，编写 `Migration4To5Test` 与 `CategoryManageTest` 单元测试通过，导出 Room `5.json` schema，`verify_T05_deliverables.js` 真实 SQLite 演练通过。
 - [x] **资产与账户管理**：构建 `AssetRepository`，实现记账与转账账户余额原子联动与双向对冲；实现 `AssetManageScreen` 与 `AssetManageViewModel`，涵盖资金/信用卡/借贷账户分组展示、净资产/总资产/总负债聚合计算、余额调平与安全删除重定向；打通记账页动态真实账户选择与管理跳转；全量测试与演练通过。
 - [x] **预算、周期、模板与储蓄目标**：实现 Room 版本 6 平滑升级（`MIGRATION_5_6` 与 `6.json`）；实现月度预算与分类子预算核算（`BudgetRepository`）、周期任务幂等执行引擎（`PeriodicTransactionExecutor`）、账单模板快速复用（`TemplateRepository`）与愿望清单（`SavingsGoalRepository`）；实现配套 4 大界面与 ViewModel；全量 138 个单元测试全部通过，Lint 0 错误，T01-B 至 T07 独立演练全部通过，`assembleDebug` 成功打包生成 `app-debug.apk`（约 15.8MB）。
+- [x] **报表与统计核算**：实现收支日历（`CalendarScreen` 与 `CalendarViewModel`）、月度与多维过滤聚合、二级分类穿透统计（`SubCategoryBreakdown` 与 `RankDetailCard`）、资产变动趋势曲线（`computeAssetTrend` 历史逆推算法与 `AssetTrendCard` Canvas 曲线绘制）及 `ReportRepository` 报表仓库；新增 3 组独立单元测试（141 个单元测试全部通过）、Lint 0 错误、T01-B 至 T08 独立演练全部通过，`assembleDebug` 成功打包生成 `app-debug.apk`（约 15.9MB）。
 
 ### 6.2 未验证与待后续阶段执行
 - [ ] **专用模拟器断网参考界面层级与操作核查（归属 T01-C）**：
   - 风险判定：中等风险。因当前未启动模拟器截屏比对，部分次级界面细节需在后续界面搭建阶段结合 aapt2 dump 进一步核对。
-- [ ] **完成报表与统计核算（归属 T08）**：
-  - 风险判定：低风险。后续聚焦日历图表、月/年聚合报表、资产趋势图与收支排行统计。
+- [ ] **完成导入、导出与完整备份（归属 T09）**：
+  - 风险判定：低风险。后续聚焦一木 23 列 Excel、微信支付宝导入、全量导出与包含附件的数据库完整备份恢复。
 
 ---
 
 ## 7. 下一阶段交接
 
-- **第一步**：新会话读取本交接文档与总执行计划 [yimu_offline_rebuild_antigravity.md](file:///D:/github-repository/smart-record/docs/plans/yimu_offline_rebuild_antigravity.md)，基于已构建的预算、周期与模板体系，开启 **T08（完成报表与统计核算）**。
+- **第一步**：新会话读取本交接文档与总执行计划 [yimu_offline_rebuild_antigravity.md](file:///D:/github-repository/smart-record/docs/plans/yimu_offline_rebuild_antigravity.md)，开启 **T09（完成导入、导出与完整备份）**。
 - **验收标准**：
+  - 运行 `node work/scripts/yimu-offline-rebuild/t08/verify_T08_deliverables.js` 退出状态为 0；
   - 运行 `node work/scripts/yimu-offline-rebuild/t07/verify_T07_deliverables.js` 退出状态为 0；
   - 运行 `node work/scripts/yimu-offline-rebuild/t06/verify_T06_deliverables.js` 退出状态为 0；
   - 运行 `node work/scripts/yimu-offline-rebuild/t05/verify_T05_deliverables.js` 退出状态为 0；
@@ -203,10 +201,10 @@
   - 运行 `node work/scripts/yimu-offline-rebuild/t03/verify_T03_deliverables.js` 退出状态为 0；
   - 运行 `node work/scripts/yimu-offline-rebuild/t02/verify_T02_deliverables.js` 退出状态为 0；
   - 运行 `node work/scripts/yimu-offline-rebuild/financial/verify_T01_B_deliverables.js` 退出状态为 0；
-  - 运行 `.\gradlew.bat :app:testDebugUnitTest :app:lintDebug` 全部通过（当前基准 138 个测试用例，0 错误）；
+  - 运行 `.\gradlew.bat :app:testDebugUnitTest :app:lintDebug` 全部通过（当前基准 141 个测试用例，0 错误）；
   - 运行 `.\gradlew.bat :app:assembleDebug` 编译打包成功；
-  - 完成统计报表（收支日历、月/年度总览、分类排行与资产趋势曲线）。
+  - 完成导入导出与完整备份体系构建（一木 23 列 Excel 导入导出、微信与支付宝账单导入与幂等去重、全量数据与附件的离线校验备份恢复）。
 - **禁止事项**：
   - 严禁擅自使用 Git 进行回滚或重置操作；
   - 严禁直接抹除现有数据库表或破坏版本 6 现有数据结构；
-  - 严禁违背已共识的 20 项长期与阶段关键决策。
+  - 严禁违背已共识的 22 项长期与阶段关键决策。

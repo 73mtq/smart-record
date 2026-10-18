@@ -47,13 +47,19 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.core.Categories
+import com.nonen.Bookkeeping.stats.AssetTrendPoint
+import com.nonen.Bookkeeping.stats.CategoryDetailStat
 import com.nonen.Bookkeeping.stats.CategoryStat
 import com.nonen.Bookkeeping.stats.BucketLabelKind
 import com.nonen.Bookkeeping.stats.StatsBucket
 import com.nonen.Bookkeeping.ui.components.formatCompactAmount
 import com.nonen.Bookkeeping.ui.components.formatPlainAmount
 import com.nonen.Bookkeeping.ui.theme.ChartColors
+import com.nonen.Bookkeeping.ui.theme.ExpenseColor
+import com.nonen.Bookkeeping.ui.theme.IncomeColor
+import com.nonen.Bookkeeping.ui.theme.InkPrimary
 import java.util.Locale
+
 
 /**
  * 统计页图表与卡片组件。
@@ -426,3 +432,262 @@ internal fun RankCard(c: CategoryStat, color: Color) {
         }
     }
 }
+
+/** 支持下钻查看二级分类构成的排行卡片 */
+@Composable
+internal fun RankDetailCard(
+    detail: CategoryDetailStat,
+    color: Color,
+    isExpanded: Boolean,
+    onToggleExpand: () -> Unit,
+) {
+    val hasSubCategories = detail.subCategories.isNotEmpty() &&
+        !(detail.subCategories.size == 1 && detail.subCategories.first().name == detail.category)
+
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(enabled = hasSubCategories, onClick = onToggleExpand),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(text = Categories.emoji(detail.category), fontSize = 18.sp)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    detail.category,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (detail.category in Categories.incomeCategories) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = Categories.incomeGroupOf(detail.category).displayName,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                Text(
+                    "¥${formatPlainAmount(detail.amount)}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                )
+                if (hasSubCategories) {
+                    Spacer(Modifier.width(4.dp))
+                    Icon(
+                        if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = "展开二级分类",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+            val progress by animateFloatAsState(
+                targetValue = detail.percent.coerceIn(0.02f, 1f),
+                animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = 500f),
+                label = "rankDetailProgress",
+            )
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(progress)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(color),
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    stringResource(R.string.stats_rank_summary, "%.1f".format(Locale.US, detail.percent * 100), detail.count),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (hasSubCategories) {
+                    Text(
+                        text = if (isExpanded) "收起明细" else "查看二级构成",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+
+            // 展开二级分类明细列表
+            if (isExpanded && hasSubCategories) {
+                Spacer(Modifier.height(12.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    detail.subCategories.forEach { sub ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = sub.name,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                text = "¥${formatPlainAmount(sub.amount)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = color,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "${"%.1f".format(Locale.US, sub.percentInParent * 100)}%",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outline,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** 资产变动趋势图卡片组件 */
+@Composable
+internal fun AssetTrendCard(points: List<AssetTrendPoint>) {
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            val latest = points.lastOrNull()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(text = "最新净资产", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "¥${formatPlainAmount(latest?.netAsset ?: 0.0)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = InkPrimary,
+                    )
+                }
+                if (latest != null) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "总资产: ¥${formatPlainAmount(latest.totalAsset)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = IncomeColor,
+                        )
+                        Text(
+                            text = "总负债: ¥${formatPlainAmount(latest.totalDebt)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ExpenseColor,
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            if (points.size < 2) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(text = "数据点不足，记录更多账单后展示走势", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                }
+            } else {
+                val minVal = points.minOf { it.netAsset }
+                val maxVal = points.maxOf { it.netAsset }
+                val span = (maxVal - minVal).coerceAtLeast(1.0)
+
+                androidx.compose.foundation.Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(130.dp),
+                ) {
+                    val w = size.width
+                    val h = size.height
+                    val n = points.size
+                    val stepX = w / (n - 1)
+
+                    val coords = points.mapIndexed { idx, pt ->
+                        val normY = ((pt.netAsset - minVal) / span).toFloat()
+                        val x = idx * stepX
+                        val y = h - (normY * (h - 20.dp.toPx())) - 10.dp.toPx()
+                        Offset(x, y)
+                    }
+
+                    // 绘制折线
+                    for (i in 0 until coords.size - 1) {
+                        drawLine(
+                            color = InkPrimary,
+                            start = coords[i],
+                            end = coords[i + 1],
+                            strokeWidth = 3.dp.toPx(),
+                            cap = StrokeCap.Round,
+                        )
+                    }
+
+                    // 绘制首末节点标记
+                    drawCircle(color = InkPrimary, radius = 4.dp.toPx(), center = coords.first())
+                    drawCircle(color = InkPrimary, radius = 5.dp.toPx(), center = coords.last())
+                }
+
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "${points.first().date.monthValue}/${points.first().date.dayOfMonth}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                    Text(
+                        text = "区间走势",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "${points.last().date.monthValue}/${points.last().date.dayOfMonth}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+            }
+        }
+    }
+}
+

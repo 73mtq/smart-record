@@ -47,8 +47,12 @@ import com.nonen.Bookkeeping.stats.StatsQuery
 import com.nonen.Bookkeeping.stats.StatsTitle
 import com.nonen.Bookkeeping.ui.components.AnimatedSegmented
 import com.nonen.Bookkeeping.ui.theme.ChartColors
+import com.nonen.Bookkeeping.data.repo.ReportRepository
+import com.nonen.Bookkeeping.stats.AssetTrendPoint
+import com.nonen.Bookkeeping.stats.CategoryDetailStat
 import com.nonen.Bookkeeping.ui.theme.ExpenseColor
 import com.nonen.Bookkeeping.ui.theme.IncomeColor
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,10 +60,21 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-class StatsViewModel(private val repo: TransactionRepository) : ViewModel() {
+class StatsViewModel(
+    private val repo: TransactionRepository,
+    private val reportRepo: ReportRepository? = null,
+    externalScope: CoroutineScope? = null,
+) : ViewModel() {
+
+    private val scope: CoroutineScope = externalScope ?: viewModelScope
 
     var period by mutableStateOf(StatsPeriod.MONTH)
     var isIncome by mutableStateOf(false)
+    var statsViewMode by mutableIntStateOf(0) // 0=分类分析, 1=资产走势
+    var expandedCategory by mutableStateOf<String?>(null)
+    var assetTrend by mutableStateOf<List<AssetTrendPoint>>(emptyList())
+        private set
+
     /** 本年模式选中的月份（1-12），null = 整年 */
     var monthSel by mutableStateOf<Int?>(null)
     /** 本周/本月模式选中的切片：本周 0=本周、-1=上周；本月 1-based 周次，null = 整月 */
@@ -72,6 +87,16 @@ class StatsViewModel(private val repo: TransactionRepository) : ViewModel() {
         private set
 
     init {
+        load()
+    }
+
+    fun toggleCategoryExpand(catName: String) {
+        expandedCategory = if (expandedCategory == catName) null else catName
+    }
+
+    fun switchStatsViewMode(mode: Int) {
+        if (statsViewMode == mode) return
+        statsViewMode = mode
         load()
     }
 
@@ -114,9 +139,24 @@ class StatsViewModel(private val repo: TransactionRepository) : ViewModel() {
     }
 
     fun load() {
-        viewModelScope.launch {
-            // 聚合计算放后台线程，避免占用主线程帧预算
+        scope.launch {
             stats = withContext(Dispatchers.Default) { computeStats() }
+            if (reportRepo != null && statsViewMode == 1) {
+                val today = LocalDate.now()
+                val (startDate, endDate) = when (period) {
+                    StatsPeriod.WEEK -> today.minusDays(6) to today
+                    StatsPeriod.MONTH -> today.withDayOfMonth(1) to today.withDayOfMonth(today.lengthOfMonth())
+                    StatsPeriod.YEAR -> today.withDayOfYear(1) to today.withDayOfYear(today.lengthOfYear())
+                    StatsPeriod.CUSTOM -> {
+                        val s = customStart ?: today.minusMonths(1)
+                        val e = customEnd ?: today
+                        minOf(s, e) to maxOf(s, e)
+                    }
+                }
+                assetTrend = withContext(Dispatchers.Default) {
+                    reportRepo.getAssetTrend(startDate, endDate)
+                }
+            }
         }
     }
 
@@ -160,12 +200,29 @@ fun StatisticsScreen(vm: StatsViewModel) {
                 onPickDate = { datePickTarget = it },
             )
         }
-        // 分类排行：列表部分惰性组合、滚动回收
-        itemsIndexed(
-            s?.categories ?: emptyList(),
-            key = { index, c -> "rank_${index}_${c.category}" },
-        ) { index, c ->
-            RankCard(c, color = ChartColors[index % ChartColors.size])
+
+        if (vm.statsViewMode == 0) {
+            val details = s?.categoryDetails ?: emptyList()
+            if (details.isNotEmpty()) {
+                itemsIndexed(
+                    details,
+                    key = { index, c -> "detail_${index}_${c.category}" },
+                ) { index, c ->
+                    RankDetailCard(
+                        detail = c,
+                        color = ChartColors[index % ChartColors.size],
+                        isExpanded = vm.expandedCategory == c.category,
+                        onToggleExpand = { vm.toggleCategoryExpand(c.category) },
+                    )
+                }
+            } else {
+                itemsIndexed(
+                    s?.categories ?: emptyList(),
+                    key = { index, c -> "rank_${index}_${c.category}" },
+                ) { index, c ->
+                    RankCard(c, color = ChartColors[index % ChartColors.size])
+                }
+            }
         }
     }
 
@@ -253,6 +310,23 @@ private fun StatsHeaderSection(
             }
         }
 
+        // 统计报表视图维度切换：分类分析 / 资产走势
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        ) {
+            AnimatedSegmented(
+                options = listOf("分类分析", "资产走势"),
+                selectedIndex = vm.statsViewMode,
+                onSelected = { vm.switchStatsViewMode(it) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        if (vm.statsViewMode == 1) {
+            AssetTrendCard(points = vm.assetTrend)
+            return
+        }
+
         // 支出 / 收入
         AnimatedSegmented(
             options = listOf(stringResource(R.string.type_expense), stringResource(R.string.type_income)),
@@ -265,6 +339,7 @@ private fun StatsHeaderSection(
         )
 
         stats ?: return
+
         Spacer(Modifier.height(12.dp))
         TotalCard(
             title = statsTitle(stats.title, vm.isIncome),

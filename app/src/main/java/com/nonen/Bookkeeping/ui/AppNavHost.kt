@@ -27,6 +27,8 @@ import com.nonen.Bookkeeping.ui.screens.AssetManageScreen
 import com.nonen.Bookkeeping.ui.screens.AssetManageViewModel
 import com.nonen.Bookkeeping.ui.screens.BudgetScreen
 import com.nonen.Bookkeeping.ui.screens.BudgetViewModel
+import com.nonen.Bookkeeping.ui.screens.CalendarScreen
+import com.nonen.Bookkeeping.ui.screens.CalendarViewModel
 import com.nonen.Bookkeeping.ui.screens.CategoryManageScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageViewModel
 import com.nonen.Bookkeeping.ui.screens.MainScreen
@@ -52,9 +54,11 @@ object Routes {
     const val PERIODIC = "periodic"
     const val TEMPLATE = "template"
     const val SAVINGS_GOAL = "savings_goal"
+    const val CALENDAR = "calendar"
 
     fun add(txId: Long) = "add/$txId"
 }
+
 
 inline fun <reified VM : ViewModel> vmFactory(crossinline create: () -> VM): ViewModelProvider.Factory =
     viewModelFactory {
@@ -103,8 +107,10 @@ fun AppNavHost() {
                 onPeriodic = { nav.navigateSingleTop(Routes.PERIODIC) },
                 onTemplate = { nav.navigateSingleTop(Routes.TEMPLATE) },
                 onSavingsGoal = { nav.navigateSingleTop(Routes.SAVINGS_GOAL) },
+                onCalendar = { nav.navigateSingleTop(Routes.CALENDAR) },
             )
         }
+
 
         composable(
             Routes.ADD_EDIT,
@@ -203,8 +209,23 @@ fun AppNavHost() {
             )
             SavingsGoalScreen(viewModel = vm, onBack = { nav.popBackStack() })
         }
+
+        composable(Routes.CALENDAR) {
+            val vm: CalendarViewModel = viewModel(
+                factory = vmFactory {
+                    CalendarViewModel(container.reportRepository)
+                },
+            )
+            CalendarScreen(
+                vm = vm,
+                onBack = { nav.popBackStack() },
+                onEdit = { txId -> nav.navigate(Routes.add(txId)) },
+                onAdd = { nav.navigate(Routes.add(0L)) },
+            )
+        }
     }
 }
+
 
 /** 相同目的地不重复入栈，避免反复点击搜索/规则堆出多层页面 */
 private fun NavHostController.navigateSingleTop(route: String) {

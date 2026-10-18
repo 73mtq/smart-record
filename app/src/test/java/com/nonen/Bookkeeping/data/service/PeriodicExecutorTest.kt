@@ -96,8 +96,14 @@ class PeriodicExecutorTest {
         override suspend fun countUnmigrated(): Int = 0
         override suspend fun reassignAsset(oldAssetId: Long, newAssetId: Long, newAccount: String) {}
         override fun observeExpensesBetween(bookId: Long, start: Long, end: Long): Flow<List<TransactionEntity>> = flowOf(emptyList())
+
         override suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity> = emptyList()
+        override fun observeFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): Flow<List<TransactionEntity>> =
+            flowOf(storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) })
+        override suspend fun getFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): List<TransactionEntity> =
+            storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) }
     }
+
 
     private class FakeTransferDao : TransferDao {
         val storage = mutableListOf<TransferEntity>()

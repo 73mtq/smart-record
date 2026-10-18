@@ -29,6 +29,13 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE timestamp >= :start AND timestamp <= :end ORDER BY timestamp DESC")
     suspend fun getRange(start: Long, end: Long): List<TransactionEntity>
 
+    @Query("SELECT * FROM transactions WHERE timestamp >= :start AND timestamp <= :end AND (:bookId IS NULL OR bookId = :bookId) AND (:assetId IS NULL OR assetId = :assetId) ORDER BY timestamp DESC")
+    fun observeFilteredRange(start: Long, end: Long, bookId: Long? = null, assetId: Long? = null): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE timestamp >= :start AND timestamp <= :end AND (:bookId IS NULL OR bookId = :bookId) AND (:assetId IS NULL OR assetId = :assetId) ORDER BY timestamp DESC")
+    suspend fun getFilteredRange(start: Long, end: Long, bookId: Long? = null, assetId: Long? = null): List<TransactionEntity>
+
+
     /** 语义去重用：自动记账/导入来源里，与给定金额和时间都相近的记录数 */
     @Query(
         "SELECT COUNT(*) FROM transactions WHERE source IN ('auto', 'wechat', 'alipay') " +

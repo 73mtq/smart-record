@@ -111,7 +111,14 @@ class BudgetRepositoryTest {
         override suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity> {
             return storage.filter { it.bookId == bookId && it.transactionType == "EXPENSE" && it.timestamp in start until end }
         }
+
+        override fun observeFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): Flow<List<TransactionEntity>> =
+            flowOf(storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) })
+
+        override suspend fun getFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): List<TransactionEntity> =
+            storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) }
     }
+
 
     @Test
     fun `test getOrInitMonthBudget creates new budget if not exists`() = runBlocking {

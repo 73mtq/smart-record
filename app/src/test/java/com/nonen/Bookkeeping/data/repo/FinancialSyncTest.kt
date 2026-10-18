@@ -121,7 +121,12 @@ class FinancialSyncTest {
             flowOf(storage.values.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end })
         override suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity> =
             storage.values.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end }
+        override fun observeFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): Flow<List<TransactionEntity>> =
+            flowOf(storage.values.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) })
+        override suspend fun getFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): List<TransactionEntity> =
+            storage.values.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) }
     }
+
 
     private class FakeRuleDao : CategoryRuleDao {
         override fun observeAll(): Flow<List<CategoryRuleEntity>> = flowOf(emptyList())

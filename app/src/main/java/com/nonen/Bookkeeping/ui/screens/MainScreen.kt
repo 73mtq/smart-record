@@ -80,6 +80,7 @@ fun MainScreen(
     onPeriodic: () -> Unit = {},
     onTemplate: () -> Unit = {},
     onSavingsGoal: () -> Unit = {},
+    onCalendar: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = 0) { 3 }
     val scope = rememberCoroutineScope()
@@ -113,14 +114,22 @@ fun MainScreen(
                     val vm: HomeViewModel = viewModel(
                         factory = vmFactory { HomeViewModel(appContext, container.transactionRepository) },
                     )
-                    HomeScreen(vm = vm, onSearch = onSearch, onEdit = onEdit)
+                    HomeScreen(vm = vm, onSearch = onSearch, onEdit = onEdit, onCalendar = onCalendar)
                 }
                 1 -> {
-                    val vm: StatsViewModel = viewModel(factory = vmFactory { StatsViewModel(container.transactionRepository) })
+                    val vm: StatsViewModel = viewModel(
+                        factory = vmFactory {
+                            StatsViewModel(
+                                repo = container.transactionRepository,
+                                reportRepo = container.reportRepository,
+                            )
+                        },
+                    )
                     StatisticsScreen(vm = vm)
                 }
                 else -> {
                     val vm: SettingsViewModel = viewModel(factory = vmFactory { SettingsViewModel(container) })
+
                     SettingsScreen(
                         vm = vm,
                         onRules = onRules,

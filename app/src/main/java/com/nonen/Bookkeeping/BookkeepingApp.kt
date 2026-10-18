@@ -94,6 +94,8 @@ class AppContainer(val appContext: Context) {
     val periodicTransactionExecutor = com.nonen.Bookkeeping.data.service.PeriodicTransactionExecutor(database, cycleDao, transactionDao, transferDao, assetDao)
     val templateRepository = com.nonen.Bookkeeping.data.repo.TemplateRepository(moduleBillDao, transactionRepository)
     val savingsGoalRepository = com.nonen.Bookkeeping.data.repo.SavingsGoalRepository(dreamDao)
+    val reportRepository = com.nonen.Bookkeeping.data.repo.ReportRepository(transactionDao, assetDao, categoryDao)
+
 
     val categoryMigrationService = com.nonen.Bookkeeping.data.migration.CategoryMigrationService(database)
     val ruleEngine = RuleEngine(ruleDao, merchantDao)
