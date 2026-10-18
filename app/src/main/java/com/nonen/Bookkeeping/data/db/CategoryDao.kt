@@ -27,6 +27,9 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE categoryId = :categoryId AND parentId = :parentId LIMIT 1")
     suspend fun findCategory(categoryId: Int, parentId: Int): CategoryEntity?
 
+    @Query("SELECT * FROM categories WHERE categoryId = :categoryId AND parentId = 0 LIMIT 1")
+    suspend fun findParentCategory(categoryId: Int): CategoryEntity?
+
     @Query("SELECT * FROM categories WHERE categoryName = :name LIMIT 1")
     suspend fun findByName(name: String): CategoryEntity?
 

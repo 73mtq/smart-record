@@ -47,6 +47,7 @@ class AppContainer(val appContext: Context) {
             AppDatabase.MIGRATION_2_3,
             AppDatabase.MIGRATION_3_4,
             AppDatabase.MIGRATION_4_5,
+            AppDatabase.MIGRATION_5_6,
         )
         .addCallback(object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
@@ -79,11 +80,21 @@ class AppContainer(val appContext: Context) {
     val categoryDao get() = database.categoryDao()
     val bookDao get() = database.bookDao()
     val tagDao get() = database.tagDao()
+    val budgetDao get() = database.budgetDao()
+    val cycleDao get() = database.cycleDao()
+    val moduleBillDao get() = database.moduleBillDao()
+    val dreamDao get() = database.dreamDao()
 
     val ruleRepository = RuleRepository(ruleDao, merchantDao)
     val transactionRepository = TransactionRepository(transactionDao, ruleDao, merchantDao, settings, assetDao, transferDao)
     val categoryRepository = com.nonen.Bookkeeping.data.repo.CategoryRepository(categoryDao)
     val assetRepository = com.nonen.Bookkeeping.data.repo.AssetRepository(assetDao, transferDao, transactionDao, database)
+    val budgetRepository = com.nonen.Bookkeeping.data.repo.BudgetRepository(budgetDao, transactionDao, categoryDao)
+    val periodicRepository = com.nonen.Bookkeeping.data.repo.PeriodicRepository(cycleDao)
+    val periodicTransactionExecutor = com.nonen.Bookkeeping.data.service.PeriodicTransactionExecutor(database, cycleDao, transactionDao, transferDao, assetDao)
+    val templateRepository = com.nonen.Bookkeeping.data.repo.TemplateRepository(moduleBillDao, transactionRepository)
+    val savingsGoalRepository = com.nonen.Bookkeeping.data.repo.SavingsGoalRepository(dreamDao)
+
     val categoryMigrationService = com.nonen.Bookkeeping.data.migration.CategoryMigrationService(database)
     val ruleEngine = RuleEngine(ruleDao, merchantDao)
     val billImporter = BillImporter(transactionRepository, ruleEngine)
@@ -94,7 +105,12 @@ class AppContainer(val appContext: Context) {
             categoryMigrationService.migrate()
         }
 
-        // 2. 播种内置分类规则：首次启动全量；升级时移除被重新归类的旧映射（RETIRED_RULES），
+        // 2. 周期记账自动扫描并补流入账
+        applicationScope.launch {
+            periodicTransactionExecutor.executePendingCycles()
+        }
+
+        // 3. 播种内置分类规则：首次启动全量；升级时移除被重新归类的旧映射（RETIRED_RULES），
         // 再增量补种新增关键词（不动用户删过的其他内置规则与自定义规则）
         applicationScope.launch {
             val existing = ruleDao.getAll().map { it.keyword to it.category }.toSet()

@@ -39,6 +39,9 @@ class CategoryManageTest {
         override suspend fun findCategory(categoryId: Int, parentId: Int): CategoryEntity? =
             storage.find { it.categoryId == categoryId && it.parentId == parentId }
 
+        override suspend fun findParentCategory(categoryId: Int): CategoryEntity? =
+            storage.find { it.categoryId == categoryId && it.parentId == 0 }
+
         override suspend fun findByName(name: String): CategoryEntity? =
             storage.find { it.categoryName == name }
 
@@ -129,6 +132,10 @@ class CategoryManageTest {
             storage.clear()
             storage.addAll(updated)
         }
+        override fun observeExpensesBetween(bookId: Long, start: Long, end: Long): Flow<List<TransactionEntity>> =
+            flowOf(storage.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end })
+        override suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity> =
+            storage.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end }
     }
 
     @Test

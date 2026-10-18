@@ -25,13 +25,21 @@ import com.nonen.Bookkeeping.ui.screens.AddEditScreen
 import com.nonen.Bookkeeping.ui.screens.AddEditViewModel
 import com.nonen.Bookkeeping.ui.screens.AssetManageScreen
 import com.nonen.Bookkeeping.ui.screens.AssetManageViewModel
+import com.nonen.Bookkeeping.ui.screens.BudgetScreen
+import com.nonen.Bookkeeping.ui.screens.BudgetViewModel
 import com.nonen.Bookkeeping.ui.screens.CategoryManageScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageViewModel
 import com.nonen.Bookkeeping.ui.screens.MainScreen
+import com.nonen.Bookkeeping.ui.screens.PeriodicScreen
+import com.nonen.Bookkeeping.ui.screens.PeriodicViewModel
 import com.nonen.Bookkeeping.ui.screens.RulesScreen
 import com.nonen.Bookkeeping.ui.screens.RulesViewModel
+import com.nonen.Bookkeeping.ui.screens.SavingsGoalScreen
+import com.nonen.Bookkeeping.ui.screens.SavingsGoalViewModel
 import com.nonen.Bookkeeping.ui.screens.SearchScreen
 import com.nonen.Bookkeeping.ui.screens.SearchViewModel
+import com.nonen.Bookkeeping.ui.screens.TemplateScreen
+import com.nonen.Bookkeeping.ui.screens.TemplateViewModel
 
 object Routes {
     const val MAIN = "main"
@@ -40,6 +48,10 @@ object Routes {
     const val RULES = "rules"
     const val CATEGORY_MANAGE = "category_manage"
     const val ASSET_MANAGE = "asset_manage"
+    const val BUDGET = "budget"
+    const val PERIODIC = "periodic"
+    const val TEMPLATE = "template"
+    const val SAVINGS_GOAL = "savings_goal"
 
     fun add(txId: Long) = "add/$txId"
 }
@@ -87,6 +99,10 @@ fun AppNavHost() {
                 onRules = { nav.navigateSingleTop(Routes.RULES) },
                 onCategoryManage = { nav.navigateSingleTop(Routes.CATEGORY_MANAGE) },
                 onAssetManage = { nav.navigateSingleTop(Routes.ASSET_MANAGE) },
+                onBudget = { nav.navigateSingleTop(Routes.BUDGET) },
+                onPeriodic = { nav.navigateSingleTop(Routes.PERIODIC) },
+                onTemplate = { nav.navigateSingleTop(Routes.TEMPLATE) },
+                onSavingsGoal = { nav.navigateSingleTop(Routes.SAVINGS_GOAL) },
             )
         }
 
@@ -104,6 +120,7 @@ fun AppNavHost() {
                         ruleRepo = container.ruleRepository,
                         categoryRepo = container.categoryRepository,
                         assetRepo = container.assetRepository,
+                        templateRepo = container.templateRepository,
                         txId = txId,
                     )
                 },
@@ -149,6 +166,42 @@ fun AppNavHost() {
                 },
             )
             AssetManageScreen(vm = vm, onBack = { nav.popBackStack() })
+        }
+
+        composable(Routes.BUDGET) {
+            val vm: BudgetViewModel = viewModel(
+                factory = vmFactory {
+                    BudgetViewModel(container.budgetRepository)
+                },
+            )
+            BudgetScreen(viewModel = vm, onBack = { nav.popBackStack() })
+        }
+
+        composable(Routes.PERIODIC) {
+            val vm: PeriodicViewModel = viewModel(
+                factory = vmFactory {
+                    PeriodicViewModel(container.periodicRepository, container.periodicTransactionExecutor)
+                },
+            )
+            PeriodicScreen(viewModel = vm, onBack = { nav.popBackStack() })
+        }
+
+        composable(Routes.TEMPLATE) {
+            val vm: TemplateViewModel = viewModel(
+                factory = vmFactory {
+                    TemplateViewModel(container.templateRepository)
+                },
+            )
+            TemplateScreen(viewModel = vm, onBack = { nav.popBackStack() })
+        }
+
+        composable(Routes.SAVINGS_GOAL) {
+            val vm: SavingsGoalViewModel = viewModel(
+                factory = vmFactory {
+                    SavingsGoalViewModel(container.savingsGoalRepository)
+                },
+            )
+            SavingsGoalScreen(viewModel = vm, onBack = { nav.popBackStack() })
         }
     }
 }

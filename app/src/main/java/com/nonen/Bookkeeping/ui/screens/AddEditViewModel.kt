@@ -33,6 +33,7 @@ class AddEditViewModel(
     private val ruleRepo: RuleRepository? = null,
     private val categoryRepo: CategoryRepository? = null,
     private val assetRepo: com.nonen.Bookkeeping.data.repo.AssetRepository? = null,
+    private val templateRepo: com.nonen.Bookkeeping.data.repo.TemplateRepository? = null,
     private val txId: Long,
     private val externalScope: CoroutineScope? = null,
 ) : ViewModel() {
@@ -50,6 +51,8 @@ class AddEditViewModel(
     var assetId by mutableStateOf(1L)
     var liveCategories by mutableStateOf<List<CategoryEntity>>(emptyList())
     var liveAssets by mutableStateOf<List<com.nonen.Bookkeeping.data.db.AssetEntity>>(emptyList())
+        private set
+    var liveTemplates by mutableStateOf<List<com.nonen.Bookkeeping.data.entity.ModuleBillEntity>>(emptyList())
         private set
     var note by mutableStateOf("")
     var merchant by mutableStateOf("")
@@ -102,6 +105,7 @@ class AddEditViewModel(
     init {
         observeCategories()
         observeAssets()
+        observeTemplates()
         if (txId != 0L) {
             scope.launch {
                 repo.getById(txId)?.let { t ->
@@ -168,6 +172,43 @@ class AddEditViewModel(
     fun selectAsset(asset: com.nonen.Bookkeeping.data.db.AssetEntity) {
         assetId = asset.assetId
         account = asset.assetName
+    }
+
+    private fun observeTemplates() {
+        scope.launch {
+            val tRepo = templateRepo ?: return@launch
+            tRepo.observeAll(bookId).collectLatest { list ->
+                liveTemplates = list
+            }
+        }
+    }
+
+    fun applyTemplate(t: com.nonen.Bookkeeping.data.entity.ModuleBillEntity) {
+        amount = String.format(Locale.US, "%.2f", t.cost)
+        t.parentCategoryId?.let { parentCategoryId = it }
+        t.childCategoryId?.let { childCategoryId = it }
+        t.remark?.let { note = it }
+        assetId = t.assetId
+        isCategoryManuallyChosen = true
+    }
+
+    fun saveCurrentAsTemplate(name: String, onDone: () -> Unit) {
+        val costVal = amount.toDoubleOrNull() ?: return
+        scope.launch {
+            val tRepo = templateRepo ?: return@launch
+            tRepo.createTemplate(
+                com.nonen.Bookkeeping.data.entity.ModuleBillEntity(
+                    templateName = name,
+                    cost = costVal,
+                    parentCategoryId = parentCategoryId,
+                    childCategoryId = childCategoryId,
+                    assetId = assetId,
+                    remark = note.ifBlank { null },
+                    bookId = bookId,
+                ),
+            )
+            onDone()
+        }
     }
 
     private fun syncCategoryIds() {

@@ -76,6 +76,10 @@ fun MainScreen(
     onRules: () -> Unit,
     onCategoryManage: () -> Unit = {},
     onAssetManage: () -> Unit = {},
+    onBudget: () -> Unit = {},
+    onPeriodic: () -> Unit = {},
+    onTemplate: () -> Unit = {},
+    onSavingsGoal: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = 0) { 3 }
     val scope = rememberCoroutineScope()
@@ -122,6 +126,10 @@ fun MainScreen(
                         onRules = onRules,
                         onCategoryManage = onCategoryManage,
                         onAssetManage = onAssetManage,
+                        onBudget = onBudget,
+                        onPeriodic = onPeriodic,
+                        onTemplate = onTemplate,
+                        onSavingsGoal = onSavingsGoal,
                     )
                 }
             }

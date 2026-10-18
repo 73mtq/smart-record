@@ -117,6 +117,10 @@ class FinancialSyncTest {
         override suspend fun updateCategoryIds(id: Long, parentCategoryId: Int, childCategoryId: Int?) {}
         override suspend fun countUnmigrated(): Int = 0
         override suspend fun reassignAsset(oldAssetId: Long, newAssetId: Long, newAccount: String) {}
+        override fun observeExpensesBetween(bookId: Long, start: Long, end: Long): Flow<List<TransactionEntity>> =
+            flowOf(storage.values.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end })
+        override suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity> =
+            storage.values.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end }
     }
 
     private class FakeRuleDao : CategoryRuleDao {

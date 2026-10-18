@@ -116,6 +116,10 @@ class AssetRepositoryTest {
             storage.clear()
             storage.addAll(updated)
         }
+        override fun observeExpensesBetween(bookId: Long, start: Long, end: Long): Flow<List<TransactionEntity>> =
+            flowOf(storage.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end })
+        override suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity> =
+            storage.filter { it.bookId == bookId && it.amount < 0 && it.timestamp in start..end }
     }
 
     @Test

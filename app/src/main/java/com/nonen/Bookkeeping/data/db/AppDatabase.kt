@@ -5,6 +5,14 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+import com.nonen.Bookkeeping.data.entity.BudgetEntity
+import com.nonen.Bookkeeping.data.entity.CategoryBudgetEntity
+import com.nonen.Bookkeeping.data.entity.CycleEntity
+import com.nonen.Bookkeeping.data.entity.CycleLogEntity
+import com.nonen.Bookkeeping.data.entity.DreamEntity
+import com.nonen.Bookkeeping.data.entity.DreamLogEntity
+import com.nonen.Bookkeeping.data.entity.ModuleBillEntity
+
 @Database(
     entities = [
         TransactionEntity::class,
@@ -20,8 +28,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         BookEntity::class,
         TagEntity::class,
         TransactionTagCrossRef::class,
+        BudgetEntity::class,
+        CategoryBudgetEntity::class,
+        CycleEntity::class,
+        CycleLogEntity::class,
+        ModuleBillEntity::class,
+        DreamEntity::class,
+        DreamLogEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,6 +52,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun bookDao(): BookDao
     abstract fun tagDao(): TagDao
+    abstract fun budgetDao(): BudgetDao
+    abstract fun cycleDao(): CycleDao
+    abstract fun moduleBillDao(): ModuleBillDao
+    abstract fun dreamDao(): DreamDao
 
     companion object {
 
@@ -338,6 +357,195 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `categories` ADD COLUMN `hideBook` TEXT DEFAULT NULL")
+            }
+        }
+
+        /**
+         * v5 → v6：
+         * 新建 7 张实体表：
+         * 1. budgets（总预算表）
+         * 2. category_budgets（分类预算表）
+         * 3. cycles（周期规则表）
+         * 4. cycle_logs（周期执行幂等日志表）
+         * 5. module_bills（常用账单模板表）
+         * 6. dreams（储蓄目标表）
+         * 7. dream_logs（储蓄流水明细表）
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. budgets
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `budgets` (
+                        `budgetId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `bookId` INTEGER NOT NULL,
+                        `budgetName` TEXT NOT NULL,
+                        `year` INTEGER NOT NULL,
+                        `month` INTEGER NOT NULL,
+                        `type` INTEGER NOT NULL,
+                        `startTime` INTEGER NOT NULL,
+                        `endTime` INTEGER NOT NULL,
+                        `num` REAL NOT NULL,
+                        `addNum` REAL NOT NULL,
+                        `positionWeight` INTEGER NOT NULL,
+                        `updateTime` INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_budgets_bookId` ON `budgets` (`bookId`)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_budgets_bookId_year_month_type` ON `budgets` (`bookId`, `year`, `month`, `type`)")
+
+                // 2. category_budgets
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `category_budgets` (
+                        `categoryBudgetId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `budgetId` INTEGER NOT NULL,
+                        `bookId` INTEGER NOT NULL,
+                        `year` INTEGER NOT NULL,
+                        `month` INTEGER NOT NULL,
+                        `parentCategory` INTEGER NOT NULL,
+                        `childCategory` INTEGER NOT NULL,
+                        `num` REAL NOT NULL,
+                        `addNum` REAL NOT NULL,
+                        `positionWeight` INTEGER NOT NULL,
+                        `updateTime` INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_category_budgets_budgetId` ON `category_budgets` (`budgetId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_category_budgets_bookId` ON `category_budgets` (`bookId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_category_budgets_parentCategory` ON `category_budgets` (`parentCategory`)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_category_budgets_budgetId_parentCategory_childCategory` ON `category_budgets` (`budgetId`, `parentCategory`, `childCategory`)")
+
+                // 3. cycles
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `cycles` (
+                        `cycleId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `bookId` INTEGER NOT NULL,
+                        `cycleType` INTEGER NOT NULL,
+                        `cost` REAL NOT NULL,
+                        `serviceCharge` REAL NOT NULL,
+                        `parentCategoryId` INTEGER,
+                        `childCategoryId` INTEGER,
+                        `assetId` INTEGER NOT NULL,
+                        `fromAssetId` INTEGER NOT NULL,
+                        `toAssetId` INTEGER NOT NULL,
+                        `dateMode` INTEGER NOT NULL,
+                        `weekdays` TEXT,
+                        `monthDay` INTEGER NOT NULL,
+                        `monthLast` INTEGER NOT NULL,
+                        `num` INTEGER NOT NULL,
+                        `remark` TEXT,
+                        `tags` TEXT,
+                        `addTime` INTEGER NOT NULL,
+                        `lastAddTime` INTEGER NOT NULL,
+                        `nextTime` INTEGER NOT NULL,
+                        `addTimes` INTEGER NOT NULL,
+                        `cycleTimes` INTEGER NOT NULL,
+                        `endMode` INTEGER NOT NULL,
+                        `cycleEndDate` INTEGER NOT NULL,
+                        `pause` INTEGER NOT NULL,
+                        `end` INTEGER NOT NULL,
+                        `notIntoBudget` INTEGER NOT NULL,
+                        `notIntoTotal` INTEGER NOT NULL,
+                        `updateTime` INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cycles_bookId` ON `cycles` (`bookId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cycles_cycleType` ON `cycles` (`cycleType`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cycles_dateMode` ON `cycles` (`dateMode`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cycles_pause` ON `cycles` (`pause`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cycles_end` ON `cycles` (`end`)")
+
+                // 4. cycle_logs
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `cycle_logs` (
+                        `logId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `cycleId` INTEGER NOT NULL,
+                        `dedupKey` TEXT NOT NULL,
+                        `transactionId` INTEGER,
+                        `transferId` INTEGER,
+                        `executedTime` INTEGER NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `status` INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_cycle_logs_dedupKey` ON `cycle_logs` (`dedupKey`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cycle_logs_cycleId` ON `cycle_logs` (`cycleId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cycle_logs_executedTime` ON `cycle_logs` (`executedTime`)")
+
+                // 5. module_bills
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `module_bills` (
+                        `moduleBillId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `bookId` INTEGER NOT NULL,
+                        `moduleType` INTEGER NOT NULL,
+                        `templateName` TEXT NOT NULL,
+                        `cost` REAL NOT NULL,
+                        `parentCategoryId` INTEGER,
+                        `childCategoryId` INTEGER,
+                        `assetId` INTEGER NOT NULL,
+                        `fromAssetId` INTEGER NOT NULL,
+                        `toAssetId` INTEGER NOT NULL,
+                        `serviceCharge` REAL NOT NULL,
+                        `remark` TEXT,
+                        `tags` TEXT,
+                        `moduleLock` INTEGER NOT NULL,
+                        `notIntoBudget` INTEGER NOT NULL,
+                        `notIntoTotal` INTEGER NOT NULL,
+                        `positionWeight` INTEGER NOT NULL,
+                        `updateTime` INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_module_bills_bookId` ON `module_bills` (`bookId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_module_bills_moduleType` ON `module_bills` (`moduleType`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_module_bills_positionWeight` ON `module_bills` (`positionWeight`)")
+
+                // 6. dreams
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `dreams` (
+                        `dreamId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `dreamName` TEXT NOT NULL,
+                        `iconUrl` TEXT NOT NULL,
+                        `totalNum` REAL NOT NULL,
+                        `startNum` REAL NOT NULL,
+                        `addNum` REAL NOT NULL,
+                        `startTime` INTEGER NOT NULL,
+                        `endTime` INTEGER NOT NULL,
+                        `remark` TEXT,
+                        `addType` INTEGER NOT NULL,
+                        `assetMode` INTEGER NOT NULL,
+                        `assetList` TEXT,
+                        `positionWeight` INTEGER NOT NULL,
+                        `updateTime` INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_dreams_positionWeight` ON `dreams` (`positionWeight`)")
+
+                // 7. dream_logs
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `dream_logs` (
+                        `logId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `dreamId` INTEGER NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `assetId` INTEGER,
+                        `time` INTEGER NOT NULL,
+                        `remark` TEXT
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_dream_logs_dreamId` ON `dream_logs` (`dreamId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_dream_logs_time` ON `dream_logs` (`time`)")
             }
         }
     }

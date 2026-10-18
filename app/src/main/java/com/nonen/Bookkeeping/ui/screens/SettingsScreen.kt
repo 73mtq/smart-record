@@ -44,6 +44,10 @@ fun SettingsScreen(
     onRules: () -> Unit,
     onCategoryManage: () -> Unit = {},
     onAssetManage: () -> Unit = {},
+    onBudget: () -> Unit = {},
+    onPeriodic: () -> Unit = {},
+    onTemplate: () -> Unit = {},
+    onSavingsGoal: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var guideSource by remember { mutableStateOf<String?>(null) }
@@ -138,6 +142,24 @@ fun SettingsScreen(
                 )
                 Spacer(Modifier.height(12.dp))
                 SettingsActionButton("进入资产管理", onAssetManage)
+            }
+        }
+
+        CollapsibleSection(title = "预算与计划", emoji = "🎯") {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    "设置月度总预算与各分类开销限额；配置日/周/月周期账单自动入账；管理常用模板与储蓄愿望目标。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+                SettingsActionButton("月度与分类预算", onBudget)
+                Spacer(Modifier.height(8.dp))
+                SettingsActionButton("周期记账与转账", onPeriodic)
+                Spacer(Modifier.height(8.dp))
+                SettingsActionButton("常用账单模板", onTemplate)
+                Spacer(Modifier.height(8.dp))
+                SettingsActionButton("储蓄目标与愿望", onSavingsGoal)
             }
         }
 

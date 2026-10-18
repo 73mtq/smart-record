@@ -70,6 +70,12 @@ interface TransactionDao {
 
     @Query("UPDATE transactions SET assetId = :newAssetId, account = :newAccount WHERE assetId = :oldAssetId")
     suspend fun reassignAsset(oldAssetId: Long, newAssetId: Long, newAccount: String)
+
+    @Query("SELECT * FROM transactions WHERE bookId = :bookId AND transactionType = 'EXPENSE' AND timestamp >= :start AND timestamp < :end ORDER BY timestamp DESC")
+    fun observeExpensesBetween(bookId: Long, start: Long, end: Long): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE bookId = :bookId AND transactionType = 'EXPENSE' AND timestamp >= :start AND timestamp < :end ORDER BY timestamp DESC")
+    suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity>
 }
 
 @Dao
