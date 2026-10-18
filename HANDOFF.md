@@ -2,9 +2,9 @@
 
 ## 1. 状态
 
-- **阶段编号**：S02（T02：本地文字分类与日期解析离线验证）
+- **阶段编号**：S03（T03：统一数据模型与数据库增量平滑迁移构建）
 - **当前状态**：完成
-- **阶段目标**：针对原应用 `com.wangc.bill 6.1.8 (378)` 纯离线文字记账中的核心算法、模型与规则进行独立解构与闭环验证，提取分类模型与时间正则资源，核实分词、金额归一化、分类置信度判定与餐饮时段映射状态机。
+- **阶段目标**：基于 T01 与 T02 解构成果，在 Room 中建立覆盖 9 大新增业务领域（Asset, Transfer, Refund, Reimbursement, Lend, Instalment, Category, Book, Tag）的独立实体表；扩充 `TransactionEntity` 关联外键并实现 `MIGRATION_3_4`；预置一木 76 项默认分类目录、默认账本与资产，保持历史流水完整性，通过全量单元测试与官方 SQLite 迁移链验证。
 
 ---
 
@@ -12,18 +12,21 @@
 
 | 文件路径 | 改动说明 | 变更原因 |
 |---|---|---|
-| `docs/plans/t02_text_classification_plan.md` | 编写 T02 单元实施计划方案 | 规范离线模型提取与验证步骤 |
-| `work/evidence/yimu-offline-rebuild/T02/resources/classification-model.ser` | 提取线性 SVM 分类模型物理文件 | 留存纯离线模型核心资产（3.63 MB） |
-| `work/evidence/yimu-offline-rebuild/T02/resources/TimeExp.m` | 提取时间表达式正则规则物理文件 | 留存时间自然语言解析核心资产（3031 字节） |
-| `work/evidence/yimu-offline-rebuild/T02/time_exp_regex.txt` | 导出完整时间匹配正则表达式 | 保存从 `TimeExp.m` 反序列化生成的 7,327 字符规则串 |
-| `work/evidence/yimu-offline-rebuild/T02/extracted_categories_from_ser.json` | 导出模型包含的全量分类标签目录 | 提取并归档模型预测支持的全部 70 个业务分类 |
-| `work/evidence/yimu-offline-rebuild/T02/model_classes_in_ser.json` | 导出序列化流包含的 10 个核心类与 SUID | 固化模型底层依赖架构与类版本号定义 |
-| `work/evidence/yimu-offline-rebuild/T02/*.json` | 归档 12 项 REA 反编译类与方法证据文件 | 留存包含全局唯一 `evidence_id` 的反编译证据链 |
-| `work/reports/yimu-offline-rebuild/T02-classification-time-nlp.md` | 编写 T02 本地文字分类与日期解析技术核查报告 | 详尽记录算法原理、调用链路、数学公式与测试矩阵 |
-| `work/tasks/yimu-offline-T02-state.md` | 记录 T02 任务进度、验证结果与下一项操作 | 维护单元独立生命周期状态 |
-| `work/tasks/yimu-offline-rebuild.md` | 更新总任务状态并推进至 T03 | 维护全工程统一进度视图 |
-| `work/scripts/yimu-offline-rebuild/t02/verify_T02_deliverables.js` | 编写 T02 独立自动化综合验收脚本 | 验证 APK 校验和、资源一致性与全部测试用例 |
-| `work/logs/yimu-offline-rebuild/T02-20261018-01/verification_result.json` | 保存独立核验结果文件 | 留存自动化验收通过记录 |
+| `docs/plans/t03_data_model_and_migration_plan.md` | 编写 T03 单元实施计划方案 | 规范统一数据模型与数据库增量平滑迁移步骤 |
+| `app/schemas/com.nonen.Bookkeeping.data.db.AppDatabase/4.json` | 导出 Room 数据库版本 4 结构文件 | 固化包含 13 个实体的数据库架构定义 |
+| `app/src/main/java/com/nonen/Bookkeeping/core/DefaultCategories.kt` | 导出一木 76 项默认分类定义 | 留存分类目录种子资产（10 一级 + 66 二级） |
+| `app/src/main/java/com/nonen/Bookkeeping/data/db/CategoryEntity.kt` | 建立分类持久化实体与选择值对象 | 支持标准分类树结构与分类选择 |
+| `app/src/main/java/com/nonen/Bookkeeping/data/db/CategoryDao.kt` | 建立分类数据访问接口 | 提供分类树查询、按收支与父级获取接口 |
+| `app/src/main/java/com/nonen/Bookkeeping/data/db/FinancialEntities.kt` | 建立资产、转账、退款、报销、借贷、分期、账本与标签实体 | 承载原应用全部核心资金流转业务数据 |
+| `app/src/main/java/com/nonen/Bookkeeping/data/db/FinancialDaos.kt` | 建立金融业务各领域数据访问接口 | 提供各实体增删改查与余额变动操作 |
+| `app/src/main/java/com/nonen/Bookkeeping/data/db/Entities.kt` | 扩充 `TransactionEntity` 关联字段 | 增加 `assetId`、`bookId`、`parentCategoryId`、`childCategoryId` 并建索引 |
+| `app/src/main/java/com/nonen/Bookkeeping/data/db/AppDatabase.kt` | 注册 9 个新实体并实现 `MIGRATION_3_4` | 实现从版本 3 到版本 4 平滑升级与默认数据播种 |
+| `app/src/main/java/com/nonen/Bookkeeping/BookkeepingApp.kt` | 注册迁移与 onCreate 播种回调 | 暴露新增 DAO 并在创建时预置默认数据 |
+| `app/src/test/java/com/nonen/Bookkeeping/data/db/Migration3To4Test.kt` | 编写分类与迁移单元测试 | 自动化检验分类数量、DDL 语句与数据回填 |
+| `work/scripts/yimu-offline-rebuild/t03/verify_T03_deliverables.js` | 编写 T03 独立自动化综合验收脚本 | 通过真实 SQLite 验证 v1 至 v4 迁移链与数据完整性 |
+| `work/logs/yimu-offline-rebuild/T03-20261018-01/verification_result.json` | 保存独立核验结果文件 | 留存自动化验收通过记录 |
+| `work/tasks/yimu-offline-T03-state.md` | 记录 T03 任务进度、验证结果与下一项操作 | 维护单元独立生命周期状态 |
+| `work/tasks/yimu-offline-rebuild.md` | 更新总任务状态并推进至 T04 | 维护全工程统一进度视图 |
 | `HANDOFF.md` | 更新阶段交接文档 | 供新会话 AI 冷启动衔接 |
 
 ---
@@ -52,46 +55,40 @@
    - **决策**：直接采用原 APK 内置提取的 `classification-model.ser` 与 `TimeExp.m` 离线资产构建本地推断能力。
    - **否决备选**：引入云端 NLP 接口或重新训练现代深度学习分类模型。
    - **理由**：保证应用绝对离线运行，免除网络延迟与令牌开销，且分类预测与原应用逻辑达到 1:1 精确对齐。
-7. **分类置信度阈值与餐饮时段动态判定规则【本阶段】**
+7. **分类置信度阈值与餐饮时段动态判定规则【长期】**
    - **决策**：分类预测置信度严格执行原应用 `0.015` 门槛值，低于该值统一归入 `其他-其他`；对于命中 `食品餐饮-其他` 的单据，依据 24 小时制进行时段修正：4~10 归为早餐、10~16 归为午餐、其余归为晚餐。
    - **理由**：完全对齐原应用 `v4.r` 核心代码的实际行为。
-8. **金额预处理毛角转点与动词剥离规则【本阶段】**
+8. **金额预处理毛角转点与动词剥离规则【长期】**
    - **决策**：前置执行正则替换 `(块|元|点)([1-9一二三四五六七八九])[毛角]` 为 `点$2`，剥离“花了”、“用了”等动词，并将首尾单字单位消除后再行提取数值。
    - **理由**：保证中文数字与阿拉伯数字混合场景均可精确抽取金额并还原干净备注。
+9. **统一分类实体唯一约束与收支方向定义【本阶段】**
+   - **决策**：在 `CategoryEntity` 中建立 `(categoryId, parentId, categoryType)` 复合唯一索引，将原应用一级分类 ID 9 及其下属 11 项子分类明确定义为收入（`categoryType = 1`），其余 64 项分类明确定义为支出（`categoryType = 0`）。
+   - **理由**：消除了原应用中收入仅靠魔法数值 9 区分的隐患，提供清晰的收支目录筛选能力。
+10. **数据库版本 3 至版本 4 增量平滑迁移与默认资产自愈回填【本阶段】**
+    - **决策**：在 `MIGRATION_3_4` 中自动注入默认账本（`bookId = 1`）与默认现金资产（`assetId = 1`），历史所有未关联的 transactions 自动关联至默认资产与默认账本。
+    - **理由**：彻底消除外键断裂风险，保证历史数据可无缝过渡到多账本与资产管理体系。
 
 ---
 
 ## 4. 已知坑与失败尝试
 
-- **现象**：命令行调用 REA 工具偶发 `exit status 0xc0000142`（`STATUS_DLL_INIT_FAILED`）。
-  - **原因**：Windows 环境中 Oracle Java 路径存在动态链接库加载竞争。
-  - **正确做法**：通过 Node.js 直接调用公共 `rea.mjs`，并显式注入环境变量 `REA_JADX_MCP_JAR = 'C:/Users/29602/.local/share/rea/android/jadx-headless-mcp-0.7.1-all.jar'`。
-- **现象**：Plan 模式下执行工作区文件写入被 safety-guard 拦截阻止。
-  - **原因**：Antigravity 环境处于计划保护只读状态。
-  - **正确做法**：先生成 plan artifact 请求用户核准，通过 Proceed 确认后再写入工作区。
-- **现象**：命令行调用 `inspect-android-class` 时传入 `--class-name` 参数报错终止。
-  - **原因**：`rea.mjs` 底层接收的是位置参数 `apkPath className` 而非选项标志。
-  - **正确做法**：统一使用工作区封装的 [rea_utils.js](file:///D:/github-repository/smart-record/work/scripts/yimu-offline-rebuild/rea_utils.js) 提供的标准函数 `inspectClass(cls, outFile)`。
-- **现象**：保存反编译文件时触发 `ENOENT` 文件系统异常。
-  - **原因**：方法名包含 `<init>` 等字符，Windows 系统文件名禁止使用尖括号。
-  - **正确做法**：在拼接输出文件名时对特殊符号执行安全正则替换（如 `replace(/[<>]/g, '_')`）。
-- **现象**：反编译内部类时报错 `Exact class not found: SpeechManager$b`。
-  - **原因**：JADX 内部类索引采用点号语法（`SpeechManager.b`）而非 JVM 字节码的美元符号语法。
-  - **正确做法**：通过 `get_class_summary` 的 `inner_classes` 清单确认名称，使用点号连接。
+- **现象**：`CategoryEntity` 在写入收入分类时，若直接沿用原 APK `categoryType = 0` 会导致收支目录无法通过标准字段过滤。
+  - **原因**：原应用内部通过 `parentCategoryId == 9` 判定收入，表内 `categoryType` 均为 0。
+  - **正确做法**：在导入种子和持久化时，将一级 ID 9 及其子分类的 `categoryType` 明确置为 1，支出置为 0。
+- **现象**：全新安装时若仅依靠 Migration 注入分类，新用户数据库不会触发 Migration。
+  - **原因**：Room 对新创建数据库直接执行当前版本的完整 DDL，跳过历史 Migration。
+  - **正确做法**：在 `BookkeepingApp.kt` 的 `Room.databaseBuilder` 中同时添加 `RoomDatabase.Callback().onCreate`，实现全新安装与版本升级双重播种保证。
 
 ---
 
 ## 5. 环境与命令
 
 - **系统平台**：Windows 11，PowerShell 7.6.7，Node.js 24.16.0，JDK 21，Android SDK 37（路径 `D:\Android\Sdk`）。
-- **逆向分析工具**：
-  - REA 6.5.0（路径 `D:/dev-cache/npm-cache/_npx/ad9a3fdbcad992c6/node_modules/rea-agents/scripts/rea.mjs`）
-  - JADX Headless MCP 0.7.1（路径 `C:/Users/29602/.local/share/rea/android/jadx-headless-mcp-0.7.1-all.jar`）
-  - 辅助工具：[rea_utils.js](file:///D:/github-repository/smart-record/work/scripts/yimu-offline-rebuild/rea_utils.js)
-- **参考 APK 基准**：
-  - 路径：[base.apk](file:///D:/github-repository/smart-record/reference_apk/base.apk)
-  - 校验和：`e5ec945aa290c6f66fcd43c3f4307eebc5c7796d188e41895dcdf7fed599f8fd`
 - **成果核验命令**：
+  - T03 独立验收：
+    ```powershell
+    node work/scripts/yimu-offline-rebuild/t03/verify_T03_deliverables.js
+    ```
   - T02 独立验收：
     ```powershell
     node work/scripts/yimu-offline-rebuild/t02/verify_T02_deliverables.js
@@ -99,6 +96,10 @@
   - T01-B 独立验收：
     ```powershell
     node work/scripts/yimu-offline-rebuild/financial/verify_T01_B_deliverables.js
+    ```
+  - 全量单元测试与 Lint 静态分析：
+    ```powershell
+    .\gradlew.bat :app:testDebugUnitTest :app:lintDebug
     ```
 
 ---
@@ -112,23 +113,25 @@
 - [x] **时间自然语言解析模式**：解压反序列化提取出 7,327 字符高精度时间匹配正则，6 组典型时间句子匹配测试 100% 通过。
 - [x] **金额提取与文本清洗规则**：实现毛角转点与数字提取逻辑，6 组典型记账句子金额与备注测试 100% 通过。
 - [x] **餐饮时段状态机**：4 组边界时刻状态转换测试 100% 通过。
+- [x] **统一 Room 数据库实体与增量迁移构建**：建立 9 大新增业务领域实体，导出 Room `4.json` schema（13 张表），实现 `MIGRATION_3_4`，官方 SQLite 演练 v1 至 v4 全迁移链验证通过，`Migration3To4Test` 单元测试通过，`.\gradlew.bat :app:testDebugUnitTest :app:lintDebug` 100% 通过。
 
 ### 6.2 未验证与待后续阶段执行
 - [ ] 专用模拟器断网参考界面层级与操作核查（归属 T01-C）。
-- [ ] 统一 Room 数据库实体与增量迁移构建（归属 T03）。
+- [ ] 完成历史分类映射与分类管理迁移（归属 T04）。
 
 ---
 
 ## 7. 下一阶段交接
 
-- **第一步**：新会话读取本交接文档与技术报告 [T02-classification-time-nlp.md](file:///D:/github-repository/smart-record/work/reports/yimu-offline-rebuild/T02-classification-time-nlp.md)，汇总 T01（分类与资金业务）与 T02（离线模型规则）成果，开启 **T03（统一数据模型与数据库增量平滑迁移构建）**。
+- **第一步**：新会话读取本交接文档与实施计划 [t03_data_model_and_migration_plan.md](file:///D:/github-repository/smart-record/docs/plans/t03_data_model_and_migration_plan.md)，基于已构建的 Room 实体与分类目录，开启 **T04（完成历史分类映射与分类管理迁移）**。
 - **验收标准**：
+  - 运行 `node work/scripts/yimu-offline-rebuild/t03/verify_T03_deliverables.js` 退出状态为 0；
   - 运行 `node work/scripts/yimu-offline-rebuild/t02/verify_T02_deliverables.js` 退出状态为 0；
   - 运行 `node work/scripts/yimu-offline-rebuild/financial/verify_T01_B_deliverables.js` 退出状态为 0；
-  - 在 Room 中建立完整的资金业务实体（`Asset`、`Transfer`、`Refund` 等），实现 `MIGRATION_3_4`；
+  - 制定明确的旧分类至一木 76 项分类的映射策略与双向兼容逻辑；
   - 运行 `./gradlew.bat :app:testDebugUnitTest` 全部测试通过。
 - **禁止事项**：
   - 严禁擅自使用 Git 进行回滚或重置操作；
-  - 严禁直接改动当前工作区未暂存的 14 个历史有效修改；
-  - 严禁直接抹除原有数据库表或破坏版本 3 现有数据；
-  - 严禁违背已共识的 5 大长期架构决策。
+  - 严禁直接改动当前工作区未暂存的 11 个历史有效修改；
+  - 严禁直接抹除原有数据库表或破坏版本 4 现有数据；
+  - 严禁违背已共识的长期架构决策。
