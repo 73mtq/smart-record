@@ -75,6 +75,7 @@ fun MainScreen(
     onSearch: () -> Unit,
     onRules: () -> Unit,
     onCategoryManage: () -> Unit = {},
+    onAssetManage: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = 0) { 3 }
     val scope = rememberCoroutineScope()
@@ -116,7 +117,12 @@ fun MainScreen(
                 }
                 else -> {
                     val vm: SettingsViewModel = viewModel(factory = vmFactory { SettingsViewModel(container) })
-                    SettingsScreen(vm = vm, onRules = onRules, onCategoryManage = onCategoryManage)
+                    SettingsScreen(
+                        vm = vm,
+                        onRules = onRules,
+                        onCategoryManage = onCategoryManage,
+                        onAssetManage = onAssetManage,
+                    )
                 }
             }
         }

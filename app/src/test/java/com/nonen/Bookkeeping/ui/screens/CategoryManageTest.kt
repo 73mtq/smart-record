@@ -122,6 +122,13 @@ class CategoryManageTest {
                 storage[index] = storage[index].copy(parentCategoryId = parentCategoryId, childCategoryId = childCategoryId)
             }
         }
+        override suspend fun reassignAsset(oldAssetId: Long, newAssetId: Long, newAccount: String) {
+            val updated = storage.map {
+                if (it.assetId == oldAssetId) it.copy(assetId = newAssetId, account = newAccount) else it
+            }
+            storage.clear()
+            storage.addAll(updated)
+        }
     }
 
     @Test

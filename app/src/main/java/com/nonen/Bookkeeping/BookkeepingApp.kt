@@ -81,8 +81,9 @@ class AppContainer(val appContext: Context) {
     val tagDao get() = database.tagDao()
 
     val ruleRepository = RuleRepository(ruleDao, merchantDao)
-    val transactionRepository = TransactionRepository(transactionDao, ruleDao, merchantDao, settings)
+    val transactionRepository = TransactionRepository(transactionDao, ruleDao, merchantDao, settings, assetDao, transferDao)
     val categoryRepository = com.nonen.Bookkeeping.data.repo.CategoryRepository(categoryDao)
+    val assetRepository = com.nonen.Bookkeeping.data.repo.AssetRepository(assetDao, transferDao, transactionDao, database)
     val categoryMigrationService = com.nonen.Bookkeeping.data.migration.CategoryMigrationService(database)
     val ruleEngine = RuleEngine(ruleDao, merchantDao)
     val billImporter = BillImporter(transactionRepository, ruleEngine)

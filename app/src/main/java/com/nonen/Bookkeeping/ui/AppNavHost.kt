@@ -23,9 +23,11 @@ import com.nonen.Bookkeeping.ui.motion.motionSpring
 import com.nonen.Bookkeeping.ui.motion.rememberReducedMotion
 import com.nonen.Bookkeeping.ui.screens.AddEditScreen
 import com.nonen.Bookkeeping.ui.screens.AddEditViewModel
-import com.nonen.Bookkeeping.ui.screens.MainScreen
+import com.nonen.Bookkeeping.ui.screens.AssetManageScreen
+import com.nonen.Bookkeeping.ui.screens.AssetManageViewModel
 import com.nonen.Bookkeeping.ui.screens.CategoryManageScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageViewModel
+import com.nonen.Bookkeeping.ui.screens.MainScreen
 import com.nonen.Bookkeeping.ui.screens.RulesScreen
 import com.nonen.Bookkeeping.ui.screens.RulesViewModel
 import com.nonen.Bookkeeping.ui.screens.SearchScreen
@@ -37,6 +39,7 @@ object Routes {
     const val SEARCH = "search"
     const val RULES = "rules"
     const val CATEGORY_MANAGE = "category_manage"
+    const val ASSET_MANAGE = "asset_manage"
 
     fun add(txId: Long) = "add/$txId"
 }
@@ -79,10 +82,11 @@ fun AppNavHost() {
             MainScreen(
                 container = container,
                 onAdd = { nav.navigate(Routes.add(0L)) },
-                onEdit = { nav.navigate(Routes.add(it)) },
+                onEdit = { txId -> nav.navigate(Routes.add(txId)) },
                 onSearch = { nav.navigateSingleTop(Routes.SEARCH) },
                 onRules = { nav.navigateSingleTop(Routes.RULES) },
                 onCategoryManage = { nav.navigateSingleTop(Routes.CATEGORY_MANAGE) },
+                onAssetManage = { nav.navigateSingleTop(Routes.ASSET_MANAGE) },
             )
         }
 
@@ -99,6 +103,7 @@ fun AppNavHost() {
                         ruleEngine = container.ruleEngine,
                         ruleRepo = container.ruleRepository,
                         categoryRepo = container.categoryRepository,
+                        assetRepo = container.assetRepository,
                         txId = txId,
                     )
                 },
@@ -107,6 +112,7 @@ fun AppNavHost() {
                 vm = vm,
                 onBack = { nav.popBackStack() },
                 onManageCategories = { nav.navigateSingleTop(Routes.CATEGORY_MANAGE) },
+                onManageAssets = { nav.navigateSingleTop(Routes.ASSET_MANAGE) },
             )
         }
 
@@ -134,6 +140,15 @@ fun AppNavHost() {
                 },
             )
             CategoryManageScreen(vm = vm, onBack = { nav.popBackStack() })
+        }
+
+        composable(Routes.ASSET_MANAGE) {
+            val vm: AssetManageViewModel = viewModel(
+                factory = vmFactory {
+                    AssetManageViewModel(container.assetRepository)
+                },
+            )
+            AssetManageScreen(vm = vm, onBack = { nav.popBackStack() })
         }
     }
 }

@@ -32,6 +32,7 @@ class AddEditViewModel(
     private val ruleEngine: RuleEngine? = null,
     private val ruleRepo: RuleRepository? = null,
     private val categoryRepo: CategoryRepository? = null,
+    private val assetRepo: com.nonen.Bookkeeping.data.repo.AssetRepository? = null,
     private val txId: Long,
     private val externalScope: CoroutineScope? = null,
 ) : ViewModel() {
@@ -48,6 +49,8 @@ class AddEditViewModel(
     var bookId by mutableStateOf(1L)
     var assetId by mutableStateOf(1L)
     var liveCategories by mutableStateOf<List<CategoryEntity>>(emptyList())
+    var liveAssets by mutableStateOf<List<com.nonen.Bookkeeping.data.db.AssetEntity>>(emptyList())
+        private set
     var note by mutableStateOf("")
     var merchant by mutableStateOf("")
     var account by mutableStateOf(Categories.defaultAccounts.first())
@@ -98,6 +101,7 @@ class AddEditViewModel(
 
     init {
         observeCategories()
+        observeAssets()
         if (txId != 0L) {
             scope.launch {
                 repo.getById(txId)?.let { t ->
@@ -142,6 +146,28 @@ class AddEditViewModel(
                 }
             }
         }
+    }
+
+    private fun observeAssets() {
+        scope.launch {
+            val aRepo = assetRepo ?: return@launch
+            aRepo.observeVisible().collectLatest { list ->
+                liveAssets = list
+                val current = list.firstOrNull { it.assetId == assetId }
+                if (current != null) {
+                    account = current.assetName
+                } else if (list.isNotEmpty() && txId == 0L && assetId == 1L) {
+                    val defaultAsset = list.firstOrNull { it.assetId == 1L } ?: list.first()
+                    assetId = defaultAsset.assetId
+                    account = defaultAsset.assetName
+                }
+            }
+        }
+    }
+
+    fun selectAsset(asset: com.nonen.Bookkeeping.data.db.AssetEntity) {
+        assetId = asset.assetId
+        account = asset.assetName
     }
 
     private fun syncCategoryIds() {

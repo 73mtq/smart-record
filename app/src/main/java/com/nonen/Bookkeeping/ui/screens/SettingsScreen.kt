@@ -43,6 +43,7 @@ fun SettingsScreen(
     vm: SettingsViewModel,
     onRules: () -> Unit,
     onCategoryManage: () -> Unit = {},
+    onAssetManage: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var guideSource by remember { mutableStateOf<String?>(null) }
@@ -126,6 +127,18 @@ fun SettingsScreen(
                 onCategoryManage = onCategoryManage,
                 onReclassify = { showReclassifyDialog = true },
             )
+        }
+
+        CollapsibleSection(title = "资产与账户", emoji = "💳") {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    "管理资金账户、信用卡、借贷账户以及调整盘点余额与转账。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+                SettingsActionButton("进入资产管理", onAssetManage)
+            }
         }
 
         CollapsibleSection(title = stringResource(R.string.section_backup), emoji = "💾") {

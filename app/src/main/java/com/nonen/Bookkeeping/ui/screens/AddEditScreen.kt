@@ -76,6 +76,7 @@ fun AddEditScreen(
     vm: AddEditViewModel,
     onBack: () -> Unit,
     onManageCategories: () -> Unit = {},
+    onManageAssets: () -> Unit = {},
 ) {
     if (vm.loading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -232,28 +233,63 @@ fun AddEditScreen(
             }
 
             Spacer(Modifier.height(12.dp))
-            Text("资金账户", style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("资金账户", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = "管理账户 ⚙️",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable { onManageAssets() }
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                )
+            }
             Spacer(Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Categories.defaultAccounts.forEach { acc ->
-                    val isSelected = vm.account == acc
-                    Text(
-                        text = acc,
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            )
-                            .clickable { vm.account = acc }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                    )
+                if (vm.liveAssets.isNotEmpty()) {
+                    vm.liveAssets.forEach { asset ->
+                        val isSelected = vm.assetId == asset.assetId
+                        Text(
+                            text = asset.assetName,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceVariant,
+                                )
+                                .clickable { vm.selectAsset(asset) }
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                        )
+                    }
+                } else {
+                    Categories.defaultAccounts.forEach { acc ->
+                        val isSelected = vm.account == acc
+                        Text(
+                            text = acc,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceVariant,
+                                )
+                                .clickable { vm.account = acc }
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                        )
+                    }
                 }
             }
 

@@ -67,6 +67,9 @@ interface TransactionDao {
 
     @Query("SELECT COUNT(*) FROM transactions WHERE parentCategoryId IS NULL")
     suspend fun countUnmigrated(): Int
+
+    @Query("UPDATE transactions SET assetId = :newAssetId, account = :newAccount WHERE assetId = :oldAssetId")
+    suspend fun reassignAsset(oldAssetId: Long, newAssetId: Long, newAccount: String)
 }
 
 @Dao

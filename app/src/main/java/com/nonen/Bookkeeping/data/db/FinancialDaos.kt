@@ -37,6 +37,27 @@ interface AssetDao {
     @Query("UPDATE assets SET assetNumber = assetNumber + :delta, updatedAt = :timestamp WHERE assetId = :assetId")
     suspend fun updateBalance(assetId: Long, delta: Double, timestamp: Long = System.currentTimeMillis())
 
+    @Query("SELECT * FROM assets ORDER BY positionWeight ASC, assetId ASC")
+    fun getAllFlow(): Flow<List<AssetEntity>>
+
+    @Query("SELECT MAX(assetId) FROM assets")
+    suspend fun getMaxAssetId(): Long?
+
+    @Query("SELECT MAX(positionWeight) FROM assets")
+    suspend fun getMaxPositionWeight(): Int?
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE assetId = :assetId")
+    suspend fun countTransactionsUsingAsset(assetId: Long): Int
+
+    @Query("SELECT COUNT(*) FROM transfers WHERE fromAssetId = :assetId OR toAssetId = :assetId")
+    suspend fun countTransfersUsingAsset(assetId: Long): Int
+
+    @Query("UPDATE assets SET hide = :hide, updatedAt = :timestamp WHERE assetId = :assetId")
+    suspend fun updateAssetHide(assetId: Long, hide: Boolean, timestamp: Long = System.currentTimeMillis())
+
+    @Query("UPDATE assets SET positionWeight = :weight, updatedAt = :timestamp WHERE assetId = :assetId")
+    suspend fun updatePositionWeight(assetId: Long, weight: Int, timestamp: Long = System.currentTimeMillis())
+
     @Query("DELETE FROM assets WHERE assetId = :assetId")
     suspend fun deleteById(assetId: Long)
 }
@@ -52,6 +73,9 @@ interface TransferDao {
     @Query("SELECT * FROM transfers WHERE transferId = :id LIMIT 1")
     suspend fun findById(id: Long): TransferEntity?
 
+    @Query("SELECT * FROM transfers WHERE fromAssetId = :assetId OR toAssetId = :assetId ORDER BY time DESC")
+    suspend fun getByAssetId(assetId: Long): List<TransferEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(transfer: TransferEntity): Long
 
@@ -60,6 +84,9 @@ interface TransferDao {
 
     @Delete
     suspend fun delete(transfer: TransferEntity)
+
+    @Query("DELETE FROM transfers WHERE transferId = :id")
+    suspend fun deleteById(id: Long)
 }
 
 /**
