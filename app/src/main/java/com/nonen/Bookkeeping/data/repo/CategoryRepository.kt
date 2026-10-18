@@ -44,6 +44,72 @@ class CategoryRepository(
 
     suspend fun count(): Int = categoryDao.count()
 
+    fun observeByType(categoryType: Int): Flow<List<CategoryEntity>> =
+        categoryDao.observeByType(categoryType)
+
+    suspend fun getById(id: Long): CategoryEntity? = categoryDao.getById(id)
+
+    suspend fun toggleHide(id: Long, hide: Boolean) {
+        val cat = categoryDao.getById(id) ?: return
+        categoryDao.update(cat.copy(hide = hide))
+    }
+
+    suspend fun toggleBookVisibility(id: Long, bookId: Long, hidden: Boolean) {
+        val cat = categoryDao.getById(id) ?: return
+        categoryDao.update(cat.withBookHidden(bookId, hidden))
+    }
+
+    suspend fun updatePositionWeights(items: List<CategoryEntity>) {
+        items.forEachIndexed { index, cat ->
+            categoryDao.update(cat.copy(positionWeight = index + 1))
+        }
+    }
+
+    suspend fun createCustomCategory(
+        name: String,
+        parentId: Int,
+        categoryType: Int,
+        iconUrl: String,
+    ): CategoryEntity {
+        val existing = categoryDao.findByNameAndParent(name, parentId)
+        if (existing != null) {
+            return existing
+        }
+
+        val nextCategoryId: Int = if (parentId == 0) {
+            val maxId = categoryDao.getMaxCustomParentCategoryId() ?: 80
+            if (maxId in 88..89) maxId + 2 else maxId + 1
+        } else {
+            val maxId = categoryDao.getMaxCustomChildCategoryId(parentId) ?: (parentId * 100 + 80)
+            maxId + 1
+        }
+
+        val newCat = CategoryEntity(
+            categoryId = nextCategoryId,
+            parentId = parentId,
+            categoryName = name.trim(),
+            iconUrl = iconUrl,
+            positionWeight = nextCategoryId,
+            categoryType = categoryType,
+            isCustom = true,
+            hide = false,
+            hideBook = null,
+        )
+        val insertedId = categoryDao.insert(newCat)
+        return newCat.copy(id = insertedId)
+    }
+
+    suspend fun countTransactionsUsingCategory(categoryId: Int): Int =
+        categoryDao.countTransactionsUsingCategory(categoryId)
+
+    suspend fun deleteCustomCategory(id: Long, categoryId: Int, unlinkTransactions: Boolean = true) {
+        if (unlinkTransactions) {
+            categoryDao.clearTransactionParentCategory(categoryId)
+            categoryDao.clearTransactionChildCategory(categoryId)
+        }
+        categoryDao.deleteById(id)
+    }
+
     /**
      * 确保自定义分类存在：若已存在则直接返回，若不存在则创建并写入数据库。
      */
@@ -70,6 +136,7 @@ class CategoryRepository(
             categoryType = categoryType,
             isCustom = true,
             hide = false,
+            hideBook = null,
         )
         val id = categoryDao.insert(newCat)
         return newCat.copy(id = id)

@@ -24,6 +24,8 @@ import com.nonen.Bookkeeping.ui.motion.rememberReducedMotion
 import com.nonen.Bookkeeping.ui.screens.AddEditScreen
 import com.nonen.Bookkeeping.ui.screens.AddEditViewModel
 import com.nonen.Bookkeeping.ui.screens.MainScreen
+import com.nonen.Bookkeeping.ui.screens.CategoryManageScreen
+import com.nonen.Bookkeeping.ui.screens.CategoryManageViewModel
 import com.nonen.Bookkeeping.ui.screens.RulesScreen
 import com.nonen.Bookkeeping.ui.screens.RulesViewModel
 import com.nonen.Bookkeeping.ui.screens.SearchScreen
@@ -34,6 +36,7 @@ object Routes {
     const val ADD_EDIT = "add/{txId}"
     const val SEARCH = "search"
     const val RULES = "rules"
+    const val CATEGORY_MANAGE = "category_manage"
 
     fun add(txId: Long) = "add/$txId"
 }
@@ -79,6 +82,7 @@ fun AppNavHost() {
                 onEdit = { nav.navigate(Routes.add(it)) },
                 onSearch = { nav.navigateSingleTop(Routes.SEARCH) },
                 onRules = { nav.navigateSingleTop(Routes.RULES) },
+                onCategoryManage = { nav.navigateSingleTop(Routes.CATEGORY_MANAGE) },
             )
         }
 
@@ -94,11 +98,16 @@ fun AppNavHost() {
                         repo = container.transactionRepository,
                         ruleEngine = container.ruleEngine,
                         ruleRepo = container.ruleRepository,
+                        categoryRepo = container.categoryRepository,
                         txId = txId,
                     )
                 },
             )
-            AddEditScreen(vm = vm, onBack = { nav.popBackStack() })
+            AddEditScreen(
+                vm = vm,
+                onBack = { nav.popBackStack() },
+                onManageCategories = { nav.navigateSingleTop(Routes.CATEGORY_MANAGE) },
+            )
         }
 
         composable(Routes.SEARCH) {
@@ -116,6 +125,15 @@ fun AppNavHost() {
                 },
             )
             RulesScreen(vm = vm, onBack = { nav.popBackStack() })
+        }
+
+        composable(Routes.CATEGORY_MANAGE) {
+            val vm: CategoryManageViewModel = viewModel(
+                factory = vmFactory {
+                    CategoryManageViewModel(container.categoryRepository)
+                },
+            )
+            CategoryManageScreen(vm = vm, onBack = { nav.popBackStack() })
         }
     }
 }

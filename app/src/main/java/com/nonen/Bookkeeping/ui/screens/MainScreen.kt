@@ -74,6 +74,7 @@ fun MainScreen(
     onEdit: (Long) -> Unit,
     onSearch: () -> Unit,
     onRules: () -> Unit,
+    onCategoryManage: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = 0) { 3 }
     val scope = rememberCoroutineScope()
@@ -115,7 +116,7 @@ fun MainScreen(
                 }
                 else -> {
                     val vm: SettingsViewModel = viewModel(factory = vmFactory { SettingsViewModel(container) })
-                    SettingsScreen(vm = vm, onRules = onRules)
+                    SettingsScreen(vm = vm, onRules = onRules, onCategoryManage = onCategoryManage)
                 }
             }
         }

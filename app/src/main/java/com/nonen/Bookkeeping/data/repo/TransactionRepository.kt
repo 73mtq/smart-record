@@ -19,7 +19,7 @@ class TransactionRepository(
     private val dao: TransactionDao,
     private val ruleDao: CategoryRuleDao,
     private val merchantDao: MerchantCategoryDao,
-    private val settings: SettingsStore,
+    private val settings: SettingsStore? = null,
 ) {
     fun observeMonth(month: YearMonth): Flow<List<TransactionEntity>> {
         val zone = ZoneId.systemDefault()
@@ -97,7 +97,7 @@ class TransactionRepository(
      */
     suspend fun learnFromEdit(entity: TransactionEntity, oldCategory: String?) {
         if (entity.category == oldCategory) return
-        if (!settings.learnOnEdit.first()) return
+        if (settings?.learnOnEdit?.first() != true) return
         learnMerchant(entity.merchant, entity.category, entity.amount > 0)
     }
 
@@ -106,7 +106,7 @@ class TransactionRepository(
      * 用户亲手把某个商户归到了某个分类，下次同一商户应直接命中。
      */
     suspend fun learnFromConfirm(merchant: String?, category: String, isIncome: Boolean) {
-        if (!settings.learnOnEdit.first()) return
+        if (settings?.learnOnEdit?.first() != true) return
         learnMerchant(merchant, category, isIncome)
     }
 

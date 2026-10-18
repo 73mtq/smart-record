@@ -21,7 +21,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TagEntity::class,
         TransactionTagCrossRef::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -328,6 +328,16 @@ abstract class AppDatabase : RoomDatabase() {
                             "VALUES (${cat.categoryId}, ${cat.parentId}, '${cat.categoryName}', '${cat.iconUrl}', ${cat.positionWeight}, ${cat.categoryType}, $isCustom, $hide, $now)",
                     )
                 }
+            }
+        }
+
+        /**
+         * v4 → v5：
+         * 为 categories 表添加 hideBook 字段，支持账本维度的分类可见性与隐藏配置。
+         */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `categories` ADD COLUMN `hideBook` TEXT DEFAULT NULL")
             }
         }
     }

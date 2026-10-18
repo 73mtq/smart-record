@@ -11,6 +11,11 @@ import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.data.repo.TransactionRepository
 import com.nonen.Bookkeeping.parse.PaymentTextParser
 import com.nonen.Bookkeeping.data.repo.RuleRepository
+import com.nonen.Bookkeeping.core.CategoryMapping
+import com.nonen.Bookkeeping.data.db.CategoryEntity
+import com.nonen.Bookkeeping.data.repo.CategoryRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
 import androidx.compose.runtime.getValue
@@ -26,14 +31,23 @@ class AddEditViewModel(
     private val repo: TransactionRepository,
     private val ruleEngine: RuleEngine? = null,
     private val ruleRepo: RuleRepository? = null,
+    private val categoryRepo: CategoryRepository? = null,
     private val txId: Long,
+    private val externalScope: CoroutineScope? = null,
 ) : ViewModel() {
+
+    private val scope: CoroutineScope get() = externalScope ?: viewModelScope
 
     var isIncome by mutableStateOf(false)
         private set
     var amount by mutableStateOf("")
     var category by mutableStateOf(Categories.expenseCategories.first())
     var subCategory by mutableStateOf("")
+    var parentCategoryId by mutableStateOf<Int?>(null)
+    var childCategoryId by mutableStateOf<Int?>(null)
+    var bookId by mutableStateOf(1L)
+    var assetId by mutableStateOf(1L)
+    var liveCategories by mutableStateOf<List<CategoryEntity>>(emptyList())
     var note by mutableStateOf("")
     var merchant by mutableStateOf("")
     var account by mutableStateOf(Categories.defaultAccounts.first())
@@ -83,8 +97,9 @@ class AddEditViewModel(
         get() = !isIncome && (amount.toDoubleOrNull() ?: 0.0) >= 100.0 && note.isBlank()
 
     init {
+        observeCategories()
         if (txId != 0L) {
-            viewModelScope.launch {
+            scope.launch {
                 repo.getById(txId)?.let { t ->
                     original = t
                     originalCategory = t.category
@@ -93,6 +108,10 @@ class AddEditViewModel(
                     amount = String.format(Locale.US, "%.2f", kotlin.math.abs(t.amount))
                     category = t.category
                     subCategory = t.subCategory.orEmpty()
+                    parentCategoryId = t.parentCategoryId
+                    childCategoryId = t.childCategoryId
+                    bookId = t.bookId
+                    assetId = t.assetId
                     note = t.note.orEmpty()
                     merchant = t.merchant.orEmpty()
                     account = t.account ?: Categories.defaultAccounts.first()
@@ -106,25 +125,68 @@ class AddEditViewModel(
                 loading = false
             }
         } else {
-            viewModelScope.launch {
+            scope.launch {
                 cachedRules = ruleEngine?.loadRules()
+                syncCategoryIds()
             }
         }
+    }
+
+    private fun observeCategories() {
+        scope.launch {
+            val cRepo = categoryRepo ?: return@launch
+            cRepo.observeByType(if (isIncome) 1 else 0).collectLatest { list ->
+                liveCategories = list.filter { !it.isHiddenInBook(bookId) }
+                if (parentCategoryId == null) {
+                    syncCategoryIds()
+                }
+            }
+        }
+    }
+
+    private fun syncCategoryIds() {
+        val resolved = CategoryMapping.resolve(category, subCategory.ifEmpty { null }, isIncome)
+        parentCategoryId = resolved.parentId
+        childCategoryId = resolved.childId
     }
 
     fun setType(income: Boolean) {
         if (isIncome == income) return
         isIncome = income
-        if (category !in categoryList) category = categoryList.first()
+        subCategory = ""
+        childCategoryId = null
         isCategoryManuallyChosen = true
+        observeCategories()
+        val defaultParent = liveCategories.firstOrNull { it.parentId == 0 }
+        if (defaultParent != null) {
+            category = defaultParent.categoryName
+            parentCategoryId = defaultParent.categoryId
+        } else {
+            if (category !in categoryList) category = categoryList.first()
+            syncCategoryIds()
+        }
     }
 
     fun setAmountInput(raw: String) {
         amount = raw.filter { it.isDigit() || it == '.' }.take(12)
     }
 
-    fun selectCategoryManually(cat: String) {
-        category = cat
+    fun selectCategoryManually(catName: String, catId: Int? = null) {
+        category = catName
+        parentCategoryId = catId ?: CategoryMapping.resolve(catName, null, isIncome).parentId
+        subCategory = ""
+        childCategoryId = null
+        isCategoryManuallyChosen = true
+    }
+
+    fun selectSubCategory(subName: String, subId: Int? = null) {
+        if (subCategory == subName) {
+            subCategory = ""
+            childCategoryId = null
+        } else {
+            subCategory = subName
+            childCategoryId = subId ?: CategoryMapping.resolve(category, subName, isIncome).childId
+        }
         isCategoryManuallyChosen = true
     }
 
@@ -210,7 +272,7 @@ class AddEditViewModel(
             errorMessageRes = R.string.error_invalid_amount
             return
         }
-        viewModelScope.launch {
+        scope.launch {
             if (saveAsRule) {
                 val keyword = merchant.trim().ifEmpty { note.trim() }
                 if (keyword.isNotEmpty()) {
@@ -218,11 +280,17 @@ class AddEditViewModel(
                 }
             }
             val existing = original
+            val currentParentId = parentCategoryId ?: CategoryMapping.resolve(category, subCategory.ifEmpty { null }, isIncome).parentId
+            val currentChildId = childCategoryId ?: CategoryMapping.resolve(category, subCategory.ifEmpty { null }, isIncome).childId
             if (existing != null) {
                 val updated = existing.copy(
                     amount = if (isIncome) value else -value,
                     category = category,
                     subCategory = subCategory.trim().ifEmpty { null },
+                    parentCategoryId = currentParentId,
+                    childCategoryId = currentChildId,
+                    bookId = bookId,
+                    assetId = assetId,
                     note = note.trim().ifEmpty { null },
                     merchant = merchant.trim().ifEmpty { null },
                     account = account.trim().ifEmpty { null },
@@ -242,6 +310,10 @@ class AddEditViewModel(
                     amount = signed,
                     category = category,
                     subCategory = subCategory.trim().ifEmpty { null },
+                    parentCategoryId = currentParentId,
+                    childCategoryId = currentChildId,
+                    bookId = bookId,
+                    assetId = assetId,
                     note = note.trim().ifEmpty { null },
                     merchant = m,
                     account = account.trim().ifEmpty { null },
@@ -254,6 +326,7 @@ class AddEditViewModel(
                     hash = HashUtil.transactionHash(timestamp, signed, m, "manual"),
                 )
                 if (repo.insertIfNew(entity)) {
+                    repo.learnFromEdit(entity, null)
                     onDone()
                 } else {
                     errorMessageRes = R.string.error_duplicate_record
@@ -264,7 +337,7 @@ class AddEditViewModel(
 
     fun delete(onDone: () -> Unit) {
         val existing = original ?: return
-        viewModelScope.launch {
+        scope.launch {
             repo.delete(existing)
             onDone()
         }

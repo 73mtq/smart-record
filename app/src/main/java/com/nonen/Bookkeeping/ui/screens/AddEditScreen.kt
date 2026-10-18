@@ -72,7 +72,11 @@ import java.time.ZoneOffset
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
+fun AddEditScreen(
+    vm: AddEditViewModel,
+    onBack: () -> Unit,
+    onManageCategories: () -> Unit = {},
+) {
     if (vm.loading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
@@ -136,7 +140,19 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(stringResource(R.string.label_category), style = MaterialTheme.typography.titleSmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.label_category), style = MaterialTheme.typography.titleSmall)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "管理分类 ⚙️",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable { onManageCategories() }
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
                 if (vm.autoSuggestedCategory != null) {
                     Text(
                         text = "✨ 智能匹配: ${vm.autoSuggestedCategory}",
@@ -161,23 +177,44 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
                 }
             }
             Spacer(Modifier.height(10.dp))
+
+            val parentCategories = remember(vm.liveCategories, vm.categoryList) {
+                val list = vm.liveCategories.filter { it.parentId == 0 }
+                if (list.isNotEmpty()) list.map { it.categoryName to it.categoryId }
+                else vm.categoryList.map { it to (com.nonen.Bookkeeping.core.CategoryMapping.resolve(it, null, vm.isIncome).parentId) }
+            }
+
             CategoryGrid(
-                categories = vm.categoryList,
+                categories = parentCategories.map { it.first },
                 selected = vm.category,
-                onSelect = { vm.selectCategoryManually(it) },
+                onSelect = { selectedName ->
+                    val catId = parentCategories.firstOrNull { it.first == selectedName }?.second
+                    vm.selectCategoryManually(selectedName, catId)
+                },
             )
 
-            val currentSubCats = Categories.subCategories[vm.category]
-            if (!currentSubCats.isNullOrEmpty()) {
+            val currentSubCats = remember(vm.liveCategories, vm.category, vm.parentCategoryId) {
+                val parentId = vm.parentCategoryId ?: com.nonen.Bookkeeping.core.CategoryMapping.resolve(vm.category, null, vm.isIncome).parentId
+                val liveChildren = vm.liveCategories.filter { it.parentId == parentId }
+                if (liveChildren.isNotEmpty()) {
+                    liveChildren.map { it.categoryName to (it.categoryId as Int?) }
+                } else {
+                    (Categories.subCategories[vm.category] ?: emptyList()).map {
+                        it to (com.nonen.Bookkeeping.core.CategoryMapping.resolve(vm.category, it, vm.isIncome).childId)
+                    }
+                }
+            }
+
+            if (currentSubCats.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    currentSubCats.forEach { sub ->
-                        val isSelected = vm.subCategory == sub
+                    currentSubCats.forEach { (subName, subId) ->
+                        val isSelected = vm.subCategory == subName
                         Text(
-                            text = sub,
+                            text = subName,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
@@ -185,9 +222,9 @@ fun AddEditScreen(vm: AddEditViewModel, onBack: () -> Unit) {
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
                                     if (isSelected) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.surfaceVariant
+                                    else MaterialTheme.colorScheme.surfaceVariant,
                                 )
-                                .clickable { vm.subCategory = if (isSelected) "" else sub }
+                                .clickable { vm.selectSubCategory(subName, subId) }
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                         )
                     }

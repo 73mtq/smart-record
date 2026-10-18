@@ -46,6 +46,7 @@ class AppContainer(val appContext: Context) {
             AppDatabase.MIGRATION_1_2,
             AppDatabase.MIGRATION_2_3,
             AppDatabase.MIGRATION_3_4,
+            AppDatabase.MIGRATION_4_5,
         )
         .addCallback(object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
@@ -56,9 +57,10 @@ class AppContainer(val appContext: Context) {
                 DefaultCategories.ALL.forEach { cat ->
                     val isCustom = if (cat.isCustom) 1 else 0
                     val hide = if (cat.hide) 1 else 0
+                    val hideBookVal = if (cat.hideBook != null) "'${cat.hideBook}'" else "NULL"
                     db.execSQL(
-                        "INSERT OR IGNORE INTO `categories` (`categoryId`, `parentId`, `categoryName`, `iconUrl`, `positionWeight`, `categoryType`, `isCustom`, `hide`, `createdAt`) " +
-                            "VALUES (${cat.categoryId}, ${cat.parentId}, '${cat.categoryName}', '${cat.iconUrl}', ${cat.positionWeight}, ${cat.categoryType}, $isCustom, $hide, $now)",
+                        "INSERT OR IGNORE INTO `categories` (`categoryId`, `parentId`, `categoryName`, `iconUrl`, `positionWeight`, `categoryType`, `isCustom`, `hide`, `hideBook`, `createdAt`) " +
+                            "VALUES (${cat.categoryId}, ${cat.parentId}, '${cat.categoryName}', '${cat.iconUrl}', ${cat.positionWeight}, ${cat.categoryType}, $isCustom, $hide, $hideBookVal, $now)",
                     )
                 }
             }

@@ -31,10 +31,29 @@ data class CategoryEntity(
     val categoryType: Int,
     /** 是否为用户自定义分类 */
     val isCustom: Boolean = false,
-    /** 是否隐藏 */
+    /** 是否全局隐藏 */
     val hide: Boolean = false,
+    /** 在特定账本中隐藏的账本 ID 列表（以英文逗号分隔，如 "1,2"），对标原应用 List<Long> hideBook */
+    val hideBook: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
-)
+) {
+    fun isHiddenInBook(bookId: Long): Boolean {
+        if (hide) return true
+        val list = hideBook?.split(",")?.mapNotNull { it.trim().toLongOrNull() } ?: emptyList()
+        return bookId in list
+    }
+
+    fun withBookHidden(bookId: Long, hidden: Boolean): CategoryEntity {
+        val currentList = hideBook?.split(",")?.mapNotNull { it.trim().toLongOrNull() }?.toMutableSet() ?: mutableSetOf()
+        if (hidden) {
+            currentList.add(bookId)
+        } else {
+            currentList.remove(bookId)
+        }
+        val newHideBook = if (currentList.isEmpty()) null else currentList.joinToString(",")
+        return copy(hideBook = newHideBook)
+    }
+}
 
 /**
  * 统一分类选择值对象。

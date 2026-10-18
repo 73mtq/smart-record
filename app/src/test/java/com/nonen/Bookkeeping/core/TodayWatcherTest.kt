@@ -115,13 +115,20 @@ class TodayWatcherTest {
 
     @Test
     fun `作用域取消时注销系统广播订阅`() {
+        var registered = 0
         var closed = 0
         val watcher = watcherAt(
             Instant.parse("2026-10-01T08:00:00Z"),
-            registrations = { TodayWatcher.Registration { closed++ } },
+            registrations = {
+                registered++
+                TodayWatcher.Registration { closed++ }
+            },
         )
         val scope = CoroutineScope(Job())
         watcher.register(scope)
+
+        val startDeadline = System.currentTimeMillis() + 2_000
+        while (registered == 0 && System.currentTimeMillis() < startDeadline) Thread.sleep(10)
 
         // 取消作用域是异步的，给注销协程一点时间收尾
         scope.cancel()

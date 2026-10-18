@@ -39,7 +39,11 @@ import java.time.LocalDate
 private const val RELEASE_PAGE_URL = "https://github.com/ZnonEn/Lite_Bookkeeping/releases/latest"
 
 @Composable
-fun SettingsScreen(vm: SettingsViewModel, onRules: () -> Unit) {
+fun SettingsScreen(
+    vm: SettingsViewModel,
+    onRules: () -> Unit,
+    onCategoryManage: () -> Unit = {},
+) {
     val context = LocalContext.current
     var guideSource by remember { mutableStateOf<String?>(null) }
     var pendingSource by remember { mutableStateOf<String?>(null) }
@@ -119,6 +123,7 @@ fun SettingsScreen(vm: SettingsViewModel, onRules: () -> Unit) {
                 reclassifying = vm.reclassifying,
                 result = vm.reclassifyResult,
                 onManage = onRules,
+                onCategoryManage = onCategoryManage,
                 onReclassify = { showReclassifyDialog = true },
             )
         }
@@ -336,17 +341,20 @@ private fun CategoryRuleSection(
     reclassifying: Boolean,
     result: String?,
     onManage: () -> Unit,
+    onCategoryManage: () -> Unit,
     onReclassify: () -> Unit,
 ) {
     Column(Modifier.padding(16.dp)) {
         ActionButtonRow {
+            SettingsActionButton("分类管理", onCategoryManage)
             SettingsActionButton(stringResource(R.string.action_manage_rules), onManage)
-            SettingsActionButton(
-                text = stringResource(if (reclassifying) R.string.action_reclassifying else R.string.action_reclassify),
-                onClick = onReclassify,
-                enabled = !reclassifying,
-            )
         }
+        Spacer(Modifier.height(8.dp))
+        SettingsActionButton(
+            text = stringResource(if (reclassifying) R.string.action_reclassifying else R.string.action_reclassify),
+            onClick = onReclassify,
+            enabled = !reclassifying,
+        )
         result?.let {
             Spacer(Modifier.height(8.dp))
             Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
