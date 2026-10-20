@@ -1,67 +1,63 @@
-# HANDOFF — S11 一木记账界面复刻（2026-10-20 续跑交接）
+# HANDOFF — S11 一木记账界面复刻（2026-10-20 晚间续跑交接）
 
 ## 1. 状态
 
-- **阶段：S11；阶段目标：** 在 S10 交接的未提交工作区上完成一木记账界面复刻：29 页日间验收、夜间主题、生产包交付和阶段交接。阶段编号依据：当前 HEAD 提交 `b594e02` 的信息 `handoff: S11 阶段交接`、旧 `HANDOFF.md`、`work/tasks/yimu-ui-reconstruction.md` 顶部的 S11 记录，以及 `C:\Users\29602\.qoder\plans\rising-fjord-asp.md` 的 S11 标题；编号确定，无歧义。旧版 HANDOFF 存在于 HEAD，本文件为整体重写，**不是首次创建**。
-- **当前状态：进行中，本阶段未完成，无外部技术阻塞。** 步骤 10 已完成（首页四页重采通过，模板清理完成）；步骤 11 组 A 6/8 通过、组 B 日历两页与资产页整体 ≤1.5% 但各有单 tile 残余、组 C 五页已原生化（normal/month/year/budget 整体 ≤1.5%，`stats_self` 2.48% 未通过，year 等仍有纯色残余）、组 D 两页通过且其余部分未完成；步骤 12 夜间、步骤 13 生产交付、步骤 14 最终报告均未开始。没有完成全部验收的用户 APK。
-- **仓库：** `D:\github-repository\smart-record`；分支 `main`；核查时间 **2026-10-20 17:12（Asia/Shanghai）**；写作前 HEAD 为 `b594e02ee73176f8bdfcd4edd3e1dd24468f8993`（`handoff: S11 阶段交接`）。暂存区为空；工作区 57 个跟踪文件修改、2 个删除、404 个未跟踪文件；`git status --short` 344 行；工作区 diff 为 59 文件、+2408/−2060 行。`git diff --cached` 为空。
-- **阶段起点与证据范围：** 当前 HEAD `b594e02` 是上一份 S11 交接，之后没有源码提交；本阶段源码全部在工作区。10-20 上午至 15:23 的续跑状态见 `work/logs/yimu-ui-reconstruction-s11/pause-20261020-1523/README.md`；本轮相对 15:23 快照的源码变化为 **12 个修改、31 个新增**（用该快照的 `source-sha256.csv` 逐文件哈希比对得到，见第 2 节）。12:54 快照 `pause-20261020-1254/README.md` 记录了步骤 10 与组 A 的完成情况。更早的 S09/S10/S11 前段改动不得归入本轮，见旧版交接与 `pause-20261019-2115/`。
-- **本阶段任务要求及来源：**
-  - 用户原始 S11 续跑提示词：`D:\桌面\temp\smart-record-S11-续跑提示词.md`（本机存在，7529 字节）。要求：从落盘证据续跑、控制上下文、优先按当时 1974 条增量事实处理、完成步骤 8 与步骤 10–14、遵守 HANDOFF 长期决定。该文件中的 1974 条数据已被后续 1977 条快照取代。
-  - 用户批准的计划：`C:\Users\29602\.qoder\plans\shining-dale-drake.md`（S11 原始计划）、`ember-narrows-stork.md`（S11 收尾计划）、`rising-fjord-asp.md`（2026-10-20 续跑计划，已批准）。计划要求完成 29 页日间/夜间、交付和交接；不得降阈值。
-  - 用户当前交接指令来自本会话消息，未另存文件：核查 git 证据、整体重写 `HANDOFF.md`、只提交该文档、不修改其他文件、保留暂存状态。
-  - 用户明确决定（2026-10-20）：日期/资产弹窗等 1px 字体/系统阴影差异记录在案并继续后续；用户每天使用原版，参考账单漂移只记录当次快照，不反复重导、不阻塞 UI 验收。
-  - 用户要求与 AI 建议的区分：“续跑、完成步骤 10–14、记录 1px 差异后继续、本次只提交 HANDOFF”是用户要求；“原生 XML/RecyclerView、MPAndroidChart 配置、原生统计壳、折叠日历补 12px、设置 SwitchButton 配色”等是 AI 提出并已执行的实现方案；尚未实现的计划仍属建议。
+- **阶段：S11；阶段目标：** 继续一木记账界面像素级复刻，本阶段重点为用户指定的首页麦克风按钮快速记账一致性与统计分类占比扇形图。阶段编号依据：HEAD 提交 `287e339` 信息 `handoff: S11 阶段交接`、`work/tasks/yimu-ui-reconstruction.md`、日志目录 `work/logs/yimu-ui-reconstruction-s11/`；编号确定，无歧义。旧版 HANDOFF 存在于 HEAD（`git show 287e339:HANDOFF.md`），本文件为整体重写，不是首次创建。
+- **当前状态：进行中，未完成，无技术阻塞。** 本阶段（287e339 之后，2026-10-20 17:58–20:50，日志 871–989 号）完成：clean 基线重建与全量重采、home_scrolled 修复后通过、add_bill_expense 重采通过、统计五页最终一轮收敛（stats_self 2.481%→1.747%）、分类管理页原生化（整体 0.043%）、规则页原生复刻（fix2 后 0.0078% 未判定通过，工具栏调整后 16.30%）、我的/设置页多轮修正（3.46%/4.32%）、语音记账方案按用户否决回退。夜间主题、生产包交付、最终报告仍未开始；没有完成全部验收的用户 APK。
+- **仓库：** `D:\github-repository\smart-record`；分支 `main`；核查时间 **2026-10-20 21:15–21:40（Asia/Shanghai）**；写作前 HEAD 为 `287e339f420117853514ea052091a546d2612a51`（`handoff: S11 阶段交接`，提交时间 2026-10-20 17:17:09）。暂存区为空；工作区 62 个跟踪文件修改（+2464/−2358）、2 个删除、`git status --porcelain -uall` 共 478 行。
+- **阶段起点与证据范围：** 本阶段起点为 287e339 提交之后的实施；日志 871 号 START 2026-10-20T17:58:29、989 号 END 2026-10-20T20:44:28 全部属于本阶段；`groupC-known-differences.md` 最后更新 20:50。17:17 之前的改动属于 S11 前段及更早阶段，不归入本阶段。
+- **本阶段任务要求及来源（原文可从上一会话记录取得）：**
+  - 上一会话记录已解压到 `work/tmp/session-12cf8812/session.v4.jsonl`（源文件 `D:\桌面\temp\dsh-session-session-12cf8812-0009-4295-8483-5ca585652b05.zip`，本机存在）。
+  - 用户 turn 1（17:28）：/tx-guideline 计划模式，只读探索，依据 HANDOFF.md 生成下一阶段执行计划，等待批准。
+  - 用户 turn 2（17:57）：`已连接开始执行`，批准执行计划 `C:\Users\29602\.qoder\plans\rising-fjord-asp.md`（S11 续跑计划，本机存在）。
+  - 用户 turn 3（20:17）：`继续，但是着重点为首页的麦克风点击的记账与一木记账对齐一模一样，还有统计部分，分类占比扇形图什么的`。
+  - 用户 turn 3（20:29）：`不需要语音，我要的是点击按钮之后的快速记账`。此前 AI 已按语音路线加入 RECORD_AUDIO 权限并构建安装（970/971 号），用户否决后 972 号构建回退，当前 Manifest 无 RECORD_AUDIO。
+  - 用户要求与 AI 建议的区分：快速记账用点击按钮进入现有记账页、统计扇形图收敛是用户要求；语音识别入口（已回退）、stats_self 贝塞尔线形、分类管理/规则页原生复刻等实现方案是 AI 提出后执行。
 - **数据与产物：**
-  - 参考快照 `work/ui-fixtures/yimu_all_20261020_1203.xls`：1977 条，支出 `-4357467` 分，收入 `3201248` 分，SHA-256 `bb21aa69f18d34a522f9ed86babef4faad4616d67dabe96c39172cd2df473c4f`；2026-10 为 282.00/4071.94/−3789.94。参考与 validation 的 `manifest.json` 身份一致；validation 交易 SHA-256 `5e8f3562df5bf4d0acf8fb059683d148d9d1580c8e2d4d72c412d98f9a22a2a0`（78 分类、0 资产、1 账本）。
-  - 当前 validation APK：`work/artifacts/yimu-ui-validation.apk`，SHA-256 `bbf43ea4331163a41a29bb83265c7775cd2924e8385d3cc3240639ae7379edf3`；设备内同一哈希，`lastUpdateTime=2026-10-20 16:59:40`。测试 APK：`app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`，SHA-256 `7ed80c218826f20b6ea958e0dca38e9a1b1678ed32cd3a5706cc37b1afe4b37c`。
-  - 用户包 `com.nonen.Bookkeeping`：0.2.3/versionCode 5，`lastUpdateTime=2026-10-18 22:31:25`；本阶段未安装、未覆盖、未读取用户交易数据。参考包 `com.wangc.bill`：6.1.8/versionCode 378。
-  - 最新日志 870（`savings_goal` 比较通过）；下一次日志从 **871** 开始。设备动画缩放已恢复 1.0，validation 已停止，前台系统桌面。
-- **检查点：** `work/logs/yimu-ui-reconstruction-s11/pause-20261020-1700/README.md`（本轮结果与下一步）、`pause-20261020-1523/`、`pause-20261020-1254/`、`groupA/B/C/D-known-differences.md`。
+  - 参考快照 `work/ui-fixtures/yimu_all_20261020_1203.xls`：1977 条，SHA-256 `bb21aa69f18d34a522f9ed86babef4faad4616d67dabe96c39172cd2df473c4f`；2026-10 为 282.00/4071.94/−3789.94。
+  - 当前 validation APK：`app/build/outputs/apk/debug/app-debug.apk` 与 `work/artifacts/yimu-ui-validation.apk` 相同，SHA-256 `052531b6df0693f8415c452f57748f026439b8015f9725af647cdaee7eb73cd1`，构建时间 2026-10-20 20:42:36；对应源码最后修改 20:30（YimuHomeScreen.kt），与本阶段最终采集一致。
+  - 用户包 `com.nonen.Bookkeeping` 0.2.3/versionCode 5：本阶段未安装、未覆盖、未读取用户数据。
+  - 下一日志编号从 **990** 开始。
+- **设备：** 小米 15 `95f79212` 在实施期间在线（构建、安装、采集全部成功）；**交接核查时已断开**（`adb devices` 为空），动画缩放、前台 Activity、validation 包状态均无法现场核验，恢复实施时必须先重新连接并核查设备身份。
+- **GitHub 上传状态：** `origin` = https://github.com/73mtq/smart-record.git，可连通；本地 `main` 领先 `origin/main` 17 个提交。用户要求最后将所有东西上传到 GitHub，本次交接提交后执行 `git push origin main`。注意：界面复刻源码全部位于未提交工作区，不在 Git 历史中；`work/` 目录被 Git 忽略，不会上传。
 
 ## 2. 变更文件清单
 
-本阶段没有提交任何源码；本节只列可确认归属的变更。工作区还包含 S09、S10、S11 前段的累计改动，不能全部归入本阶段。
+本阶段没有提交任何源码；本节只列 287e339（17:17）之后可确认归属的变更，判定依据为文件修改时间晚于 17:17。工作区还包含 S09、S10、S11 前段的累计改动，不能全部归入本阶段。
 
-### 2.1 本轮（15:23 快照之后）的源码变更：12 修改 + 31 新增
+### 2.1 本阶段源码变更（全部未提交；未跟踪文件为 S11 前段新增、本阶段继续修改）
 
-证据：`pause-20261020-1523/source-sha256.csv` 逐文件哈希比对；对应报告与日志见括号。
+**统计（本阶段重点）：**
+- `app/src/main/java/com/nonen/Bookkeeping/ui/components/YimuStatisticsNativeView.kt`（未跟踪）：stats_self 收支走势改为 `LineDataSet.Mode.HORIZONTAL_BEZIER`、`cubicIntensity=0.2`、`setDrawCircles(false)`（原版取证）；纵轴刻度标签字号收敛（参考行高 17px，此前实现 26px）；stats_year 柱体基线修正尝试。证据：978–989 号日志、`report-self-bezier.json`、`report-self-axis.json`、`report-stats-final-20261020.json`。
 
-**日历（4 修改）：**
-- `app/src/main/java/com/nonen/Bookkeeping/ui/calendar/YimuCalendarView.kt`：移除默认未开启的热力底色；按原版 ActivityMonthView 实现日号颜色（工作日黑、周末主色、未来色）、9dp 金额字号、列表金额上移；周视图未来日期用 #999、农历上移 1px。证据：`report-calendar-month-final2.json`（0.4534%，bounds/纯色通过）、`report-calendar-week-final.json`（0.2446%），日志 697–702。
-- `app/src/main/java/com/nonen/Bookkeeping/ui/components/YimuCalendarNativeView.kt`：折叠时隐藏 FAB、折叠态内容补 12px 占位；接月汇总颜色。证据同上。
-- `app/src/main/res/layout/view_yimu_calendar_native.xml`：折叠占位、月收支颜色、布局高度/ID。证据同上。
-- `app/src/main/res/layout/item_yimu_calendar_bill.xml`：金额容器补 5dp 第二行间距以匹配原版居中。证据同上。
+**首页快速记账与语音回退：**
+- `app/src/main/java/com/nonen/Bookkeeping/ui/screens/YimuHomeScreen.kt`（未跟踪，最后修改 20:30）：FAB 使用 `ic_add_ai_bill` 图标，点击 `onAdd()` 进入现有记账页。
+- `app/src/main/AndroidManifest.xml`（跟踪修改，diff 含前段累计）：本阶段曾加入 `RECORD_AUDIO`（970 号构建），用户否决后 972 号回退，当前无该权限。
+- `app/src/main/java/com/nonen/Bookkeeping/ui/screens/MainScreen.kt`、`app/src/main/java/com/nonen/Bookkeeping/ui/AppNavHost.kt`、`app/src/main/java/com/nonen/Bookkeeping/ui/screens/AddEditViewModel.kt`（跟踪修改，diff 含前段累计）：路由与记账入口调整。
 
-**统计与预算（修改 2 + 新增 17）：**
-- 修改 `app/src/main/java/com/nonen/Bookkeeping/ui/screens/YimuStatisticsScreen.kt`：改为原生统计壳并计算日常/月/年/自定义数据；修改 `BudgetScreen.kt`：改为原生预算页并保留原有对话框回调。
-- 新增 `ui/components/YimuStatisticsNativeView.kt`（四页签、月/年选择条、汇总卡、柱/线/饼图、年度热力集合）、`ui/components/YimuHeatMapMonthView.kt`（原版 8dp 圆点/3dp 间距热力）、`ui/components/YimuBudgetNativeView.kt`、`ui/chart/RoundedBarChartRenderer.java`（原版 2dp 圆角、0.5 条宽）。
-- 新增布局 `yimu_statistics_host.xml`、`yimu_statistics_normal/month/year/self.xml`、`item_month_or_year.xml`、`item_heat_map.xml`、`yimu_budget_manager.xml`、`layout_common_tip.xml`；新增 `fade_asset.xml`、`fade_pay.xml`、`fade_income.xml`、`budget_progress_track.xml`、`values/styles.xml`（autoCheckBox）。
-- 证据：`report-stats-normal5.json`、`report-stats-month6.json`、`report-stats-year2.json`、`report-stats-self4.json`、`report-budget6.json`，日志 704–815。
+**分类管理原生化：**
+- 修改（跟踪）：`app/src/main/java/com/nonen/Bookkeeping/ui/screens/CategoryManageScreen.kt`、`CategoryManageViewModel.kt`。
+- 新增（未跟踪）：`app/src/main/java/com/nonen/Bookkeeping/ui/components/YimuCategoryManageNativeView.kt`、`YimuCategoryKeyNativeView.kt`；布局 `app/src/main/res/layout/yimu_category_manage.xml`、`yimu_category_key.xml`、`item_yimu_edit_type_child.xml`、`item_yimu_edit_type_parent.xml`；图标 `banner_category_type.png`、`ic_ai_bill_self_tip.png`、`ic_book_menu.png`、`ic_category_add.png`、`ic_right.png`。证据：928–940 号日志、`report-categorymanage3.json`。
 
-**组 D（修改 4 + 新增 13）：**
-- 修改 `MyScreen.kt`（云同步文案改红、数据行动间距）、`YimuSettingsPage.kt`（开关配色/返回图标/显示原金额开启、导入导出与备份分支改为原生 AndroidView）、`PeriodicScreen.kt`、`SavingsGoalScreen.kt`。
-- 新增 `ui/components/YimuSettingsLists.kt`（导入导出/备份原生绑定）、`YimuPeriodicNativeView.kt`、`YimuDreamNativeView.kt`；新增布局 `yimu_cycle_manager.xml`、`yimu_dream_list.xml`、`yimu_import_export.xml`、`yimu_backup.xml`；新增图标 `ic_bar_more`、`ic_date_setting`、`ic_dream_tip`、`ic_more_setting`、`ic_tip`、`ic_top`。
-- 证据：`report-my3.json`、`report-settings5.json`、`report-importbackup2.json`、`report-periodic2.json`、`report-dream3.json`，日志 818–870。
+**规则页原生复刻：**
+- `app/src/main/java/com/nonen/Bookkeeping/ui/screens/RulesScreen.kt`（跟踪修改，最后修改 18:44）：原生布局复刻与工具栏调整。证据：941–967 号日志、`report-rules6.json`。
 
-**全局资源（修改 2 + 新增 1）：** `values/colors.xml`（redLight/greenLight）、`values/yimu_ids.xml`（统计/日历/折叠占位 ID）、`values/styles.xml`（新增）。
-**仅本机、被 Git 忽略：** `work/logs/.../groupB/C/D-known-differences.md`、`pause-20261020-1700/`、`work/tasks/yimu-ui-reconstruction.md` 与 `progress.md` 的本轮更新、`work/ui-capture/` 的新报告/截图。
+**我的与设置：**
+- `app/src/main/java/com/nonen/Bookkeeping/ui/screens/MyScreen.kt`（未跟踪，18:25）、`YimuSettingsPage.kt`（未跟踪，18:28）、`app/src/main/java/com/nonen/Bookkeeping/ui/components/YimuTopAppBar.kt`（未跟踪）：头图/网格/开关/返回图标多轮修正。证据：886–927 号日志、`report-my-final.json`、`report-groupD-partial.json`。
+- `app/src/main/res/values/colors.xml`（跟踪）、`yimu_ids.xml`、`yimu_strings.xml`（未跟踪）：颜色与资源调整。
 
-### 2.2 同阶段但早于 15:23 的改动（未提交，继承自 15:23 快照）
+### 2.2 误建文件（未跟踪、空文件、不得提交）
 
-- 组 A：`YimuAddBillView.kt`、`YimuNumberKeyboardView.kt`、`YimuDateDialog.kt`、`YimuAddEditScreen.kt`、`YimuAssetDialog.kt`、相关布局/ID/依赖；结果 6 页通过、两个弹窗已知 1px 差异。证据：`pause-20261020-1523/README.md`、`report-groupA-final.json`。
-- 组 B：`YimuAssetNativeView.kt`、`YimuAssetBannerLayout.kt`、`YimuAssetContent.kt`、`YimuCalendarNativeView.kt`、`DateMonthView.kt`；资产页 0.2695%。证据同上与 `report-asset-final2.json`。
-- 12:54 前：步骤 10 首页四页重采通过、模板清理、1977 数据导入。证据 `pause-20261020-1254/README.md`、日志 310/312/320；该通过结果对应当时的 APK，不是当前 APK。
+- 根目录 `--help`（0 字节，2026-10-20 12:00）、`--package`（0 字节，2026-10-20 20:34）。均为误建，不参与构建。本次交接不得修改其他文件，保留原样，待用户裁决删除。
 
-### 2.3 更早的累计未提交改动
+### 2.3 更早的累计未提交改动（不归本阶段）
 
-- 57 个跟踪修改和 2 个删除中包含 S09、S10、S11 前段的业务/界面改动（Room、仓库、解析、导出、设置、主题、测试等）。归属证据：旧版 HANDOFF 第 2 节、`pause-20261019-2115/source-sha256.csv`、`work/logs/handoff-s11/source-scope.txt`。这些不属于本轮，不得当作本轮成果。
-- 404 个未跟踪文件中包含大量原版图标、布局、字体和测试资源；未逐项列出。原版图标来自 `work/ui-evidence/apktool/res/`，测试资源与 `app/src/androidTest/` 为 S11 前段。
+- 其余 50 余个跟踪修改、2 个删除与大量未跟踪文件来自 S09、S10、S11 前段（17:17 之前），归属证据见旧版 HANDOFF 第 2 节、`pause-20261020-1700/`、`pause-20261020-1523/` 快照。
+- `docs/plans/…` 与 `docs/reports/yimu_ui_reconstruction_handoff.md` 等未跟踪文档均为 2026-10-18 创建，来自更早阶段。
 
-### 2.4 来源待确认/无关项
+### 2.4 仅本机材料（work/ 被 Git 忽略）
 
-- 根目录 `--help`（0 字节，2026-10-20 12:00）是误建的空文件，已出现在 15:23 快照的 `git-status.txt`；未纳入任何构建，不得提交。因本次交接禁止修改其他文件，保留原样。
-- 无暂存内容；未取消或改变任何其他文件的暂存状态。
+- 日志 `work/logs/yimu-ui-reconstruction-s11/` 871–989 号；`groupC-known-differences.md`（20:50 更新）、`groupD-known-differences.md`；`work/ui-capture/report-*.json` 与两侧截图；`work/tmp/session-12cf8812/session.v4.jsonl`（上一会话记录）；`work/backup/validation-before-restore-20261020-2035/`（validation 恢复前备份）。
 
 ## 3. 关键决策与理由
 
@@ -79,135 +75,125 @@
 - **【长期】统计：** 历史资产由当前余额逆算时点后全部资金变化，包含转账和手续费；一级/二级分类统一聚合，二级占比分母为所属一级总额。
 - **【长期】本地模型：** 保留 `classification-model.ser`、`TimeExp.m`、LibLinear/HanLP，不重训不接云端；门槛 0.015；`食品餐饮-其他` 按 04:00–10:00/10:00–16:00/其余分早餐/午餐/晚餐；保留 `(块|元|点)([1-9一二三四五六七八九])[毛角]`→`点$2` 及常见动词/首尾单位规则；中文金额完整流程仍需验收。
 - **【长期】周期与备份：** `cycle_{cycleId}_{yyyyMMdd}` 防重；事务内联动余额；23 列 Excel/CSV 与完整 ZIP 备份分别处理；完整备份含 manifest.json、data.json、SHA-256 前置校验，失败保护数据库。
-- **【长期】业务范围：** 本地支出、收入、转账；债务为视觉占位；会员、账号、云服务、语音、自动记账、桌面微件及房贷车贷等既定业务不扩展；原版只允许新增一个临时模板用于取证，记录标识并删除本次新增项（本次已在 12:54 清理）。
-- **【长期】采集与字符（S10 沿续）：** 原版外部 shell 冷启动、持续式 UIAutomator 读取真实控件；文字使用 AppCompat 主题与整数像素；首页原生 XML/RecyclerView；JVM JSON 使用真实 org.json；TodayWatcher 等待注册；金额沿用 Format.kt；Compose 避免依赖不可观察的 Locale.getDefault()。
+- **【长期】业务范围：** 本地支出、收入、转账；债务为视觉占位；会员、账号、云服务、语音、自动记账、桌面微件及房贷车贷等既定业务不扩展；原版只允许新增一个临时模板用于取证，记录标识并删除本次新增项。
+- **【长期】采集与字符：** 原版外部 shell 冷启动、持续式 UIAutomator 读取真实控件；文字使用 AppCompat 主题与整数像素；首页原生 XML/RecyclerView；JVM JSON 使用真实 org.json；TodayWatcher 等待注册；金额沿用 Format.kt；Compose 避免依赖不可观察的 Locale.getDefault()。
 
 ### 3.2 本阶段实际采用的决定
 
-- **Native-first 扩展：** 日历、统计、预算、组 D 空态页均改为原版 XML + AndroidView/MPAndroidChart；原因是 Compose 与原版字体/测量持续产生可测差异，首页/记账户已证明原生路线可达到 0.01% 级。
-- **日历：** 参考默认状态未开启热力，故不绘制热力底色；日号颜色按原版 ActivityMonthView；折叠高度差用 3.7dp 占位而非直接平移内容（平移会破坏 CalendarLayout 折叠）；折叠时隐藏 FAB。
-- **统计：** 用原版 MATERIAL_COLORS 调色板、2dp 圆角柱渲染器、9dp/8dp 字号与 fade_pay/fade_income/fade_asset 渐变；无共享成员时隐藏成员卡片；分类饼图用父分类显示名。
-- **预算：** 无预算时支出/日均/剩余显示 0.00；趋势用双数据集渐变填充；开关/工具栏沿用原版布局。
-- **组 D：** 空态页直接复用原版 `activity_cycle_manager.xml`/`activity_dream_list.xml`，隐藏空态外的工具栏图标和提示条；导入导出/备份复用原版列表布局并接现有回调；设置页开关使用原版灰/绿状态色。
-- **采集稳定性：** 导入导出/备份原生页禁用 ScrollView 滚动条以消除双帧不稳定；采集前动画缩放设为 0，结束后恢复 1.0。该问题只在采集工具侧，不改应用行为。
-- **增量编译异常：** 多次增量构建后出现 `localDateOf`/`YimuTopAppBar` 等“已存在却未解析”错误；`clean` 后消除（日志 765–767、837）。后续遇到同类错误先 clean 构建，不据此改源码。
-- **数据漂移：** 用户每日使用原版，参考数据只按 1977 快照记录；不反复重导，不阻塞 UI 验收；交付时另备份用户包。
+- **快速记账：** FAB 图标为 `ic_add_ai_bill`，点击 `onAdd()` 打开现有记账页。语音识别入口被用户明确否决，RECORD_AUDIO 权限已在 972 号构建回退。
+- **stats_self 线形：** 原版 `LineDataSet.Mode.HORIZONTAL_BEZIER` + `cubicIntensity=0.2` + `setDrawCircles(false)`；支出 `fade_pay`、收入 `fade_income` 渐变填充。结果整体 2.481%→1.747%，最差 tile 88.31%→70.43%，纯色失败 3→1。
+- **stats_self 纵轴：** 参考轴标签行高 17px，实现此前为 26px；缩小字号后收敛。剩余差异为字形栅格化。
+- **stats_year：** 5 个纯色失败源于柱体整体出现约 8px 基线位置差造成的边缘区块；柱体数值、高度、顺序与参考一致，属内容位置差，已记录。
+- **分类管理页：** 原生复刻（`yimu_category_manage.xml` + `YimuCategoryManageNativeView`），整体 0.043% 但最差 tile 15.58%。
+- **规则页：** 原生复刻；fix2 阶段曾达整体 0.0078%、tile 5.64% 但报告判定未通过；后续工具栏调整（959–966 号）使差异扩大到 16.30%（工具栏高度差 62px）。
+- **home_scrolled：** 固定滚动位置差 112px 采集（884/885 号），通过。
+- **数据身份：** 878 号全量 diff 报 `home_scrolled: page dataset differs from current manifest`，重新采集后 880 号完成全量比较；数据预检按 `verification.py` 的 manifest 身份校验执行。
+- **已批准：** rising-fjord-asp.md 计划执行（用户 17:57 批准）、统计扇形图与快速记账重点（用户 20:17 要求）、语音否决与快速记账路线（用户 20:29 要求）。
+- **待用户裁决：** 剩余未过页（rules/category_manage/my/settings/search/stats 单 tile 或纯色残余）的处理方式；未提交源码是否提交并上传 GitHub；`--help`/`--package` 误建文件是否删除。
 
 ### 3.3 有证据的失败/否决方案
 
-- `createComposeRule()`、`ActivityScenario`、预启动/替换宿主均被 MIUI 后台启动限制拦截（result code 102）；改用空 Compose 规则 + shell 启动（旧交接证据 86/89 号）。
-- 整屏 `ModalNavigationDrawer` 与原版抽屉位置不符；快速滑动导致滚动位置不稳定；均被否决并改为工具栏下方面板/慢速拖动。
-- 日历热力底色在参考默认状态不存在；尝试保留会制造大块差异，已移除。
-- FAB 图标通过 `maxImageSize`/`InsetDrawable` 微调对截图无效果（日志 647–658）；剩余 2–3px 图标边缘作为已知差异记录，不再盲调。
-- 导入导出/备份的滚动条导致采集不稳定；禁用滚动条后双帧稳定，但左侧滚动条与原版存在小差异。
-- 预算趋势最初用粉色单填充，与原版暖灰渐变不符；改为 fade_pay+fade_income 双渐变后差异降至 0.33%。
-
-### 3.4 已批准与待批准
-
-- 已批准：S11 三份计划（`shining-dale-drake.md`、`ember-narrows-stork.md`、`rising-fjord-asp.md`）、记录 1px 差异后继续、原版夜间主题临时切换（尚未执行）、只提交 HANDOFF 的交接方式。
-- 待用户裁决：是否为剩余未过页继续像素收敛直至全部通过，还是按已记录差异进入夜间/交付；是否接受 `stats_self`、`stats_year`、`my`、`settings`、分类管理/自定义分类/搜索的当前状态；是否删除根目录误建的 `--help`。
+- **语音记账：** 已加 RECORD_AUDIO 并构建安装（970/971 号），用户否决，972 号回退。证据：会话原文 20:29、971 号安装日志（含 RECORD_AUDIO）、当前 Manifest 无该权限。
+- **rules 工具栏调整：** 959–966 号尝试后差异从 0.0078% 扩大到 16.30%（`report-rules6.json`，tool_bar bounds delta 62px），未恢复。
+- **my 页多轮尝试：** nickname-vip/gridrow/ratio/fixedheight/cardheight 等（886–908 号）未能收敛头图栅格化，最终 3.46%（`report-my-final.json`）。
+- **stats_self 坐标轴改动：** 985 号 1.832% 高于 981 号贝塞尔后的 1.747%，最终以 986–989 号贝塞尔版本为准。
+- **旧阶段被否决方案继续有效：** `createComposeRule()` 被 MIUI 后台启动限制拦截（result code 102）；整屏 ModalNavigationDrawer 与抽屉遮罩；日历热力底色；导入导出滚动条导致采集不稳定。
 
 ## 4. 已知问题与失败尝试
 
-- **`stats_self` 2.48%，最差 tile 88%，3 个纯色失败（`report-stats-self4.json`，日志 812–815）。** 现象：收支走势的收入线与折线位置和参考不同。原因未完全确认；已确认柱状图/日历数据总量与参考一致。正确做法：继续对照原版 `StatisticsSelfFragment`/i4 的 W2/B2 与 `Q0` 配置，取线形/收入线断点证据；不得改阈值。
-- **`stats_year` 整体 1.39% 但 5 个纯色失败、最差 tile 35%（`report-stats-year2.json`）。** 来源为年份条字体、热力点边缘。正确做法：逐点比较圆点直径/间距/强度与年份条字形；当前未解决。
-- **统计单 tile 残余：** `stats_normal` 7.25%（柱值字体边缘，`report-stats-normal5.json`）、`stats_month` 37%（底部饼图扇区边界，`report-stats-month6.json`）、`budget` 36%（趋势填充边界，`report-budget6.json`）。整体均 ≤1.5%、bounds 通过，但单 tile 未过。
-- **日历：** `calendar_month` 0.4534%，唯一超阈值 tile 为 FAB 图标边缘 20.8%；`calendar_week` 0.2446%，唯一超阈值 tile 为选中日“20”字形 12.8%（`report-calendar-month-final2.json`、`report-calendar-week-final.json`）。按用户决定记录，不能写成完全通过。
-- **组 A/资产：** 日期弹窗 0.5735%/22.36% tile、资产弹窗 0.1885%/12.08% tile、资产页 0.2695%/29.3% 标题 tile；均为 1px 字体/阴影类残余（`report-groupA-final.json`、`report-asset-final2.json`、15:23 README）。这些报告对应旧 APK。
-- **组 D：** `my` 3.58%（12 个纯色失败，头图/图标/行距）、`settings` 4.35%（1 个纯色失败，SwitchButton/返回图标）、`import_export` 0.926%、`backup` 0.890%（各 1 个纯色失败，返回箭头灰度/位置）。`periodic` 0.008%、`savings_goal` 0.007% 通过。证据：`report-my3.json`、`report-settings5.json`、`report-importbackup2.json`、`report-periodic2.json`、`report-dream3.json`。
-- **未完成页面：** `category_manage` 仍为旧 Compose 页面，采集失败（日志 829）；`rules` 采集失败（日志 830）；`search` 采集不稳定（日志 816）。原因未确认；下一步先检查 `screens.yaml` 的导航文本/控件和页面标题，再复刻原版布局。
-- **采集不稳定：** 导入导出曾因 ScrollView 滚动条双帧不稳定（日志 851/854），禁用滚动条后恢复（日志 857）。search 的不稳定未解决。
-- **当前 APK 未逐页重采：** 所有页面报告对应各自构建（日历 697、normal 724、month 761、year 771、budget 804、self 812、my 825、settings 846、import/backup 855、periodic 859、savings 867）；当前 APK `bbf43e` 只有 savings_goal 在最终构建上重新验证。不能把历史报告当作当前 APK 全部通过。
-- **当前源码未重新跑完整 JVM/Lint：** 本轮只反复执行 `assembleDebug`/`assembleDebugAndroidTest`；唯一一次 clean assemble 在 16:45（日志 837）成功，但早于最后几处组 D 源码改动。165 项 JVM 0 失败、Lint 0 是旧构建结果（旧交接 80 号），不适用于当前源码。
-- **5 项 Compose 操作测试** 的 `OK (5 tests)` 属于 20:37 构建；之后源码变化，未重跑。真实 Room/DataStore 测试仍以旧结果为准。
-- **旧交接遗留：** CycleDate 独立持久化要求待核实；原版设置恢复来源缺失（S09 DataStore CorruptionException）；API 26/平板无运行证据；字体缩放/键盘遮挡未验收；用户包交付未开始。原版/validation 临时模板已在 10-20 12:54 复核中清理（`pause-20261020-1254/README.md`），不再列为未解决。旧交接的 home_drawer/account_book_popup/home_scrolled 也已在同日步骤 10 复核通过（首页四页 310/312），但当前 APK 未重采首页，不能套用旧结果。
-- **参考数据可能继续漂移：** 原版由用户每日使用；本次快照 1977 条，未再导出。下次采集前先核对 dataset/manifest，数据不一致时重新导出导入，不用界面改动掩盖。
-- **根目录 `--help`：** 0 字节误建文件，已在 15:23 快照；不参与构建，未提交；本次交接不得删除其他文件，保留给下一阶段处理。
+- **rules 页 16.30% 未通过（`report-rules6.json`，966 号）。** 现象：工具栏高度与参考差 62px（bounds delta），最差 tile 100%。过程：fix2 曾达 0.0078%/5.64% 但判定未通过；toolbar 系列尝试后扩大。正确做法：对照 958 号构建的源码状态还原工具栏高度，再逐项收敛；不得改阈值。
+- **category_manage 页整体 0.043%、tile 15.58% 未通过（`report-categorymanage3.json`，940 号）。** 整体与 bounds、纯色均通过，仅剩单 tile 超 6%；属字形/图标栅格化类残余。
+- **my 页 3.46% 未通过（`report-my-final.json`，909 号）。** 13 个纯色失败（头图/头像/网格图标区域），bounds 通过。多轮尝试未收敛，原因未完全确认。
+- **settings 页 4.32% 未通过（`report-groupD-partial.json`，927 号）。** 最差 tile 42.31%（SwitchButton/返回图标区域），纯色 0 失败。
+- **search 页无当前有效截图**（880 号 error: missing screenshot），本阶段未处理。
+- **统计残余（`report-stats-final-20261020.json`，989 号，退出 1）：** stats_self 1.747%（tile 70.43%，1 个纯色失败，纵轴刻度字形）；stats_year 1.390%（tile 35.23%，5 个纯色失败，柱体约 8px 基线位置差）；stats_month 0.599%（饼图被底栏遮挡的扇区边界）；stats_normal 0.107%（柱体数值字体边缘）；budget 0.331%（趋势填充边界）。数值与参考一致（月 4,071.94/282.00、年 33,248.69/24,277.99、自定义 5,083.96/782.00）。
+- **旧阶段未解决项继续有效：** CycleDate 独立持久化要求待核实；原版设置恢复来源缺失（S09 DataStore CorruptionException）；API 26/平板无运行证据；字体缩放/键盘遮挡未验收；夜间主题未开始；生产包交付未开始；当前源码的完整 JVM/Lint/仪器测试未重跑（165 项 JVM 0 失败与 Lint 0 是旧构建结果）。
+- **设备状态不可核验：** 交接时 95f79212 已断开，动画缩放三项、前台 Activity、validation 包 lastUpdateTime 均无法现场确认；恢复时先重连并核查。
+- **参考数据漂移：** 用户每日使用原版；当前 1977 条快照（12:03 导出）。恢复后每次采集前核对 manifest 身份。
+- **误建文件：** 根目录 `--help`、`--package`（0 字节），不得提交，待用户裁决。
 
 ## 5. 环境与命令
 
-- **运行环境：** Windows 10/11；Git Bash + PowerShell 7.6.5；Python 3.12；终端 Java 24.0.1；Gradle toolchain JDK 21；Android SDK/build-tools 37；`GRADLE_USER_HOME=D:\dev-cache\.gradle`；Pillow 12.2.0、NumPy 1.26.4、PyYAML 6.0.3、xlrd 2.0.2。临时文件放 `work/tmp`。
+- **运行环境：** Windows；Git Bash + PowerShell 7；Python 3.12（Pillow、NumPy、PyYAML、xlrd）；Gradle toolchain JDK 21；Android SDK `D:\Android\Sdk`、build-tools 37；`GRADLE_USER_HOME=D:\dev-cache\.gradle`；临时文件放 `work/tmp`。
 - **环境变量名：** `TEMP`、`TMP`、`TMPDIR`、`PYTHONUTF8`、`JAVA_TOOL_OPTIONS`、`GRADLE_USER_HOME`；不记录任何密钥/Token。
-- **设备：** 小米 15，`95f79212`，Android 16/API 36/arm64，1200×2670，密度 520，字体 1.0，zh-CN，手势导航。当前动画三项 1.0、前台桌面、validation 已停止。采集时需临时设 0，结束后恢复 1.0。
-- **应用身份：** 用户包 `com.nonen.Bookkeeping` 0.2.3/5（2026-10-18 22:31:25）；validation `com.nonen.Bookkeeping.uivalidation` 0.2.3-ui-validation/5（2026-10-20 16:59:40）；参考包 `com.wangc.bill` 6.1.8/378。
-- **已执行命令（本轮）：**
-  - 构建：`pwsh -NoProfile -Command "& '...Run-S11Command.ps1' -LogName '<n>-...log' -FilePath '...gradlew.bat' -CommandArguments @(':app:assembleDebug',':app:assembleDebugAndroidTest','-PyimuUiValidation=true','--console=plain','--max-workers=2')"`；日志 632–870。
-  - 增量解析异常后用 `:app:clean :app:assembleDebug -PyimuUiValidation=true` 成功（837）；测试 APK 用 `:app:assembleDebugAndroidTest`（841）。
-  - 安装：`pwsh -NoProfile -File work/ui-harness/Install-S11Validation.ps1`（842、851、860、864、868）。
-  - 采集/比较：`python work/ui-harness/capture.py --app reference|validation --only <页>`、`python work/ui-harness/diff.py --only <页> --report <json>`；参考数据预检用 `check_reference_month.py`（本轮未重新执行，manifest 身份已核对）。
-  - 设备：`adb shell settings put global animator_duration_scale/transition_animation_scale/window_animation_scale`；结束时恢复 1.0、强制停止 validation、回到桌面。
-- **建议命令（下一阶段）：** 先 `git status --porcelain -uall`；再按需 clean 构建、`Install-S11Validation.ps1`；采集前设动画 0；用户包最终构建不传 `-PyimuUiValidation=true`，安装前运行 `python work/ui-harness/device_backup.py --output work/backup/<新目录>`，核验身份/签名/数据后再 `adb install -r`。
-- **日志纪律：** 所有构建/安装/采集走 `Run-S11Command.ps1`，编号从 871 起，不复用；长输出入日志，对话只报结论。
+- **设备：** 小米 15 `95f79212`，Android 16/API 36/arm64，1200×2670，密度 520，zh-CN，手势导航。交接时设备已断开，恢复时先 `adb devices`。
+- **应用身份：** 用户包 `com.nonen.Bookkeeping` 0.2.3/5；validation `com.nonen.Bookkeeping.uivalidation` 0.2.3-ui-validation/5；参考包 `com.wangc.bill` 6.1.8/378。
+- **本阶段已执行命令（日志 871–989）：**
+  - 完整构建：`gradlew.bat :app:clean :app:assembleDebug :app:assembleDebugAndroidTest -PyimuUiValidation=true --console=plain --max-workers=2`（871 号，退出 0）。
+  - 增量构建：`gradlew.bat :app:assembleDebug -PyimuUiValidation=true --console=plain --max-workers=2`（各修改后）。
+  - 安装：`pwsh -NoProfile -File work/ui-harness/Install-S11Validation.ps1`。
+  - 采集/比较：`python work/ui-harness/capture.py --app reference|validation --only <页>`、`python work/ui-harness/diff.py --only <页> --report <json>`。
+  - 上一会话记录解压：`Expand-Archive` 到 `work/tmp/session-12cf8812/`。
+- **建议命令（下一阶段）：** 先 `adb devices` 恢复设备；`git status --porcelain -uall`；按需 clean 构建；采集前设动画缩放 0、结束后恢复 1.0；用户包最终构建不传 `-PyimuUiValidation=true`，安装前运行 `python work/ui-harness/device_backup.py`。
+- **日志纪律：** 所有构建/安装/采集走 `Run-S11Command.ps1`，编号从 990 起，不复用。
 
 ## 6. 验证状态
 
-### 已验证（当前构建/当前设备）
+### 6.1 已验证（本阶段构建与采集，2026-10-20 17:58–20:50）
 
-- 当前源码的最近一次 clean 构建是 16:45:45–16:46:34（日志 837，退出 0），对应当时的源码；`assembleDebugAndroidTest` 成功（841，退出 0）；此后 settings/import/backup/periodic/savings 的增量构建 846、850、855、859、863、867 均成功，最终安装 868（退出 0）。当前 APK SHA-256 `bbf43e...`，设备内哈希一致，`lastUpdateTime=16:59:40`。**当前源码尚未在最终改动后重新 clean 构建。**
-- `savings_goal` 在当前最终构建（867/868）上采集并比较：整体 0.0066%，最差 4.81%，bounds/纯色通过（`report-dream3.json`，日志 869/870，退出 0）。
-- 数据身份：参考/validation manifest 均为 1977 条、`bb21aa...` 源、2026-10 三项金额；validation 交易 SHA `5e8f...`。设备动画已恢复 1.0，validation 停止，前台桌面。
-- 用户包未被本阶段安装或覆盖；版本/更新时间与旧交接一致。
+- 871 号 clean 完整构建（assembleDebug + assembleDebugAndroidTest）退出 0（1m46s）；此后各增量构建退出 0。
+- 880 号全量 baseline diff：`home_top` 0.0209%/3.47%、`home_drawer` 0.0171%、`account_book_popup` 0.0209% 通过；`home_scrolled` 2.7052% 未通过（当时状态）。
+- 883 号 `add_bill_expense` 重采通过：0.0172%/5.64%，退出 0。
+- 885 号 `home_scrolled` offset112 后通过：0.0058%/1.39%，退出 0。
+- 936/940 号 `category_manage`：0.043%/15.58%，bounds/纯色通过，单 tile 未过。
+- 958 号 `rules` fix2：0.0078%/5.64% 但判定未通过；966 号 toolbar 调整后 16.30%。
+- 927 号组 D 部分：`my` 3.46%（bounds 通过、13 纯色失败）、`settings` 4.32%（纯色 0 失败）。
+- 989 号统计五页最终 diff（退出 1）：数字见第 4 节；对应最终 APK `052531b6`。
+- 本阶段 Manifest 最终无 RECORD_AUDIO（972 号回退后状态，本机文件核查确认）。
 
-### 历史结果（对应各自构建，不能视为当前 APK）
+### 6.2 历史结果（对应各自构建，不能视为当前 APK）
 
-- 组 A：6 页通过（整体 0.009%–0.017%，最差 5.64%）；日期弹窗 0.5735%/22.36% tile、资产弹窗 0.1885%/12.08% tile；`report-groupA-final.json`。资产页 0.2695%/标题 29.3% tile；`report-asset-final2.json`。均见 15:23 README。
-- 日历：month 0.4534%（报告 `report-calendar-month-final2.json`，构建 697，bounds/纯色通过，FAB tile 20.8%）；week 0.2446%（`report-calendar-week-final.json`，构建 697，bounds/纯色通过，选中日 tile 12.8%）。
-- 组 C：normal 0.1066%（`report-stats-normal5.json`，构建 724，7.25% 字体 tile）；month 0.5991%（`report-stats-month6.json`，构建 761，饼图边界 tile 37%）；year 1.3896%（`report-stats-year2.json`，构建 771，5 个纯色失败，tile 35%）；self 2.481%（`report-stats-self4.json`，构建 812，**未通过**，tile 88%，3 个纯色失败）；budget 0.3313%（`report-budget6.json`，构建 804，tile 36%）。
-- 组 D：my 3.577%（`report-my3.json`，构建 825，12 个纯色失败）；settings 4.3479%（`report-settings5.json`，构建 846，1 个纯色失败）；import_export 0.9257%、backup 0.8904%（`report-importbackup2.json`，构建 855，各 1 个纯色失败）；periodic **通过** 0.0078%（`report-periodic2.json`，构建 859）；savings_goal **通过** 0.0066%（构建 867）。
-- 步骤 10：首页四页重采通过（310/312 号），模板清理完成，validation 1977 条（12:54 README）；对应当时 APK，当前 APK 未重采首页。
-- 旧构建完整 JVM 165 项 0 失败、Lint 0；5 项 Compose 操作 `OK (5 tests)`（旧交接 80/89 号）；当前源码未重验。
+- 组 A 6 页通过、日期/资产弹窗 1px 差异（`report-groupA-final.json`）；组 B 日历两页 0.4534%/0.2446%、资产页 0.2695%；组 D periodic 0.0078%、savings_goal 0.0066% 通过。均见 17:00 快照 README 与旧版 HANDOFF。
+- 首页四页重采通过（12:54 快照）、165 项 JVM 0 失败与 Lint 0、5 项 Compose 操作测试通过：均为更早构建结果。
 
-### 未验证/风险
+### 6.3 未验证/风险
 
-- 当前 APK 未重采的页面包括首页四页、组 A 全部、资产、日历、统计/预算、组 D 的 my/settings/import/backup/periodic；只有 savings_goal 是当前最终构建的通过证据。风险：后续改动可能引入回归，必须重采。
-- `category_manage`、`rules`、`search` 没有当前有效截图/比较；采集失败或不稳定（日志 816/829/830）。
-- 当前源码的 JVM/Lint/全部仪器测试未重跑；5 项 Compose 测试未在当前源码运行。
-- 夜间主题未实施/未采集；production 包、签名、备份、安装后数据一致性、烟测均未开始。
-- 参考数据会随用户使用变化；本轮未重新导出，1977 条仅代表 12:03 快照。
-- 旧遗留：CycleDate 持久化、原版设置恢复来源、API 26/平板矩阵、字体缩放/键盘遮挡。
+- 当前源码未重新运行完整 JVM/Lint/仪器测试。
+- rules/category_manage/my/settings/search 未通过；夜间主题、生产包交付、安装后数据一致性未开始。
+- 设备已断开，设备侧状态（动画缩放、validation 安装版本、前台）未核验。
+- 参考数据可能继续漂移；GitHub 上传内容不含未提交源码与 `work/`。
 
 ## 7. 下一阶段交接
 
 ### 第一项操作
 
-1. 在 `D:\github-repository\smart-record` 读取本文件、`work/tasks/yimu-ui-reconstruction.md` 顶部、`work/logs/yimu-ui-reconstruction-s11/progress.md`、`pause-20261020-1700/README.md` 和 `groupD-known-differences.md`。
-2. 运行 `git status --porcelain -uall`、`git rev-parse HEAD`、`git diff --cached`；确认新交接提交只含 `HANDOFF.md`，工作区源码仍保留，`--help` 等未跟踪项不动。
-3. 先重建/安装当前源码（若遇增量解析异常先 `:app:clean`），设动画缩放 0，采集 `category_manage` 参考；对照 `screens.yaml` 的导航/控件失败日志修复采集动作，再按原生布局完成该页。
+1. 在 `D:\github-repository\smart-record` 读取本文件与 `work/tasks/yimu-ui-reconstruction.md` 顶部、`work/logs/yimu-ui-reconstruction-s11/progress.md`、`groupC-known-differences.md`、`groupD-known-differences.md`。
+2. 运行 `git status --porcelain -uall`、`git rev-parse HEAD`、`git diff --cached`；确认本交接提交只含 `HANDOFF.md`。
+3. 连接小米 15：`adb devices`；确认 `95f79212` 在线后核查动画缩放三项、validation 包版本与 lastUpdateTime、用户包版本；设备不在时先恢复设备。
+4. 继续界面收敛前，先按当前源码重新完整构建并安装 validation，再逐页采集。
 
 ### 待办（按依赖排序）
 
-1. **完成组 D：** `category_manage`、`rules`、`search` 原生化与验收；重采/修复 `my`（头图、图标、行距）、`settings`（SwitchButton/返回图标）、`import_export`/`backup`（返回箭头纯色区）。每页闭环：参考采集→validation→diff→修复→重建重采。
-2. **关闭组 C 残余：** `stats_self` 线形、`stats_year` 热力点/年份条、month 饼图边界、normal 字体 tile、budget 填充边界；不得把已知差异当作通过。
-3. **步骤 12 夜间：** `MainActivity` 接 AppCompat/AppCompatDelegate，按 `SettingsStore.themeMode` 应用；补齐 `values-night`、night drawable/mipmap；新建 `screens-night.yaml` 采 29 页两侧，结束后恢复原版主题、`ThemeMode.SYSTEM`、`cmd uimode night no`，重采日间 `home_top`。
-4. **步骤 13 交付：** 不传 validation 标志构建 production；`aapt2`/`apksigner` 核验 `com.nonen.Bookkeeping`；`device_backup.py` 备份并记录真实数据；`adb install -r` 后冷启动、五标签、新增记账烟测；前后数据一致；记录 APK SHA 和备份路径。
-5. **步骤 14：** 生成日间/夜间报告、组 A–D 报告、构建/数据记录；整体重写 HANDOFF；只提交 HANDOFF。
+1. **关闭组 C 统计残余：** stats_self 纵轴刻度字形（17px 行高）、stats_year 柱体 8px 基线位置差、month 饼图扇区边界、normal 柱体数值字体、budget 填充边界；不得把已知差异当作通过。
+2. **组 D 残余：** rules 还原 toolbar 高度（对照 958 号状态）、category_manage 单 tile、my 头图栅格化、settings SwitchButton、search 采集。
+3. **步骤 12 夜间主题：** AppCompat/AppCompatDelegate 接 `SettingsStore.themeMode`，补齐 values-night 资源，screens-night.yaml 采 29 页两侧，结束后恢复原版主题与系统状态。
+4. **步骤 13 交付：** 不传 validation 标志构建 production；aapt2/apksigner 核验身份签名；`device_backup.py` 备份用户数据；`adb install -r` 后烟测与数据一致性核对；记录 APK SHA-256 与备份路径。
+5. **步骤 14：** 完整报告；整体重写 HANDOFF；只提交 HANDOFF。
 
 ### 验收标准
 
-- 29 页日间与 29 页夜间均达到整体 ≤1.5%、任意 64×64 ≤6%、bounds ≤3px、纯色通过；所有报告对应最终 APK；已知 1px 差异单独列明，不降阈值。
-- 当前源码 JVM/Lint/完整构建通过；真实 Room/DataStore 测试通过；用户包安装前后数据一致。
-- production 包含 `com.nonen.Bookkeeping`，签名/身份核验通过；交付 APK、SHA、备份路径、报告和日志。
+- 29 页日间与夜间全部达到整体 ≤1.5%、任意 64×64 ≤6%、bounds ≤3px、纯色通过；所有报告对应最终 APK；已知 1px 差异单独列明，不降阈值。
+- 当前源码 JVM/Lint/完整构建通过；生产包含 `com.nonen.Bookkeeping`；安装前后用户数据一致。
 
 ### 需要用户裁决
 
-- 是否接受剩余未过页（stats_self/year/my/settings/import/backup 的单 tile 或纯色残余）作为记录差异后进入夜间/交付，还是必须先全部收敛。
-- `category_manage`/`rules`/`search` 是否必须在交付前完成像素级复刻。
-- 是否删除根目录误建的 `--help`；是否允许下一阶段在必要时重新导出参考数据并重新导入 validation（用户数据会继续漂移）。
+- rules/category_manage/my/settings/search 与统计单 tile 残余：继续收敛直到全部通过，还是记录差异进入夜间与交付。
+- 未提交源码是否提交并上传 GitHub：当前 GitHub 只有提交历史（交接文档与 T01–T08 功能提交），界面复刻源码与资源仅在本机工作区；`work/` 目录（日志、报告、参考数据、APK）被 Git 忽略，不会上传。若用户离开较长时间且需要源码备份，需明确批准提交源码。
+- 误建文件 `--help`、`--package` 是否删除。
 
 ### 禁止事项与排除范围
 
-- 未收到下一阶段恢复指令前，不修改应用源码、不构建、不安装、不操作手机；本次交接只写并提交 `HANDOFF.md`。
-- 未完成验收前不安装/覆盖用户包；不对用户包运行会卸载的仪器测试；参考导入、截图、仪器测试限定 `.uivalidation`。
-- 不执行 `git reset`/`git checkout`/`git clean` 等会丢弃工作区的操作；不删除其他模板/账单；不改账户余额；不降阈值；不伪造截图/报告/控件清单。
-- 不新增网络权限、账号、云服务、会员、语音、自动记账、桌面微件等业务；不启动模拟器；不修改系统账号/权限/网络。
-- 本阶段只提交 `HANDOFF.md`；其他文件及暂存状态保持不变。
+- 本次交接只写并提交 `HANDOFF.md`；不修改其他文件、不取消或提交其他暂存内容。
+- 不使用 Git 回滚/checkout/clean/stash；源码修改用文件编辑工具。
+- 未完成验收前不安装/覆盖用户包；参考导入、截图、仪器测试限定 `.uivalidation`；不读取用户交易数据。
+- 不新增网络权限、账号、云服务、会员、语音、自动记账、桌面微件；不降阈值；不伪造截图/报告。
+- `work/` 含个人账单参考数据，不上传 GitHub。
 
 ### 材料位置
 
-- 当前源码与未提交变更：`D:\github-repository\smart-record` 工作区；只提交 HANDOFF 不会带走源码。
-- 本轮快照与报告：`work/logs/yimu-ui-reconstruction-s11/pause-20261020-1700/`、`pause-20261020-1523/`、`pause-20261020-1254/`、`groupA/B/C/D-known-differences.md`、`work/ui-capture/report-*.json`、两侧 `manifest.json`。
-- 数据：`work/ui-fixtures/yimu_all_20261020_1203.xls`（1977 条，SHA `bb21...`）；validation 快照 `work/ui-capture/impl/_dataset/`。
-- 证据：`work/ui-evidence/apktool/res/`、`work/ui-evidence/jadx/sources/`、`reference_apk/base.apk`、`work/ui-evidence/yimu-system-backup.zip`。
-- 工具：`work/ui-harness/{capture,diff,check_reference_month,Install-S11Validation,Run-S11Command,device_backup}.py|ps1`、`screens.yaml`。
-- 仅本机：`C:\Users\29602\.qoder\plans\{shining-dale-drake,ember-narrows-stork,rising-fjord-asp}.md`、`D:\桌面\temp\smart-record-S11-续跑提示词.md`；`work/` 被 Git 忽略，不能从提交恢复。
-- 旧版交接：`git show b594e02:HANDOFF.md`（本文件将提交在 `b594e02` 之后，可用新 HEAD 查看）。
+- 当前源码与未提交变更：`D:\github-repository\smart-record` 工作区；GitHub（origin 73mtq/smart-record）只有提交历史。
+- 日志：`work/logs/yimu-ui-reconstruction-s11/`（871–989 号）；快照 `pause-20261020-1700/`、`pause-20261020-1523/` 等。
+- 报告：`work/ui-capture/report-*.json`（本阶段新增 report-stats-final-20261020.json、report-categorymanage3.json、report-rules6.json、report-my-final.json、report-groupD-partial.json、report-self-bezier.json、report-self-axis.json 等）。
+- 数据：`work/ui-fixtures/yimu_all_20261020_1203.xls`（SHA `bb21…`）；validation 数据 `work/ui-capture/impl/_dataset/`。
+- 上一会话记录：`work/tmp/session-12cf8812/session.v4.jsonl`；本机计划 `C:\Users\29602\.qoder\plans\rising-fjord-asp.md`。
+- 工具：`work/ui-harness/`；旧版交接：`git show 287e339:HANDOFF.md`、`git show b594e02:HANDOFF.md`。
