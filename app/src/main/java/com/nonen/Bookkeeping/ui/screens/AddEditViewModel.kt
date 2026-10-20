@@ -14,10 +14,15 @@ import com.nonen.Bookkeeping.data.repo.RuleRepository
 import com.nonen.Bookkeeping.core.CategoryMapping
 import com.nonen.Bookkeeping.data.db.CategoryEntity
 import com.nonen.Bookkeeping.data.repo.CategoryRepository
+import com.nonen.Bookkeeping.data.entity.ModuleBillEntity
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +41,11 @@ class AddEditViewModel(
     private val templateRepo: com.nonen.Bookkeeping.data.repo.TemplateRepository? = null,
     private val txId: Long,
     private val externalScope: CoroutineScope? = null,
+    initialBookId: Long = 1L,
+    private val initialTemplateId: Long = 0L,
+    initialDate: LocalDate? = null,
+    val editingTemplate: Boolean = false,
+    initialTransactionType: String = "EXPENSE",
 ) : ViewModel() {
 
     private val scope: CoroutineScope get() = externalScope ?: viewModelScope
@@ -43,11 +53,62 @@ class AddEditViewModel(
     var isIncome by mutableStateOf(false)
         private set
     var amount by mutableStateOf("")
-    var category by mutableStateOf(Categories.expenseCategories.first())
+    var keyboard by mutableStateOf(AmountKeyboardState())
+    var saving by mutableStateOf(false)
+        private set
+    var transferToAssetId by mutableStateOf<Long?>(null)
+    var transferServiceCharge by mutableStateOf(0.0)
+    var templateName by mutableStateOf("")
+    var templateLock by mutableStateOf(false)
+    private var categoryJob: Job? = null
+    private var templateJob: Job? = null
+    private var originalTemplate: ModuleBillEntity? = null
+
+    /** 模板编辑模式下是否存在可删除的原始模板。 */
+    val canDeleteTemplate: Boolean get() = editingTemplate && originalTemplate != null
+
+    fun updateKeyboard(state: AmountKeyboardState) {
+        keyboard = state
+        amount = if (state.operator == null) state.operand else ""
+    }
+
+    fun prepareNextRecord() {
+        original = null
+        originalCategory = null
+        isEdit = false
+        amount = ""
+        keyboard = AmountKeyboardState()
+        note = ""
+        tag = ""
+        timestamp = System.currentTimeMillis()
+    }
+
+    fun saveTransfer(onDone: () -> Unit) {
+        if (saving) return
+        val value = amount.toDoubleOrNull()
+        val target = transferToAssetId
+        if (value == null || !value.isFinite() || value <= 0 || !transferServiceCharge.isFinite()
+            || target == null || target == assetId) {
+            errorMessageRes = R.string.yimu_invalid_transfer
+            return
+        }
+        saving = true
+        scope.launch {
+            try {
+                check(requireNotNull(assetRepo).executeTransfer(
+                    assetId, target, value, serviceCharge = transferServiceCharge, remark = note, time = timestamp,
+                ))
+                onDone()
+            } finally {
+                saving = false
+            }
+        }
+    }
+    var category by mutableStateOf("其他")
     var subCategory by mutableStateOf("")
     var parentCategoryId by mutableStateOf<Int?>(null)
     var childCategoryId by mutableStateOf<Int?>(null)
-    var bookId by mutableStateOf(1L)
+    var bookId by mutableStateOf(initialBookId)
     var assetId by mutableStateOf(1L)
     var liveCategories by mutableStateOf<List<CategoryEntity>>(emptyList())
     var liveAssets by mutableStateOf<List<com.nonen.Bookkeeping.data.db.AssetEntity>>(emptyList())
@@ -56,14 +117,17 @@ class AddEditViewModel(
         private set
     var note by mutableStateOf("")
     var merchant by mutableStateOf("")
-    var account by mutableStateOf(Categories.defaultAccounts.first())
+    var account by mutableStateOf("")
     var tag by mutableStateOf("")
-    var transactionType by mutableStateOf("EXPENSE")
+    var transactionType by mutableStateOf(initialTransactionType)
     var refundOriginalId by mutableStateOf<Long?>(null)
     var targetAccount by mutableStateOf(Categories.defaultAccounts.getOrElse(1) { "支付宝" })
-    var timestamp by mutableLongStateOf(System.currentTimeMillis())
+    var timestamp by mutableLongStateOf(
+        initialDate?.atTime(LocalTime.now())?.atZone(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+            ?: System.currentTimeMillis(),
+    )
     var saveAsRule by mutableStateOf(false)
-    var loading by mutableStateOf(txId != 0L)
+    var loading by mutableStateOf(txId != 0L || initialTemplateId != 0L)
         private set
     var isEdit by mutableStateOf(false)
         private set
@@ -129,7 +193,15 @@ class AddEditViewModel(
                     targetAccount = t.targetAccount ?: Categories.defaultAccounts.getOrElse(1) { "支付宝" }
                     timestamp = t.timestamp
                     isCategoryManuallyChosen = true
+                    observeCategories()
                 }
+                loading = false
+            }
+        } else if (initialTemplateId != 0L) {
+            scope.launch {
+                val template = requireNotNull(requireNotNull(templateRepo).getById(initialTemplateId))
+                if (editingTemplate) originalTemplate = template
+                applyTemplateValues(template)
                 loading = false
             }
         } else {
@@ -141,7 +213,8 @@ class AddEditViewModel(
     }
 
     private fun observeCategories() {
-        scope.launch {
+        categoryJob?.cancel()
+        categoryJob = scope.launch {
             val cRepo = categoryRepo ?: return@launch
             cRepo.observeByType(if (isIncome) 1 else 0).collectLatest { list ->
                 liveCategories = list.filter { !it.isHiddenInBook(bookId) }
@@ -174,8 +247,19 @@ class AddEditViewModel(
         account = asset.assetName
     }
 
+    fun selectBook(id: Long) {
+        bookId = id
+        observeCategories()
+        observeTemplates()
+    }
+
+    fun setTransferType() {
+        transactionType = "TRANSFER"
+    }
+
     private fun observeTemplates() {
-        scope.launch {
+        templateJob?.cancel()
+        templateJob = scope.launch {
             val tRepo = templateRepo ?: return@launch
             tRepo.observeAll(bookId).collectLatest { list ->
                 liveTemplates = list
@@ -184,30 +268,99 @@ class AddEditViewModel(
     }
 
     fun applyTemplate(t: com.nonen.Bookkeeping.data.entity.ModuleBillEntity) {
-        amount = String.format(Locale.US, "%.2f", t.cost)
-        t.parentCategoryId?.let { parentCategoryId = it }
-        t.childCategoryId?.let { childCategoryId = it }
-        t.remark?.let { note = it }
-        assetId = t.assetId
+        scope.launch { applyTemplateValues(t) }
+    }
+
+    private suspend fun applyTemplateValues(t: com.nonen.Bookkeeping.data.entity.ModuleBillEntity) {
+        val categories = requireNotNull(categoryRepo).getAll()
+        val parent = categories.firstOrNull { it.parentId == 0 && it.categoryId == t.parentCategoryId }
+        val child = categories.firstOrNull { it.parentId == t.parentCategoryId && it.categoryId == t.childCategoryId }
+        if (t.moduleType == com.nonen.Bookkeeping.data.entity.ModuleBillEntity.MODULE_TYPE_BILL) requireNotNull(parent)
+        isIncome = parent?.categoryType == 1
+        transactionType = if (t.moduleType == com.nonen.Bookkeeping.data.entity.ModuleBillEntity.MODULE_TYPE_TRANSFER)
+            "TRANSFER" else if (isIncome) "INCOME" else "EXPENSE"
+        bookId = t.bookId
+        updateKeyboard(AmountKeyboardState(if (t.cost == 0.0) "" else String.format(Locale.US, "%.2f", kotlin.math.abs(t.cost))))
+        parentCategoryId = parent?.categoryId
+        childCategoryId = child?.categoryId
+        if (parent != null) category = parent.categoryName
+        subCategory = child?.categoryName.orEmpty()
+        note = t.remark.orEmpty()
+        tag = t.tags.orEmpty()
+        assetId = if (transactionType == "TRANSFER") t.fromAssetId else t.assetId
+        account = liveAssets.firstOrNull { it.assetId == assetId }?.assetName.orEmpty()
+        transferToAssetId = if (transactionType == "TRANSFER") t.toAssetId else null
+        transferServiceCharge = t.serviceCharge
+        templateName = t.templateName
+        templateLock = t.moduleLock
+        liveCategories = categories.filter { it.categoryType == if (isIncome) 1 else 0 }.filter { !it.isHiddenInBook(bookId) }
+        observeCategories()
+        observeTemplates()
         isCategoryManuallyChosen = true
     }
 
     fun saveCurrentAsTemplate(name: String, onDone: () -> Unit) {
-        val costVal = amount.toDoubleOrNull() ?: return
+        if (saving) return
+        val costVal = amount.toDoubleOrNull() ?: 0.0.takeIf { amount.isBlank() }
+        if (costVal == null || !costVal.isFinite() || costVal < 0.0) {
+            errorMessageRes = R.string.error_invalid_amount
+            return
+        }
+        if (name.isBlank()) {
+            errorMessageRes = R.string.yimu_template_name_required
+            return
+        }
+        val transfer = transactionType == "TRANSFER"
+        if (transfer && (transferToAssetId == null || transferToAssetId == assetId || !transferServiceCharge.isFinite())) {
+            errorMessageRes = R.string.yimu_invalid_transfer
+            return
+        }
+        if (liveAssets.none { it.assetId == assetId } || (transfer && liveAssets.none { it.assetId == transferToAssetId })) {
+            errorMessageRes = R.string.yimu_select_account
+            return
+        }
+        saving = true
         scope.launch {
-            val tRepo = templateRepo ?: return@launch
-            tRepo.createTemplate(
-                com.nonen.Bookkeeping.data.entity.ModuleBillEntity(
-                    templateName = name,
+            try {
+                val tRepo = requireNotNull(templateRepo)
+                val previous = originalTemplate
+                val template = (previous ?: ModuleBillEntity(cost = costVal)).copy(
+                    templateName = name.trim(),
+                    moduleType = if (transfer) ModuleBillEntity.MODULE_TYPE_TRANSFER else ModuleBillEntity.MODULE_TYPE_BILL,
                     cost = costVal,
-                    parentCategoryId = parentCategoryId,
-                    childCategoryId = childCategoryId,
+                    parentCategoryId = if (transfer) null else parentCategoryId,
+                    childCategoryId = if (transfer) null else childCategoryId,
                     assetId = assetId,
+                    fromAssetId = assetId,
+                    toAssetId = if (transfer) requireNotNull(transferToAssetId) else (previous?.toAssetId ?: assetId),
+                    serviceCharge = if (transfer) transferServiceCharge else 0.0,
                     remark = note.ifBlank { null },
+                    tags = tag.ifBlank { null },
                     bookId = bookId,
-                ),
-            )
-            onDone()
+                    moduleLock = templateLock && costVal > 0.0,
+                    updateTime = System.currentTimeMillis(),
+                )
+                if (previous == null) tRepo.createTemplate(template) else tRepo.updateTemplate(template)
+                onDone()
+            } finally {
+                saving = false
+            }
+        }
+    }
+
+    /** 删除当前正在编辑的模板，删除后交由调用方返回上一页。 */
+    fun deleteCurrentTemplate(onDone: () -> Unit) {
+        if (saving) return
+        val previous = requireNotNull(originalTemplate) { "当前页面不是模板编辑" }
+        saving = true
+        scope.launch {
+            try {
+                requireNotNull(templateRepo).deleteTemplate(previous.moduleBillId)
+                originalTemplate = null
+                onDone()
+            } finally {
+                saving = false
+            }
         }
     }
 
@@ -218,20 +371,15 @@ class AddEditViewModel(
     }
 
     fun setType(income: Boolean) {
+        transactionType = if (income) "INCOME" else "EXPENSE"
         if (isIncome == income) return
         isIncome = income
         subCategory = ""
         childCategoryId = null
         isCategoryManuallyChosen = true
         observeCategories()
-        val defaultParent = liveCategories.firstOrNull { it.parentId == 0 }
-        if (defaultParent != null) {
-            category = defaultParent.categoryName
-            parentCategoryId = defaultParent.categoryId
-        } else {
-            if (category !in categoryList) category = categoryList.first()
-            syncCategoryIds()
-        }
+        category = if (income) "收入" else "其他"
+        parentCategoryId = if (income) 9 else 99
     }
 
     fun setAmountInput(raw: String) {
@@ -240,9 +388,14 @@ class AddEditViewModel(
 
     fun selectCategoryManually(catName: String, catId: Int? = null) {
         category = catName
-        parentCategoryId = catId ?: CategoryMapping.resolve(catName, null, isIncome).parentId
-        subCategory = ""
-        childCategoryId = null
+        val parentId = catId ?: CategoryMapping.resolve(catName, null, isIncome).parentId
+        parentCategoryId = parentId
+        // 原版选中一级分类后默认落到第一个子分类，账单显示「食品餐饮-午餐」这类完整名称
+        val firstChild = liveCategories.firstOrNull {
+            it.parentId == parentId && it.categoryType == if (isIncome) 1 else 0
+        }
+        subCategory = firstChild?.categoryName.orEmpty()
+        childCategoryId = firstChild?.categoryId
         isCategoryManuallyChosen = true
     }
 
@@ -272,10 +425,33 @@ class AddEditViewModel(
         triggerAutoClassify()
     }
 
-    /** 快速自然文本智能识别填入（如：“妈妈微信转账生活费2000”或“麦当劳汉堡38.5”） */
+    /** 快速自然文本智能识别填入（使用本地离线模型推断） */
     fun applyQuickText(raw: String) {
         val text = raw.trim()
         if (text.isEmpty()) return
+
+        val modelService = com.nonen.Bookkeeping.core.nlp.ClassificationModelService.getInstance()
+        if (modelService != null) {
+            val res = modelService.parseQuickRecord(text)
+            if (res.amount != null && res.amount > 0.0) {
+                amount = String.format(Locale.US, "%.2f", res.amount)
+            }
+            if (res.isIncome != isIncome) {
+                setType(res.isIncome)
+            }
+            category = res.category
+            if (!res.subCategory.isNullOrBlank()) {
+                subCategory = res.subCategory
+            }
+            note = res.remark
+            try {
+                timestamp = res.dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            } catch (_: Exception) {}
+            syncCategoryIds()
+            isCategoryManuallyChosen = true
+            autoSuggestedCategory = res.category
+            return
+        }
 
         // 1. 尝试提取金额
         val amt = PaymentTextParser.extractAmount(text)
@@ -334,12 +510,15 @@ class AddEditViewModel(
     }
 
     fun save(onDone: () -> Unit) {
+        if (saving) return
         val value = amount.toDoubleOrNull()
         if (value == null || value <= 0.0) {
             errorMessageRes = R.string.error_invalid_amount
             return
         }
+        saving = true
         scope.launch {
+            try {
             if (saveAsRule) {
                 val keyword = merchant.trim().ifEmpty { note.trim() }
                 if (keyword.isNotEmpty()) {
@@ -398,6 +577,9 @@ class AddEditViewModel(
                 } else {
                     errorMessageRes = R.string.error_duplicate_record
                 }
+            }
+            } finally {
+                saving = false
             }
         }
     }

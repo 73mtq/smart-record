@@ -12,16 +12,16 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface CategoryDao {
-    @Query("SELECT * FROM categories ORDER BY positionWeight ASC, categoryId ASC")
+    @Query("SELECT * FROM categories ORDER BY positionWeight DESC, categoryId ASC")
     fun getAllFlow(): Flow<List<CategoryEntity>>
 
-    @Query("SELECT * FROM categories ORDER BY positionWeight ASC, categoryId ASC")
+    @Query("SELECT * FROM categories ORDER BY positionWeight DESC, categoryId ASC")
     suspend fun getAll(): List<CategoryEntity>
 
-    @Query("SELECT * FROM categories WHERE parentId = 0 AND categoryType = :categoryType ORDER BY positionWeight ASC, categoryId ASC")
+    @Query("SELECT * FROM categories WHERE parentId = 0 AND categoryType = :categoryType ORDER BY positionWeight DESC, categoryId ASC")
     suspend fun getParentCategories(categoryType: Int): List<CategoryEntity>
 
-    @Query("SELECT * FROM categories WHERE parentId = :parentId ORDER BY positionWeight ASC, categoryId ASC")
+    @Query("SELECT * FROM categories WHERE parentId = :parentId ORDER BY positionWeight DESC, categoryId ASC")
     suspend fun getChildCategories(parentId: Int): List<CategoryEntity>
 
     @Query("SELECT * FROM categories WHERE categoryId = :categoryId AND parentId = :parentId LIMIT 1")
@@ -42,7 +42,7 @@ interface CategoryDao {
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun count(): Int
 
-    @Query("SELECT * FROM categories WHERE categoryType = :categoryType ORDER BY positionWeight ASC, categoryId ASC")
+    @Query("SELECT * FROM categories WHERE categoryType = :categoryType ORDER BY positionWeight DESC, categoryId ASC")
     fun observeByType(categoryType: Int): Flow<List<CategoryEntity>>
 
     @Query("SELECT * FROM categories WHERE id = :id LIMIT 1")
@@ -74,4 +74,7 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM categories")
+    suspend fun clearAll()
 }

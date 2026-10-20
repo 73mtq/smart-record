@@ -12,6 +12,8 @@ import com.nonen.Bookkeeping.data.db.TransactionDao
 import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.data.db.TransferDao
 import com.nonen.Bookkeeping.data.db.TransferEntity
+import com.nonen.Bookkeeping.data.db.AppDatabase
+import androidx.room.withTransaction
 import com.nonen.Bookkeeping.data.prefs.SettingsStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -25,17 +27,24 @@ class TransactionRepository(
     private val settings: SettingsStore? = null,
     private val assetDao: AssetDao? = null,
     private val transferDao: TransferDao? = null,
+    private val database: AppDatabase,
 ) {
-    fun observeMonth(month: YearMonth): Flow<List<TransactionEntity>> {
+    fun observeMonth(month: YearMonth, bookId: Long? = null): Flow<List<TransactionEntity>> {
         val zone = ZoneId.systemDefault()
         val start = month.atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
         val end = month.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
-        return dao.observeRange(start, end)
+        return dao.observeFilteredRange(start, end - 1, bookId)
     }
 
     suspend fun getById(id: Long): TransactionEntity? = dao.getById(id)
 
     fun observeRange(start: Long, end: Long): Flow<List<TransactionEntity>> = dao.observeRange(start, end)
+
+    fun observeBookRange(start: Long, end: Long, bookId: Long): Flow<List<TransactionEntity>> =
+        dao.observeFilteredRange(start, end - 1, bookId)
+
+    suspend fun getBookRange(start: Long, end: Long, bookId: Long): List<TransactionEntity> =
+        dao.getFilteredRange(start, end, bookId)
 
     /**
      * 语义去重：自动记账/导入来源里是否已存在「金额相同且时间相近」的记录。
@@ -46,15 +55,15 @@ class TransactionRepository(
         dao.countSimilarAuto(amount, timestamp - windowMs, timestamp + windowMs) > 0
 
     /** @return false 表示 hash 重复，已存在相同记录 */
-    suspend fun insertIfNew(entity: TransactionEntity): Boolean {
+    suspend fun insertIfNew(entity: TransactionEntity): Boolean = database.withTransaction {
         val inserted = dao.insert(entity) != -1L
         if (inserted) {
             assetDao?.updateBalance(entity.assetId, entity.amount)
         }
-        return inserted
+        inserted
     }
 
-    suspend fun update(entity: TransactionEntity) {
+    suspend fun update(entity: TransactionEntity) = database.withTransaction {
         if (assetDao != null) {
             val old = dao.getById(entity.id)
             if (old != null) {
@@ -70,9 +79,10 @@ class TransactionRepository(
         dao.update(entity.copy(updatedAt = System.currentTimeMillis()))
     }
 
-    suspend fun delete(entity: TransactionEntity) {
-        assetDao?.updateBalance(entity.assetId, -entity.amount)
-        dao.delete(entity)
+    suspend fun delete(entity: TransactionEntity) = database.withTransaction {
+        val current = requireNotNull(dao.getById(entity.id))
+        assetDao?.updateBalance(current.assetId, -current.amount)
+        dao.delete(current)
     }
 
     suspend fun createTransfer(
@@ -83,9 +93,12 @@ class TransactionRepository(
         serviceCharge: Double = 0.0,
         time: Long = System.currentTimeMillis(),
         remark: String? = null,
-    ): Long {
-        val tDao = transferDao ?: return -1L
-        val aDao = assetDao ?: return -1L
+    ): Long = database.withTransaction {
+        require(fromAssetId != toAssetId && cost.isFinite() && cost > 0.0 && toCost.isFinite() && toCost > 0.0)
+        val tDao = requireNotNull(transferDao)
+        val aDao = requireNotNull(assetDao)
+        requireNotNull(aDao.findById(fromAssetId))
+        requireNotNull(aDao.findById(toAssetId))
 
         aDao.updateBalance(fromAssetId, -(cost + serviceCharge))
         aDao.updateBalance(toAssetId, toCost)
@@ -100,19 +113,19 @@ class TransactionRepository(
             remark = remark,
             createdAt = System.currentTimeMillis(),
         )
-        return tDao.insert(transfer)
+        tDao.insert(transfer)
     }
 
-    suspend fun deleteTransfer(transferId: Long): Boolean {
-        val tDao = transferDao ?: return false
-        val aDao = assetDao ?: return false
-        val transfer = tDao.findById(transferId) ?: return false
+    suspend fun deleteTransfer(transferId: Long): Boolean = database.withTransaction {
+        val tDao = requireNotNull(transferDao)
+        val aDao = requireNotNull(assetDao)
+        val transfer = tDao.findById(transferId) ?: return@withTransaction false
 
         aDao.updateBalance(transfer.fromAssetId, transfer.cost + transfer.serviceCharge)
         aDao.updateBalance(transfer.toAssetId, -transfer.toCost)
 
         tDao.deleteById(transferId)
-        return true
+        true
     }
 
     suspend fun search(

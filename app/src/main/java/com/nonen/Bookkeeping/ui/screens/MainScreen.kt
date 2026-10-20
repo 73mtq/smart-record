@@ -1,76 +1,49 @@
 package com.nonen.Bookkeeping.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import android.content.res.ColorStateList
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.dp
+import android.view.View
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nonen.Bookkeeping.R
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlin.math.roundToInt
+import com.google.android.material.navigation.NavigationBarView
 import com.nonen.Bookkeeping.AppContainer
-import com.nonen.Bookkeeping.ui.motion.rememberPressScale
-import com.nonen.Bookkeeping.ui.motion.rememberReducedMotion
-import com.nonen.Bookkeeping.ui.theme.InkPrimary
-import com.nonen.Bookkeeping.ui.theme.UnselectedTabDark
-import com.nonen.Bookkeeping.ui.theme.UnselectedTabLight
+import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.ui.vmFactory
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
+import java.time.LocalDate
 
-/**
- * 主界面：首页 / 统计 / 设置 三个页面用 HorizontalPager 承载，
- * 底栏点击滚动切页、手势可水平滑动（参照墨麒麟 MainScreen 的做法）。
- * 记一笔 / 搜索 / 规则管理仍以 iOS 风格滑动推入的子页面打开。
- */
 @Composable
 fun MainScreen(
     container: AppContainer,
     onAdd: () -> Unit,
+    onAddAtDate: (LocalDate) -> Unit,
+    onStatisticsBills: (StatisticsBillFilter) -> Unit,
     onEdit: (Long) -> Unit,
     onSearch: () -> Unit,
     onRules: () -> Unit,
@@ -79,178 +52,119 @@ fun MainScreen(
     onBudget: () -> Unit = {},
     onPeriodic: () -> Unit = {},
     onTemplate: () -> Unit = {},
+    onApplyTemplate: (Long) -> Unit = {},
     onSavingsGoal: () -> Unit = {},
     onCalendar: () -> Unit = {},
+    onSettings: () -> Unit = {},
+    onAppearance: () -> Unit = {},
+    onImportExport: () -> Unit = {},
+    onBackup: () -> Unit = {},
+    initialTab: Int = 0,
 ) {
-    val pagerState = rememberPagerState(initialPage = 0) { 3 }
+    val vm: MainViewModel = viewModel(factory = vmFactory { MainViewModel(container) })
+    val bookId by vm.selectedBookId.collectAsState()
+    val books by vm.books.collectAsState()
+    val labels by vm.navigationLabelsEnabled.collectAsState(initial = false)
+    val pager = rememberPagerState(initialPage = initialTab.coerceIn(0, 4)) { MainTab.entries.size }
     val scope = rememberCoroutineScope()
-    val selectedTab by remember { derivedStateOf { pagerState.currentPage } }
-    val reduced = rememberReducedMotion()
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            MainBottomBar(
-                selectedTab = selectedTab,
-                pageProgress = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
-                onTabSelected = { index ->
-                    scope.launch {
-                        if (reduced) pagerState.scrollToPage(index) else pagerState.animateScrollToPage(index)
-                    }
-                },
-                onAdd = onAdd,
-            )
-        },
-    ) { padding ->
+    val context = LocalContext.current.applicationContext
+    var showBooks by remember { mutableStateOf(false) }
+    LaunchedEffect(initialTab) { pager.scrollToPage(initialTab.coerceIn(0, 4)) }
+    Column(Modifier.fillMaxSize()) {
         HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            state = pager,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
         ) { page ->
-            when (page) {
-                0 -> {
-                    // HomeViewModel 要一个 Context 来注册跨天广播；只给它 Application，
-                    // 避免 ViewModel 因为比 Activity 活得久而持有 Activity
-                    val appContext = LocalContext.current.applicationContext
-                    val vm: HomeViewModel = viewModel(
-                        factory = vmFactory { HomeViewModel(appContext, container.transactionRepository) },
-                    )
-                    HomeScreen(vm = vm, onSearch = onSearch, onEdit = onEdit, onCalendar = onCalendar)
-                }
-                1 -> {
-                    val vm: StatsViewModel = viewModel(
-                        factory = vmFactory {
-                            StatsViewModel(
-                                repo = container.transactionRepository,
-                                reportRepo = container.reportRepository,
-                            )
-                        },
-                    )
-                    StatisticsScreen(vm = vm)
-                }
-                else -> {
-                    val vm: SettingsViewModel = viewModel(factory = vmFactory { SettingsViewModel(container) })
-
-                    SettingsScreen(
-                        vm = vm,
-                        onRules = onRules,
-                        onCategoryManage = onCategoryManage,
-                        onAssetManage = onAssetManage,
-                        onBudget = onBudget,
-                        onPeriodic = onPeriodic,
-                        onTemplate = onTemplate,
-                        onSavingsGoal = onSavingsGoal,
+            when (MainTab.entries[page]) {
+                MainTab.HOME -> {
+                    val home: HomeViewModel = viewModel(factory = vmFactory {
+                        HomeViewModel(context, container.transactionRepository)
+                    })
+                    LaunchedEffect(bookId) { home.selectBook(bookId) }
+                    YimuHomeScreen(
+                        vm = home, books = books, selectedBookId = bookId,
+                        templateRepo = container.templateRepository,
+                        categoryRepo = container.categoryRepository,
+                        settings = container.settings,
+                        onSelectBook = vm::selectBook, onCreateBook = vm::createBook,
+                        onAdd = onAdd, onSearch = onSearch, onEdit = onEdit,
+                        onTemplate = onTemplate, onBudget = onBudget,
+                        onApplyTemplate = onApplyTemplate,
                     )
                 }
+                MainTab.CALENDAR -> {
+                    val calendar: CalendarViewModel = viewModel(factory = vmFactory {
+                        CalendarViewModel(container.reportRepository)
+                    })
+                    LaunchedEffect(bookId) { calendar.selectBook(bookId) }
+                    YimuCalendarScreen(calendar, onEdit = onEdit, onAdd = onAddAtDate)
+                }
+                MainTab.ASSET -> {
+                    val asset: AssetManageViewModel = viewModel(factory = vmFactory {
+                        AssetManageViewModel(container.assetRepository)
+                    })
+                    AssetManageScreen(asset, onBack = {}, embedded = true)
+                }
+                MainTab.STATISTICS -> {
+                    val stats: StatsViewModel = viewModel(factory = vmFactory {
+                        StatsViewModel(container.transactionRepository, container.reportRepository)
+                    })
+                    LaunchedEffect(bookId) { stats.selectBook(bookId) }
+                    YimuStatisticsScreen(container, bookId, onBudget, onStatisticsBills)
+                }
+                MainTab.MY -> MyScreen(
+                    container, onSettings, onCategoryManage, onRules, onPeriodic, onSavingsGoal,
+                    onTemplate, onBudget, onBook = { showBooks = true },
+                    onAppearance = onAppearance, onImportExport = onImportExport, onBackup = onBackup,
+                )
             }
         }
+        YimuBottomBar(pager.currentPage, labels) { scope.launch { pager.animateScrollToPage(it) } }
     }
+    if (showBooks) BookChoiceDialog(books, bookId, vm::selectBook, vm::createBook) { showBooks = false }
 }
 
-/** Apple Music 风格浮动胶囊底栏 + 圆形记账 FAB；选中胶囊 1:1 跟随 Pager 拖动 */
 @Composable
-private fun MainBottomBar(
-    selectedTab: Int,
-    pageProgress: () -> Float,
-    onTabSelected: (Int) -> Unit,
-    onAdd: () -> Unit,
-) {
-    // 跟随应用内主题（支持应用内深浅覆盖，而非仅系统设置）
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    // 浅色底（#F5F5F7）上纯白胶囊几乎隐形：提高不透明度并加深描边，保证底栏轮廓可辨
-    val barColor = if (isDark) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.92f)
-    val borderColor = if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.12f)
-    val pillColor = if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.06f)
+private fun YimuBottomBar(selected: Int, labels: Boolean, onSelect: (Int) -> Unit) {
+    val ids = listOf(R.id.tab_main, R.id.tab_calendar, R.id.tab_asset, R.id.tab_statistics, R.id.tab_my)
+    val background = MaterialTheme.colorScheme.surface.toArgb()
     val density = LocalDensity.current
-    var barWidthPx by remember { mutableFloatStateOf(0f) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            // 让位系统导航栏：三键导航时底栏整体抬到按键上方，不被遮挡
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .height(60.dp)
-                .onSizeChanged { barWidthPx = it.width.toFloat() }
-                .clip(RoundedCornerShape(22.dp))
-                .background(barColor)
-                .border(0.5.dp, borderColor, RoundedCornerShape(22.dp))
-                .padding(4.dp),
-        ) {
-            Box(Modifier.fillMaxSize()) {
-                // 滑动胶囊：位置直接取 pager 的实时进度，拖到哪跟到哪
-                val padPx = with(density) { 4.dp.toPx() }
-                val tabWidthPx = (barWidthPx - padPx * 2) / 3f
-                if (tabWidthPx > 0f) {
-                    Box(
-                        Modifier
-                            .offset { IntOffset((pageProgress() * tabWidthPx).roundToInt(), 0) }
-                            .width(with(density) { tabWidthPx.toDp() })
-                            .fillMaxHeight()
-                            // 同心圆角：外层 22dp - 内边距 4dp = 18dp，弧度与外层一致
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(pillColor),
-                    )
+    val navigationBottom = WindowInsets.navigationBars.getBottom(density)
+    AndroidView(
+        modifier = Modifier.fillMaxWidth().height(56.dp + with(density) { navigationBottom.toDp() }),
+        factory = { context ->
+            BottomNavigationView(context).apply {
+                id = R.id.bottom_nav_view
+                inflateMenu(R.menu.menu_navigation_selector)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                ids.forEachIndexed { index, itemId ->
+                    menu.findItem(itemId).contentDescription = listOf("首页", "日历", "资产", "统计", "我的")[index]
+                    findViewById<View>(itemId)?.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
                 }
-                Row(Modifier.fillMaxSize()) {
-                    MainTab(Icons.Default.Home, stringResource(R.string.tab_home), selectedTab == 0, isDark, Modifier.weight(1f)) { onTabSelected(0) }
-                    MainTab(Icons.AutoMirrored.Filled.List, stringResource(R.string.tab_statistics), selectedTab == 1, isDark, Modifier.weight(1f)) { onTabSelected(1) }
-                    MainTab(Icons.Default.Settings, stringResource(R.string.tab_settings), selectedTab == 2, isDark, Modifier.weight(1f)) { onTabSelected(2) }
-                }
+                itemIconSize = (26 * resources.displayMetrics.density).roundToInt()
+                setItemTextAppearanceActive(R.style.YimuBottomTitleActive)
+                setItemTextAppearanceInactive(R.style.YimuBottomTitleInactive)
+                isItemHorizontalTranslationEnabled = false
+                setItemActiveIndicatorEnabled(false)
+                itemIconTintList = null
+                itemTextColor = ColorStateList(
+                    arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                    intArrayOf(0xFF48AB93.toInt(), 0xFF999999.toInt()),
+                )
+                ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets -> insets }
+                setOnItemSelectedListener { item -> onSelect(ids.indexOf(item.itemId)); true }
             }
-        }
-        Spacer(Modifier.width(8.dp))
-        val (fabSource, fabScale) = rememberPressScale(0.9f)
-        Box(
-            modifier = Modifier
-                .then(fabScale)
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(InkPrimary)
-                .clickable(interactionSource = fabSource, indication = null, onClick = onAdd),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = stringResource(R.string.action_add_record),
-                tint = Color.White,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun MainTab(
-    icon: ImageVector,
-    label: String,
-    selected: Boolean,
-    isDark: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val tint = if (selected) {
-        if (isDark) Color.White else Color(0xFF1D1D1F)
-    } else {
-        if (isDark) UnselectedTabDark else UnselectedTabLight
-    }
-    val (source, scale) = rememberPressScale(0.94f)
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .then(scale)
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(interactionSource = source, indication = null, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(21.dp))
-            Spacer(Modifier.height(1.dp))
-            Text(text = label, fontSize = 9.sp, color = tint)
-        }
-    }
+        },
+        update = { view ->
+            view.setPadding(0, 0, 0, navigationBottom)
+            view.setBackgroundColor(background)
+            view.labelVisibilityMode = if (labels) NavigationBarView.LABEL_VISIBILITY_LABELED
+                else NavigationBarView.LABEL_VISIBILITY_UNLABELED
+            if (view.selectedItemId != ids[selected]) {
+                view.setOnItemSelectedListener(null)
+                view.selectedItemId = ids[selected]
+                view.setOnItemSelectedListener { item -> onSelect(ids.indexOf(item.itemId)); true }
+            }
+        },
+    )
 }

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundLight">
+
+    <RelativeLayout
+        android:id="@id/tool_bar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/white"
+        android:elevation="3dp">
+
+        <ImageView
+            android:id="@id/btn_back"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_below="@null"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/selectable_item_circle"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/ic_back"
+            android:tint="@color/black" />
+
+        <TextView
+            android:id="@id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_toEndOf="@id/btn_back"
+            android:gravity="center"
+            android:maxWidth="180dp"
+            android:singleLine="true"
+            android:text="自定义智能分类"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@id/content_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tool_bar">
+
+        <RelativeLayout
+            android:id="@id/tip_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="50dp">
+
+            <TextView
+                android:id="@id/tip_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="50dp"
+                android:layout_marginEnd="50dp"
+                android:lineSpacingExtra="5dp"
+                android:text="对于您常用的记账内容，智能记账又暂时无法正确识别的时候，您可以尝试使用自定义分类来支持您的记账内容"
+                android:textColor="@color/darkGrey"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tip_text"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="30dp"
+                android:src="@mipmap/ic_ai_bill_self_tip" />
+
+            <TextView
+                android:id="@id/add_ai_self_type"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="50dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/selectable_item_primary_background"
+                android:gravity="center"
+                android:text="开始添加"
+                android:textColor="@color/textColorLight"
+                android:textSize="15sp" />
+        </RelativeLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@id/ai_type_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:overScrollMode="never"
+            android:visibility="gone" />
+    </RelativeLayout>
+</RelativeLayout>

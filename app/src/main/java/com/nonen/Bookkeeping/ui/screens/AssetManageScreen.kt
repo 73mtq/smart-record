@@ -41,7 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import com.nonen.Bookkeeping.ui.components.YimuTopAppBar as TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -69,18 +69,21 @@ import java.util.Locale
 fun AssetManageScreen(
     vm: AssetManageViewModel,
     onBack: () -> Unit,
+    embedded: Boolean = false,
 ) {
     val displayAssets by vm.displayAssets.collectAsState()
     val summary by vm.summary.collectAsState()
     val showHidden by vm.showHidden.collectAsState()
 
-    Scaffold(
+    if (embedded) YimuAssetContent(vm) else Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("资产与账户管理", style = MaterialTheme.typography.titleMedium) },
+                title = { Text(if (embedded) "资产" else "资产与账户管理", style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
+                    if (!embedded) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
                     }
                 },
                 actions = {
@@ -127,14 +130,23 @@ fun AssetManageScreen(
                         Text(text = "显示隐藏账户", style = MaterialTheme.typography.bodySmall)
                     }
 
-                    Button(
-                        onClick = vm::openAddDialog,
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("新增账户", fontSize = 12.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = vm::openTransferDialog,
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        ) {
+                            Text("转账", fontSize = 12.sp)
+                        }
+                        Button(
+                            onClick = vm::openAddDialog,
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("新增账户", fontSize = 12.sp)
+                        }
                     }
                 }
             }
@@ -257,6 +269,17 @@ fun AssetManageScreen(
                 },
             )
         }
+    }
+
+    // 弹窗：账户间转账
+    if (vm.showTransferDialog) {
+        TransferDialog(
+            assets = displayAssets,
+            onDismiss = vm::closeTransferDialog,
+            onConfirm = { fromId, toId, amount, fee, remark ->
+                vm.transfer(fromId, toId, amount, fee, remark)
+            },
+        )
     }
 
     // 错误提示弹窗
@@ -681,6 +704,120 @@ private fun AdjustBalanceDialog(
                 },
             ) {
                 Text("确认调平")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        },
+    )
+}
+
+@Composable
+private fun TransferDialog(
+    assets: List<AssetEntity>,
+    onDismiss: () -> Unit,
+    onConfirm: (fromAssetId: Long, toAssetId: Long, amount: Double, fee: Double, remark: String?) -> Unit,
+) {
+    var fromAssetId by remember(assets) { mutableStateOf(assets.firstOrNull()?.assetId ?: 0L) }
+    var toAssetId by remember(assets) { mutableStateOf(assets.getOrNull(1)?.assetId ?: assets.firstOrNull()?.assetId ?: 0L) }
+    var amountText by remember { mutableStateOf("") }
+    var feeText by remember { mutableStateOf("") }
+    var remarkText by remember { mutableStateOf("") }
+    var expandedFrom by remember { mutableStateOf(false) }
+    var expandedTo by remember { mutableStateOf(false) }
+
+    val fromAsset = assets.firstOrNull { it.assetId == fromAssetId }
+    val toAsset = assets.firstOrNull { it.assetId == toAssetId }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("账户间转账") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // 转出账户选择
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { expandedFrom = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Text("转出账户: ${fromAsset?.assetName ?: "请选择"}")
+                    }
+                    DropdownMenu(
+                        expanded = expandedFrom,
+                        onDismissRequest = { expandedFrom = false },
+                    ) {
+                        assets.forEach { asset ->
+                            DropdownMenuItem(
+                                text = { Text("${asset.assetName} (余额: ¥${String.format(Locale.US, "%.2f", asset.assetNumber)})") },
+                                onClick = {
+                                    fromAssetId = asset.assetId
+                                    expandedFrom = false
+                                },
+                            )
+                        }
+                    }
+                }
+
+                // 转入账户选择
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { expandedTo = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Text("转入账户: ${toAsset?.assetName ?: "请选择"}")
+                    }
+                    DropdownMenu(
+                        expanded = expandedTo,
+                        onDismissRequest = { expandedTo = false },
+                    ) {
+                        assets.forEach { asset ->
+                            DropdownMenuItem(
+                                text = { Text("${asset.assetName} (余额: ¥${String.format(Locale.US, "%.2f", asset.assetNumber)})") },
+                                onClick = {
+                                    toAssetId = asset.assetId
+                                    expandedTo = false
+                                },
+                            )
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = amountText,
+                    onValueChange = { amountText = it },
+                    label = { Text("转账金额") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = feeText,
+                    onValueChange = { feeText = it },
+                    label = { Text("手续费（选填）") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = remarkText,
+                    onValueChange = { remarkText = it },
+                    label = { Text("备注（选填）") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val amount = amountText.toDoubleOrNull() ?: 0.0
+                    val fee = feeText.toDoubleOrNull() ?: 0.0
+                    onConfirm(fromAssetId, toAssetId, amount, fee, remarkText.ifBlank { null })
+                },
+            ) {
+                Text("确认转账")
             }
         },
         dismissButton = {

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@id/parent_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@id/background_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_home_popup"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:id="@id/add_account_book"
+            android:layout_width="200dp"
+            android:layout_height="50dp"
+            android:background="@drawable/selectable_item_expand_mask"
+            android:paddingStart="12dp">
+
+            <ImageView
+                android:id="@id/add_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="5dp"
+                android:src="@mipmap/ic_search_add"
+                app:tint="@color/textColorPrimary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@id/add_icon"
+                android:singleLine="true"
+                android:text="@string/yimu_new_book"
+                android:textColor="@color/textColorPrimary"
+                android:textSize="15sp" />
+
+            <ImageView
+                android:id="@id/account_book_manager"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:padding="16.5dp"
+                android:src="@mipmap/ic_account_book_edit"
+                app:tint="@color/iconTint" />
+        </RelativeLayout>
+
+        <com.nonen.Bookkeeping.ui.components.MaxHeightRecyclerView
+            android:id="@id/data_list"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:overScrollMode="never" />
+    </LinearLayout>
+</RelativeLayout>

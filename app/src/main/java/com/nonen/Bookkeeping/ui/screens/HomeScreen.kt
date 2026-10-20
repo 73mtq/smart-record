@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -64,6 +65,15 @@ class HomeViewModel(context: Context, private val repo: TransactionRepository) :
 
     /** 首页当前展示的月份；null = 跟随今天（用户没手动翻过月） */
     private val pinnedMonth = MutableStateFlow<YearMonth?>(null)
+    private val selectedBookId = MutableStateFlow<Long?>(null)
+
+    fun selectBook(id: Long) { selectedBookId.value = id }
+
+    fun deleteSelected(ids: Set<Long>) {
+        viewModelScope.launch {
+            transactions.value.filter { it.id in ids }.forEach { repo.delete(it) }
+        }
+    }
 
     /**
      * 首页月份 = 用户手动选的月份，没选过就是今天所在的月份。
@@ -76,7 +86,8 @@ class HomeViewModel(context: Context, private val repo: TransactionRepository) :
             .stateIn(viewModelScope, SharingStarted.Eagerly, YearMonth.from(todayWatcher.today.value))
 
     val transactions: StateFlow<List<TransactionEntity>> =
-        month.flatMapLatest { repo.observeMonth(it) }
+        combine(month, selectedBookId) { month, book -> month to book }
+            .flatMapLatest { (month, book) -> repo.observeMonth(month, book) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** 当月的「今天」，UI 用来判断正看的是不是本月、要不要提示回本月 */
@@ -93,8 +104,11 @@ class HomeViewModel(context: Context, private val repo: TransactionRepository) :
                 todayWatcher.refresh()
                 emit(todayWatcher.today.value)
             }
-            .map { weekRangeOf(it) }
-            .flatMapLatest { (start, end) -> repo.observeRange(start, end) }
+            .combine(selectedBookId) { date, book -> weekRangeOf(date) to book }
+            .flatMapLatest { (range, book) ->
+                val (start, end) = range
+                if (book == null) repo.observeRange(start, end) else repo.observeBookRange(start, end, book)
+            }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {

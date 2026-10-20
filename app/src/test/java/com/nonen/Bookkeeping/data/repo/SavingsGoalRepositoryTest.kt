@@ -66,6 +66,26 @@ class SavingsGoalRepositoryTest {
         override suspend fun deleteLogsByDreamId(dreamId: Long) {
             logs.removeAll { it.dreamId == dreamId }
         }
+
+        override suspend fun insertDreams(dreams: List<DreamEntity>) {
+            this.dreams.addAll(dreams)
+        }
+
+        override suspend fun getAllDreams(): List<DreamEntity> = dreams.toList()
+
+        override suspend fun getAllDreamLogs(): List<DreamLogEntity> = logs.toList()
+
+        override suspend fun insertDreamLogs(logs: List<DreamLogEntity>) {
+            this.logs.addAll(logs)
+        }
+
+        override suspend fun clearAllDreamLogs() {
+            logs.clear()
+        }
+
+        override suspend fun clearAllDreams() {
+            dreams.clear()
+        }
     }
 
     @Test

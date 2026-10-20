@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/tab_main"
+        android:checked="true"
+        android:icon="@drawable/selector_main"
+        android:title="首页" />
+    <item
+        android:id="@+id/tab_calendar"
+        android:icon="@drawable/selector_calendar"
+        android:title="日历" />
+    <item
+        android:id="@+id/tab_asset"
+        android:icon="@drawable/selector_asset"
+        android:title="资产" />
+    <item
+        android:id="@+id/tab_statistics"
+        android:icon="@drawable/selector_statistics"
+        android:title="统计" />
+    <item
+        android:id="@+id/tab_my"
+        android:icon="@drawable/selector_my"
+        android:title="我的" />
+</menu>

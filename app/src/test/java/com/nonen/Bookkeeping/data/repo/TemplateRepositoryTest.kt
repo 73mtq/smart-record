@@ -49,6 +49,16 @@ class TemplateRepositoryTest {
         override suspend fun getMaxPositionWeight(bookId: Long): Int? {
             return storage.filter { it.bookId == bookId }.maxOfOrNull { it.positionWeight }
         }
+
+        override suspend fun insertAll(moduleBills: List<ModuleBillEntity>) {
+            storage.addAll(moduleBills)
+        }
+
+        override suspend fun getAll(): List<ModuleBillEntity> = storage.toList()
+
+        override suspend fun clearAll() {
+            storage.clear()
+        }
     }
 
     @Test

@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 仅用于“自动记账成功后发一条本地提醒”，无网络、无定位权限 -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- 自动记账确认卡片：检测到支付后在其他应用上方弹出确认悬浮窗 -->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 本地生物识别与应用安全锁凭据支持 -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
         android:name=".BookkeepingApp"
@@ -26,32 +24,11 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- 通知使用权通道：读取微信/支付宝的支付结果通知（系统正规授权，设置里手动开启） -->
-        <service
-            android:name=".service.PaymentNotificationListener"
-            android:exported="false"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
-        <!-- 无障碍自动记账服务 -->
-        <service
-            android:name="com.google.android.accessibility.selecttospeak.SelectToSpeakService"
-            android:exported="false"
-            android:label="@string/accessibility_service_label"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
 
             <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service_config" />
-        </service>
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
     </application>
 
 </manifest>

@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundLight">
+
+    <RelativeLayout
+        android:id="@id/tool_bar"
+        android:layout_width="match_parent"
+        android:layout_height="55dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@id/month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:textColor="@color/black"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="收"
+                        android:textColor="@color/darkGrey"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@id/month_income"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:textColor="@color/moneyIncome"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="支"
+                        android:textColor="@color/darkGrey"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@id/month_pay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:textColor="@color/moneyPay"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="余"
+                        android:textColor="@color/darkGrey"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@id/month_balance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:textColor="@color/black"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <ImageView
+            android:id="@id/back_today"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/add_bill"
+            android:background="@drawable/selectable_item_circle"
+            android:padding="10dp"
+            android:src="@mipmap/ic_back_today"
+            android:tint="@color/black" />
+
+        <ImageView
+            android:id="@id/add_bill"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/btn_more"
+            android:background="@drawable/selectable_item_circle"
+            android:padding="10dp"
+            android:src="@mipmap/ic_menu_add_bill"
+            android:tint="@color/textColorPrimary" />
+
+        <ImageView
+            android:id="@id/btn_more"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/selectable_item_circle"
+            android:padding="10dp"
+            android:src="@mipmap/ic_menu"
+            android:tint="@color/textColorPrimary" />
+    </RelativeLayout>
+
+    <com.haibin.calendarview.CalendarLayout
+        android:id="@id/calendarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tool_bar"
+        android:background="@color/backgroundLight"
+        app:calendar_content_view_id="@id/data_all_layout"
+        app:default_status="expand">
+
+        <com.nonen.Bookkeeping.ui.calendar.YimuCalendarView
+            android:id="@id/calendarView"
+            android:layout_width="match_parent"
+            android:layout_height="316.3dp"
+            android:background="@color/backgroundLight"
+            app:calendar_padding="10dp"
+            app:current_day_lunar_text_color="@color/colorPrimary"
+            app:current_day_text_color="@color/colorPrimary"
+            app:current_month_lunar_text_color="@color/grey"
+            app:current_month_text_color="@color/darkGrey"
+            app:day_text_size="14sp"
+            app:max_year="2099"
+            app:min_year="1980"
+            app:month_view="com.nonen.Bookkeeping.ui.calendar.ActivityMonthView"
+            app:month_view_show_mode="mode_only_current"
+            app:selected_lunar_text_color="@color/white"
+            app:selected_text_color="@color/white"
+            app:selected_theme_color="@color/colorPrimary"
+            app:week_background="@color/backgroundLight"
+            app:week_view="com.nonen.Bookkeeping.ui.calendar.CustomWeekView" />
+
+        <RelativeLayout
+            android:id="@id/data_all_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/backgroundLight">
+
+            <View
+                android:id="@id/collapse_spacer"
+                android:layout_width="match_parent"
+                android:layout_height="3.7dp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@id/tip_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="70dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="这一天你还没有任何记账"
+                    android:textColor="@color/textGray"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@id/data_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/collapse_spacer"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp">
+
+                    <TextView
+                        android:id="@id/date_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="15dp"
+                        android:textColor="@color/darkGrey"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@id/date_lunar_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="10dp"
+                        android:layout_toEndOf="@id/date_text"
+                        android:textColor="@color/darkGrey"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="10dp"
+                        android:layout_toStartOf="@id/pay_layout"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="收"
+                            android:textColor="@color/darkGrey"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@id/income"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="@color/moneyIncome"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@id/pay_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="10dp"
+                        android:layout_toStartOf="@id/balance_layout"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="支"
+                            android:textColor="@color/darkGrey"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@id/pay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="@color/moneyPay"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@id/balance_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="15dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="余"
+                            android:textColor="@color/darkGrey"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@id/balance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="@color/black"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@id/scroll_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="50dp"
+                    android:background="@drawable/shape_bg_setting"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@id/data_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:overScrollMode="never" />
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+        </RelativeLayout>
+    </com.haibin.calendarview.CalendarLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@id/add_btn"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:contentDescription="新增记账"
+        android:src="@mipmap/ic_add_ai_bill"
+        app:backgroundTint="@color/colorPrimary"
+        app:elevation="6dp"
+        app:fabSize="normal"
+        app:tint="@color/white" />
+</RelativeLayout>

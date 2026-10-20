@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:scrollbars="none" android:background="@color/backgroundLight" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <LinearLayout android:orientation="vertical" android:background="@drawable/shape_bg_setting" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+            <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20.0dp" android:text="账单导入" android:layout_marginStart="15.0dp" />
+            <RelativeLayout android:id="@+id/import_screenshot" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="截图导入" />
+                        <ImageView android:layout_width="15.0dp" android:layout_height="15.0dp" android:src="@mipmap/ic_vip" android:layout_marginStart="5.0dp" />
+                    </LinearLayout>
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="截取支付宝微信账单，文字识别导入" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/import_excel" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Excel/CSV账单导入" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="导入第三方或模板账单" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/import_manager" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="已导入管理" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="可查看或删除每次导入的账单" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/import_guide" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="导入教程" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/import_module_download" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Excel模板下载" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/import_scheme" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="URL Scheme接口" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+        </LinearLayout>
+        <LinearLayout android:orientation="vertical" android:background="@drawable/shape_bg_setting" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginBottom="50.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+            <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20.0dp" android:text="数据导出" android:layout_marginStart="15.0dp" />
+            <RelativeLayout android:id="@+id/bill_export_excel" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="账单导出" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将本地的账单数据导出到Excel" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/transfer_export_excel" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="转账还款导出" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将本地的转账还款数据导出到Excel" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/lend_export_excel" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="债务导出" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将本地的债务数据导出到Excel" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/stock_export_excel" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="理财导出" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将本地的理财数据导出到Excel" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/asset_export_excel" android:background="?android:selectableItemBackground" android:visibility="gone" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="资产导出" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将本地的资产数据导出到Excel" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/export_search" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="精准导出" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="搜索相关账单，长按并选择账单进行导出" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/export_guide" android:background="?android:selectableItemBackground" android:visibility="gone" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="导出教程" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

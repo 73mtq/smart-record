@@ -41,6 +41,15 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     var notifyOnRecord by mutableStateOf(true)
     var learnOnEdit by mutableStateOf(true)
     var themeMode by mutableStateOf(ThemeMode.SYSTEM)
+    var dynamicColor by mutableStateOf(true)
+    var hideAmount by mutableStateOf(false)
+    var appLockEnabled by mutableStateOf(false)
+    var fontOption by mutableStateOf("DEFAULT")
+    var navigationLabelsEnabled by mutableStateOf(false)
+    var noteFirst by mutableStateOf(false)
+    var simpleCategory by mutableStateOf(false)
+    var showTransactionTime by mutableStateOf(false)
+    var showAssetIcon by mutableStateOf(false)
     var importing by mutableStateOf(false)
         private set
     /** -1 = 解析文件中（不定态进度），0..1 = 逐行导入进度 */
@@ -67,6 +76,15 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             notifyOnRecord = s.notifyOnRecord
             learnOnEdit = s.learnOnEdit
             themeMode = s.themeMode
+            dynamicColor = s.dynamicColor
+            hideAmount = s.hideAmount
+            appLockEnabled = s.appLockEnabled
+            fontOption = s.fontOption
+            navigationLabelsEnabled = s.navigationLabelsEnabled
+            noteFirst = s.noteFirst
+            simpleCategory = s.simpleCategory
+            showTransactionTime = s.showTransactionTime
+            showAssetIcon = s.showAssetIcon
         }
         refreshRuntimeState()
         versionName = runCatching {
@@ -109,6 +127,36 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch { settings.setThemeMode(v) }
     }
 
+    fun updateDynamicColor(v: Boolean) {
+        dynamicColor = v
+        viewModelScope.launch { settings.setDynamicColor(v) }
+    }
+
+    fun updateHideAmount(v: Boolean) {
+        hideAmount = v
+        viewModelScope.launch { settings.setHideAmount(v) }
+    }
+
+    fun updateAppLockEnabled(v: Boolean) {
+        appLockEnabled = v
+        viewModelScope.launch { settings.setAppLockEnabled(v) }
+    }
+
+    fun updateFontOption(v: String) {
+        fontOption = v
+        viewModelScope.launch { settings.setFontOption(v) }
+    }
+
+    fun updateNavigationLabels(v: Boolean) {
+        navigationLabelsEnabled = v
+        viewModelScope.launch { settings.setNavigationLabelsEnabled(v) }
+    }
+
+    fun updateNoteFirst(value: Boolean) { noteFirst = value; viewModelScope.launch { settings.setNoteFirst(value) } }
+    fun updateSimpleCategory(value: Boolean) { simpleCategory = value; viewModelScope.launch { settings.setSimpleCategory(value) } }
+    fun updateShowTransactionTime(value: Boolean) { showTransactionTime = value; viewModelScope.launch { settings.setShowTransactionTime(value) } }
+    fun updateShowAssetIcon(value: Boolean) { showAssetIcon = value; viewModelScope.launch { settings.setShowAssetIcon(value) } }
+
     /** 按当前分类规则重算全部历史账单的分类（覆盖手动改过的分类，学习规则优先） */
     fun reclassifyAll() {
         if (reclassifying) return
@@ -147,12 +195,15 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    /** 导出本应用专属 Excel 备份 */
+    /** 导出一木 23 列标准 Excel 格式 */
     fun exportBackup(uri: Uri) {
         viewModelScope.launch {
             statusMessage = runCatching {
                 val all = container.transactionRepository.getAll()
-                val bytes = BackupExporter.buildXlsx(all)
+                val assetMap = container.assetDao.getAll().associate { it.assetId to it.assetName }
+                val bookMap = container.bookDao.getAll().associate { it.bookId to it.bookName }
+                val catMap = container.categoryDao.getAll().associate { it.categoryId to it.categoryName }
+                val bytes = BackupExporter.buildXlsx(all, assetMap, bookMap, catMap)
                 container.appContext.contentResolver.openOutputStream(uri)
                     ?.use { it.write(bytes) }
                     ?: error(ctx.getString(R.string.error_cannot_write_file))
@@ -161,7 +212,24 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    /** 导入本应用导出的 Excel 备份：按校验码原样回灌，重复导入自动去重 */
+    /** 导出一木 23 列标准 CSV 格式 */
+    fun exportCsv(uri: Uri) {
+        viewModelScope.launch {
+            statusMessage = runCatching {
+                val all = container.transactionRepository.getAll()
+                val assetMap = container.assetDao.getAll().associate { it.assetId to it.assetName }
+                val bookMap = container.bookDao.getAll().associate { it.bookId to it.bookName }
+                val catMap = container.categoryDao.getAll().associate { it.categoryId to it.categoryName }
+                val bytes = BackupExporter.buildCsv(all, assetMap, bookMap, catMap)
+                container.appContext.contentResolver.openOutputStream(uri)
+                    ?.use { it.write(bytes) }
+                    ?: error(ctx.getString(R.string.error_cannot_write_file))
+                "成功导出 ${all.size} 条账单至 CSV 文件"
+            }.getOrElse { "CSV 导出失败：${it.message}" }
+        }
+    }
+
+    /** 导入一木 23 列 Excel 账单 */
     fun importBackup(uri: Uri) {
         viewModelScope.launch {
             importing = true
@@ -176,41 +244,64 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 var success = 0
                 var duplicates = 0
                 var failed = 0
+
+                val assetMap = container.assetDao.getAll().associate { it.assetName to it.assetId }
+                val bookMap = container.bookDao.getAll().associate { it.bookName to it.bookId }
+                val catMap = container.categoryDao.getAll().associate {
+                    it.categoryName to (if (it.parentId == 0) it.categoryId to null else it.parentId to it.categoryId)
+                }
+
                 rows.forEachIndexed { index, row ->
-                    val timestamp = row.timestamp
-                    val amount = row.amount
-                    when {
-                        !row.typeValid || timestamp == null || amount == null -> failed++
-                        else -> {
-                            val signed = if (row.isIncome) amount else -amount
-                            val source = row.source ?: "excel"
-                            val entity = TransactionEntity(
-                                amount = signed,
-                                category = row.category
-                                    ?: container.ruleEngine.categorize(
-                                        text = listOfNotNull(row.merchant, row.note).joinToString(" "),
-                                        isIncome = row.isIncome,
-                                        merchant = row.merchant,
-                                    ),
-                                subCategory = row.subCategory,
-                                note = row.note,
-                                merchant = row.merchant,
-                                timestamp = timestamp,
-                                source = source,
-                                account = row.account,
-                                tag = row.tag,
-                                transactionType = if (row.refund != null && row.refund.isNotBlank()) "REFUND" else (if (row.isIncome) "INCOME" else "EXPENSE"),
-                                hash = row.hash
-                                    ?: HashUtil.transactionHash(timestamp, signed, row.merchant, source),
-                            )
-                            if (container.transactionRepository.insertIfNew(entity)) success++ else duplicates++
-                        }
+                    val entity = BackupExcelParser.toEntity(
+                        row = row,
+                        assetNameToId = assetMap,
+                        bookNameToId = bookMap,
+                        categoryNameToIds = catMap,
+                    )
+                    if (entity == null) {
+                        failed++
+                    } else {
+                        if (container.transactionRepository.insertIfNew(entity)) success++ else duplicates++
                     }
                     importProgress = (index + 1).toFloat() / total
                 }
                 importProgress = 1f
                 ctx.getString(R.string.status_backup_imported, success, duplicates, failed)
             }.getOrElse { ctx.getString(R.string.status_import_failed, it.message.orEmpty()) }
+            importing = false
+        }
+    }
+
+    /** 导出包含全量数据、配置与附件的完整备份包（ZIP） */
+    fun exportFullBackup(uri: Uri) {
+        viewModelScope.launch {
+            importing = true
+            importProgress = -1f
+            statusMessage = runCatching {
+                val outStream = container.appContext.contentResolver.openOutputStream(uri)
+                    ?: error(ctx.getString(R.string.error_cannot_write_file))
+                val result = outStream.use { stream ->
+                    container.fullBackupService.exportBackup(stream)
+                }
+                if (result.success) result.message else error(result.error ?: "备份导出异常")
+            }.getOrElse { "全量备份失败：${it.message}" }
+            importing = false
+        }
+    }
+
+    /** 校验并原子恢复全量备份包（ZIP） */
+    fun importFullBackup(uri: Uri) {
+        viewModelScope.launch {
+            importing = true
+            importProgress = -1f
+            statusMessage = runCatching {
+                val inStream = container.appContext.contentResolver.openInputStream(uri)
+                    ?: error(ctx.getString(R.string.error_cannot_read_file))
+                val result = inStream.use { stream ->
+                    container.fullBackupService.restoreBackup(stream)
+                }
+                if (result.success) result.message else error(result.error ?: "备份恢复异常")
+            }.getOrElse { "全量恢复中断：${it.message}" }
             importing = false
         }
     }

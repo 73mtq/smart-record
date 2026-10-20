@@ -61,7 +61,7 @@ class CategoryRepository(
 
     suspend fun updatePositionWeights(items: List<CategoryEntity>) {
         items.forEachIndexed { index, cat ->
-            categoryDao.update(cat.copy(positionWeight = index + 1))
+            categoryDao.update(cat.copy(positionWeight = items.size - index))
         }
     }
 

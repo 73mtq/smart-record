@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.YearMonth
@@ -34,16 +35,18 @@ class CalendarViewModel(
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
     private val _currentMonth = MutableStateFlow(YearMonth.from(initialDate))
+    private val selectedBookId = MutableStateFlow<Long?>(null)
+    fun selectBook(id: Long) { selectedBookId.value = id }
     val currentMonth: StateFlow<YearMonth> = _currentMonth.asStateFlow()
 
     val monthSummaries: StateFlow<List<CalendarDaySummary>> =
-        _currentMonth.flatMapLatest { ym ->
-            reportRepo.observeCalendarMonth(ym)
+        combine(_currentMonth, selectedBookId) { month, book -> month to book }.flatMapLatest { (ym, book) ->
+            reportRepo.observeCalendarMonth(ym, book)
         }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val selectedDayTransactions: StateFlow<List<TransactionEntity>> =
-        _selectedDate.flatMapLatest { date ->
-            reportRepo.observeDayTransactions(date)
+        combine(_selectedDate, selectedBookId) { date, book -> date to book }.flatMapLatest { (date, book) ->
+            reportRepo.observeDayTransactions(date, book)
         }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val monthTotalExpense: StateFlow<Double> =

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@id/choice_from_asset"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp">
+
+        <ImageView
+            android:id="@id/from_asset_icon"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:background="@drawable/shape_background_light_10"
+            android:padding="17dp"
+            android:src="@mipmap/ic_no_asset" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/shape_background_light_10"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="10dp"
+                android:layout_toStartOf="@id/reduce_num"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@id/from_asset_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/yimu_transfer_from"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@id/from_asset_num"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:hint="余额：1234.00"
+                    android:singleLine="true"
+                    android:textColor="@color/grey"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@id/reduce_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@color/transparent"
+                android:text="-15.11"
+                android:textColor="@color/moneyPay"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@id/check_asset"
+        android:layout_width="46dp"
+        android:layout_height="46dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/selectable_item_circle"
+        android:padding="15dp"
+        android:src="@mipmap/ic_asset_check"
+        android:tint="@color/black" />
+
+    <LinearLayout
+        android:id="@id/choice_to_asset"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:id="@id/to_asset_icon"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:background="@drawable/shape_background_light_10"
+            android:padding="17dp"
+            android:src="@mipmap/ic_no_asset" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/shape_background_light_10"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="10dp"
+                android:layout_toStartOf="@id/add_num"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@id/to_asset_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/yimu_transfer_to"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@id/to_asset_num"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:hint="余额：1234.00"
+                    android:singleLine="true"
+                    android:textColor="@color/grey"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@id/add_num"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@color/transparent"
+                android:gravity="center_vertical"
+                android:text="-15.11"
+                android:textColor="@color/moneyIncome"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </RelativeLayout>
+    </LinearLayout>
+</LinearLayout>

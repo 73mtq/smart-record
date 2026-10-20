@@ -3,6 +3,7 @@ package com.nonen.Bookkeeping.export
 import com.nonen.Bookkeeping.core.Categories
 import com.nonen.Bookkeeping.core.MiniXlsx
 import com.nonen.Bookkeeping.data.db.TransactionEntity
+import com.nonen.Bookkeeping.parse.CsvSupport
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -10,10 +11,10 @@ import java.util.Locale
 import kotlin.math.abs
 
 /**
- * Excel 账单备份导出与分析生成器。
- * 格式专为人类视觉查阅与大语言模型（AI）直接进行财务习惯诊断而设计。
+ * Excel / CSV 账单备份导出与分析生成器。
+ * 格式兼容一木记账 23 列标准格式。
  *
- * Sheet 1: 账单明细（首工作表严格保持列顺序，供系统原样无损回灌，去重校验码保障幂等）
+ * Sheet 1: 账单明细（首工作表严格保持列顺序，供系统原样回灌，去重校验码保障幂等）
  * Sheet 2: 收支统计汇总（汇总全局指标、支出占比排行榜、收入性质构成以及 AI 财务分析指南）
  */
 object BackupExporter {
@@ -36,9 +37,17 @@ object BackupExporter {
     const val HEADER_SOURCE = "来源"
     const val HEADER_HASH = "校验码"
 
+    private val STANDARD_PRIMARY_CATEGORIES = setOf(
+        "食品餐饮", "出行交通", "居家生活", "休闲娱乐", "文化教育",
+        "健康医疗", "购物消费", "送礼人情", "其他", "收入",
+    )
+
     private val timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm", Locale.US)
 
     fun resolveCategoryHierarchy(category: String, isIncome: Boolean): Pair<String, String> {
+        if (category in STANDARD_PRIMARY_CATEGORIES) {
+            return category to category
+        }
         if (isIncome) {
             val sub = when (category) {
                 "其他收入" -> "其他"
@@ -53,14 +62,14 @@ object BackupExporter {
             "居住" -> "居家生活" to "居住"
             "娱乐" -> "休闲娱乐" to "娱乐"
             "医疗" -> "健康医疗" to "医疗"
-            "服饰美容" -> "购物消费" to "服饰美容"
+            "服饰美容" -> "购物消费" to "服饰运动"
             "旅行" -> "休闲娱乐" to "旅游度假"
             "通讯" -> "居家生活" to "话费宽带"
             "教育" -> "文化教育" to "教育"
             "人情" -> "送礼人情" to "人情"
             "金融" -> "其他" to "理财支出"
-            "软件服务" -> "软件服务" to "软件服务"
-            "宠物" -> "居家生活" to "宠物"
+            "软件服务" -> "居家生活" to "日常家居"
+            "宠物" -> "居家生活" to "宠物用品"
             "母婴" -> "购物消费" to "母婴玩具"
             "其他" -> "其他" to "其他"
             else -> "其他" to category
@@ -75,50 +84,72 @@ object BackupExporter {
         else -> source.ifBlank { "日常账户" }
     }
 
-    fun buildXlsx(transactions: List<TransactionEntity>): ByteArray {
-        val detailRows: List<List<Any?>> = buildList(transactions.size + 1) {
-            add(YIMU_HEADERS)
-            transactions.forEach { t ->
-                val isIncome = t.amount >= 0
-                val (mainCat, subCat) = resolveCategoryHierarchy(t.category, isIncome)
-                val finalSubCat = t.subCategory?.ifBlank { null } ?: subCat
-                val finalAccount = t.account?.ifBlank { null } ?: resolveAccount(t.source)
-                val amt = if (isIncome) abs(t.amount) else -abs(t.amount)
-                val otherVal = if (t.merchant.isNullOrBlank()) t.hash else "${t.hash}|${t.merchant}"
-                val refundVal = if (t.transactionType == "REFUND" || t.refundOriginalId != null) {
-                    t.refundOriginalId?.toString() ?: "退款"
-                } else ""
-                add(
-                    listOf(
-                        timeFormat.format(Instant.ofEpochMilli(t.timestamp).atZone(ZoneId.systemDefault())),
-                        if (isIncome) "收入" else "支出",
-                        amt,
-                        mainCat,
-                        finalSubCat,
-                        finalAccount,
-                        "日常账本",
-                        refundVal,
-                        "",
-                        t.note.orEmpty(),
-                        t.tag.orEmpty(),
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        otherVal,
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                    ),
-                )
-            }
-        }
+    fun buildDetailRows(
+        transactions: List<TransactionEntity>,
+        assetNameMap: Map<Long, String> = emptyMap(),
+        bookNameMap: Map<Long, String> = emptyMap(),
+        categoryNameMap: Map<Int, String> = emptyMap(),
+    ): List<List<Any?>> = buildList(transactions.size + 1) {
+        add(YIMU_HEADERS)
+        transactions.forEach { t ->
+            val isIncome = t.amount >= 0
+            val (mappedMain, mappedSub) = resolveCategoryHierarchy(t.category, isIncome)
 
-        // 计算财务汇总数据，供人类与 AI 直接进行直观分析
+            val mainCat = t.parentCategoryId?.let { categoryNameMap[it] }
+                ?: (if (t.category in STANDARD_PRIMARY_CATEGORIES) t.category else mappedMain)
+
+            val finalSubCat = t.childCategoryId?.let { categoryNameMap[it] }
+                ?: (t.subCategory?.ifBlank { null } ?: mappedSub)
+
+            val finalAccount = assetNameMap[t.assetId]
+                ?: (t.account?.ifBlank { null } ?: resolveAccount(t.source))
+
+            val finalBook = bookNameMap[t.bookId] ?: "默认账本"
+
+            val amt = if (isIncome) abs(t.amount) else -abs(t.amount)
+            val otherVal = if (t.merchant.isNullOrBlank()) t.hash else "${t.hash}|${t.merchant}"
+            val refundVal = if (t.transactionType == "REFUND" || t.refundOriginalId != null) {
+                t.refundOriginalId?.toString() ?: "退款"
+            } else ""
+
+            add(
+                listOf(
+                    timeFormat.format(Instant.ofEpochMilli(t.timestamp).atZone(ZoneId.systemDefault())),
+                    if (isIncome) "收入" else "支出",
+                    amt,
+                    mainCat,
+                    finalSubCat,
+                    finalAccount,
+                    finalBook,
+                    refundVal,
+                    "",
+                    t.note.orEmpty(),
+                    t.tag.orEmpty(),
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    otherVal,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ),
+            )
+        }
+    }
+
+    fun buildXlsx(
+        transactions: List<TransactionEntity>,
+        assetNameMap: Map<Long, String> = emptyMap(),
+        bookNameMap: Map<Long, String> = emptyMap(),
+        categoryNameMap: Map<Int, String> = emptyMap(),
+    ): ByteArray {
+        val detailRows = buildDetailRows(transactions, assetNameMap, bookNameMap, categoryNameMap)
+
         var totalExpense = 0.0
         var totalIncome = 0.0
         val expenseCats = HashMap<String, Double>()
@@ -177,8 +208,8 @@ object BackupExporter {
             add(emptyList())
 
             add(listOf("【AI 财务分析与诊断提示】", "", "", ""))
-            add(listOf("数据说明", "首表「账单明细」为流水原表；本表为分类聚合，已按家庭支持、奖助学金与劳动收入进行结构化归类。"))
-            add(listOf("分析建议", "请结合生活费与奖学金等非劳动收入比例评估结余韧性，并对餐饮、购物、娱乐等弹性开支提出改进建议。"))
+            add(listOf("数据说明", "首表「账单」为流水原表；本表为分类聚合，已按收入与开销进行结构化归类。"))
+            add(listOf("分析建议", "请结合生活费与奖学金等非劳动收入比例评估结余韧性，并对弹性开支提出改进建议。"))
         }
 
         return MiniXlsx.writeSheets(
@@ -187,5 +218,18 @@ object BackupExporter {
                 MiniXlsx.Sheet("统计汇总", summaryRows),
             ),
         )
+    }
+
+    /**
+     * 导出为通用 23 列 CSV 格式。
+     */
+    fun buildCsv(
+        transactions: List<TransactionEntity>,
+        assetNameMap: Map<Long, String> = emptyMap(),
+        bookNameMap: Map<Long, String> = emptyMap(),
+        categoryNameMap: Map<Int, String> = emptyMap(),
+    ): ByteArray {
+        val detailRows = buildDetailRows(transactions, assetNameMap, bookNameMap, categoryNameMap)
+        return CsvSupport.buildCsv(detailRows)
     }
 }

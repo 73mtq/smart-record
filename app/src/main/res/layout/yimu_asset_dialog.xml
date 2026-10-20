@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@id/asset_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/yimu_asset_sheet_bg"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"
+        android:paddingStart="15dp">
+
+        <TextView
+            android:id="@id/asset_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/yimu_select_account"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/asset_title"
+            android:layout_marginTop="5dp"
+            android:text="@string/yimu_asset_sort_hint"
+            android:textColor="@color/grey"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@id/asset_add"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/selectable_item_circle"
+            android:padding="8dp"
+            android:src="@mipmap/ic_add_asset"
+            android:tint="@color/black" />
+
+        <ImageView
+            android:id="@id/asset_sort"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_toStartOf="@id/asset_add"
+            android:background="@drawable/selectable_item_circle"
+            android:padding="12dp"
+            android:src="@mipmap/ic_asset_choice_one"
+            android:tint="@color/black" />
+
+        <TextView
+            android:id="@id/combined_payment"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_toStartOf="@id/asset_sort"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="@string/yimu_combined_payment"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@id/data_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="400dp"
+        android:overScrollMode="never" />
+</LinearLayout>

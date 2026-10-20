@@ -4,8 +4,8 @@ kotlin = "2.2.10"
 ksp = "2.2.10-2.0.2"
 coreKtx = "1.19.0"
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
 lifecycle = "2.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.02.01"
@@ -14,6 +14,12 @@ navigationCompose = "2.9.8"
 datastore = "1.2.1"
 commonsCsv = "1.14.1"
 materialIconsCore = "1.7.8"
+materialComponents = "1.10.0"
+appcompat = "1.7.0"
+calendarView = "3.7.1"
+mpAndroidChart = "v3.1.0"
+recyclerView = "1.1.0"
+pickerView = "2.0.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +46,12 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 commons-csv = { group = "org.apache.commons", name = "commons-csv", version.ref = "commonsCsv" }
 jxl = { group = "net.sourceforge.jexcelapi", name = "jxl", version = "2.6.12" }
+material-components = { group = "com.google.android.material", name = "material", version.ref = "materialComponents" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+calendar-view = { group = "com.haibin", name = "calendarview", version.ref = "calendarView" }
+mpandroidchart = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "mpAndroidChart" }
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerView" }
+picker-view = { group = "com.github.zyyoona7.WheelPicker", name = "pickerview", version.ref = "pickerView" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,247 +1,150 @@
 package com.nonen.Bookkeeping.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.nonen.Bookkeeping.data.entity.ModuleBillEntity
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.recyclerview.widget.RecyclerView
+import com.nonen.Bookkeeping.R
+import com.nonen.Bookkeeping.data.db.AssetEntity
+import com.nonen.Bookkeeping.data.db.CategoryEntity
+import com.nonen.Bookkeeping.data.prefs.SettingsStore
+import com.nonen.Bookkeeping.data.repo.AssetRepository
+import com.nonen.Bookkeeping.data.repo.CategoryRepository
+import com.nonen.Bookkeeping.data.repo.TemplateRepository
+import com.nonen.Bookkeeping.ui.components.NativeTemplateState
+import com.nonen.Bookkeeping.ui.components.bindNativeTemplateList
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * 模板记账页：按原版 activity_module_manager 结构还原工具栏、提示条、列表与空态。
+ * 新增入口提供「模板记账」「模板转账」两项，分别以模块类型 0 与 1 进入模板编辑。
+ */
 @Composable
 fun TemplateScreen(
     viewModel: TemplateViewModel,
+    categoryRepository: CategoryRepository,
+    assetRepository: AssetRepository,
+    templateRepository: TemplateRepository,
+    settings: SettingsStore,
     onBack: () -> Unit,
+    onCreate: (Int) -> Unit,
+    onEdit: (Long) -> Unit,
+    onApply: (Long) -> Unit,
 ) {
     val templates by viewModel.templates.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
+    val tipHidden by settings.templateTipHidden.collectAsState(initial = false)
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text("常用账单模板") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "新建模板")
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        if (templates.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("暂无常用模板", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("创建首个模板")
-                    }
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(templates, key = { it.moduleBillId }) { item ->
-                    TemplateItemCard(
-                        template = item,
-                        onApply = {
-                            viewModel.applyTemplate(item.moduleBillId) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("已根据模板「${item.templateName}」快速记账成功")
-                                }
-                            }
-                        },
-                        onDelete = { viewModel.deleteTemplate(item.moduleBillId) },
-                    )
-                }
-            }
-        }
+    val snackbarHostState = remember { SnackbarHostState() }
+    var chooseType by remember { mutableStateOf(false) }
+    var categories by remember { mutableStateOf<List<CategoryEntity>>(emptyList()) }
+    var assets by remember { mutableStateOf<List<AssetEntity>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        categories = categoryRepository.getAll()
+        assets = assetRepository.getAll()
     }
-
-    if (showAddDialog) {
-        AddTemplateDialog(
-            onDismiss = { showAddDialog = false },
-            onConfirm = { name, cost, type, remark ->
-                viewModel.createTemplate(name = name, cost = cost, moduleType = type, remark = remark)
-                showAddDialog = false
+    val colors = MaterialTheme.colorScheme
+    val state = NativeTemplateState(
+        templates = templates,
+        categories = categories,
+        assets = assets,
+        text = colors.onSurface.toArgb(),
+        secondary = colors.onSurfaceVariant.toArgb(),
+    )
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { viewContext ->
+                LayoutInflater.from(viewContext).inflate(R.layout.view_yimu_template_manager, null).apply {
+                    bindChrome(viewContext, this, onBack, { chooseType = true }, settings, scope, snackbarHostState)
+                }
             },
+            update = { root ->
+                val list = root.findViewById<RecyclerView>(R.id.module_bill_list)
+                bindNativeTemplateList(
+                    list = list,
+                    state = state,
+                    onApply = onApply,
+                    onEdit = onEdit,
+                    onLockedApply = { id ->
+                        scope.launch {
+                            val name = requireNotNull(templateRepository.getById(id)).templateName
+                            viewModel.applyTemplate(id) {
+                                scope.launch { snackbarHostState.showSnackbar("已根据模板「$name」快速记账成功") }
+                            }
+                        }
+                    },
+                )
+                root.findViewById<LinearLayout>(R.id.no_data_layout).visibility =
+                    if (templates.isEmpty()) View.VISIBLE else View.GONE
+                root.findViewById<RelativeLayout>(R.id.text_tip_layout).visibility =
+                    if (tipHidden) View.GONE else View.VISIBLE
+            },
+        )
+        SnackbarHost(snackbarHostState)
+    }
+    if (chooseType) {
+        AlertDialog(
+            onDismissRequest = { chooseType = false },
+            title = { Text("新增模板") },
+            text = {
+                Column {
+                    TextButton(onClick = { chooseType = false; onCreate(0) }) { Text("模板记账") }
+                    TextButton(onClick = { chooseType = false; onCreate(1) }) { Text("模板转账") }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { chooseType = false }) { Text("取消") } },
         )
     }
 }
 
-@Composable
-fun TemplateItemCard(
-    template: ModuleBillEntity,
-    onApply: () -> Unit,
-    onDelete: () -> Unit,
+private fun bindChrome(
+    context: android.content.Context,
+    root: View,
+    onBack: () -> Unit,
+    onAdd: () -> Unit,
+    settings: SettingsStore,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = template.templateName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = template.remark ?: if (template.moduleType == ModuleBillEntity.MODULE_TYPE_BILL) "快速记账" else "快速转账",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = String.format(Locale.CHINA, "¥%.2f", template.cost),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = onApply) {
-                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("记一笔")
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = Color.Gray)
-                }
-            }
+    root.findViewById<TextView>(R.id.title).text = context.getString(R.string.yimu_template_manager_title)
+    root.findViewById<TextView>(R.id.right_text).text = context.getString(R.string.yimu_template_add)
+    root.findViewById<TextView>(R.id.yimu_template_hint_text).text = context.getString(R.string.yimu_template_hint)
+    root.findViewById<TextView>(R.id.yimu_template_empty_text).text = context.getString(R.string.yimu_template_empty)
+    root.findViewById<ImageView>(R.id.btn_back).setOnClickListener { onBack() }
+    root.findViewById<ImageView>(R.id.tip).setOnClickListener {
+        scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.yimu_template_help)) }
+    }
+    root.findViewById<TextView>(R.id.right_text).setOnClickListener { onAdd() }
+    root.findViewById<ImageView>(R.id.tip_close).setOnClickListener { close ->
+        scope.launch {
+            settings.setTemplateTipHidden(true)
+            (close.parent as View).visibility = View.GONE
         }
     }
-}
-
-@Composable
-fun AddTemplateDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (name: String, cost: Double, type: Int, remark: String?) -> Unit,
-) {
-    var nameText by remember { mutableStateOf("") }
-    var costText by remember { mutableStateOf("") }
-    var remarkText by remember { mutableStateOf("") }
-    var selectedType by remember { mutableIntStateOf(ModuleBillEntity.MODULE_TYPE_BILL) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("新建常用模板") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = nameText,
-                    onValueChange = { nameText = it },
-                    label = { Text("模板名称") },
-                    singleLine = true,
-                    placeholder = { Text("例如 每日早餐 / 房租") },
-                )
-                OutlinedTextField(
-                    value = costText,
-                    onValueChange = { costText = it },
-                    label = { Text("预设金额") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    placeholder = { Text("例如 15.00") },
-                )
-                OutlinedTextField(
-                    value = remarkText,
-                    onValueChange = { remarkText = it },
-                    label = { Text("备注说明") },
-                    singleLine = true,
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val cost = costText.toDoubleOrNull() ?: 0.0
-                    val name = nameText.ifBlank { "常用模板" }
-                    onConfirm(name, cost, selectedType, remarkText)
-                },
-            ) {
-                Text("保存")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        },
-    )
 }

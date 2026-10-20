@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val yimuUiValidation = providers.gradleProperty("yimuUiValidation").map(String::toBooleanStrict).getOrElse(false)
+
 android {
     namespace = "com.nonen.Bookkeeping"
 
@@ -22,6 +24,12 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            if (yimuUiValidation) {
+                applicationIdSuffix = ".uivalidation"
+                versionNameSuffix = "-ui-validation"
+            }
+        }
         release {
             // 关闭 R8 会同时失去代码压缩、资源收缩与混淆，发布包体积明显偏大；
             // 混淆规则见 proguard-rules.pro（重点是保住无障碍服务的伪装类名）
@@ -91,12 +99,23 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.commons.csv)
     implementation(libs.jxl)
+    implementation(libs.material.components)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.calendar.view)
+    implementation(libs.mpandroidchart)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.picker.view)
+    implementation("com.kyleduo.switchbutton:library:2.1.0")
+    implementation("de.bwaldvogel:liblinear:2.44")
+    implementation("com.hankcs:hanlp:portable-1.8.4")
 
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

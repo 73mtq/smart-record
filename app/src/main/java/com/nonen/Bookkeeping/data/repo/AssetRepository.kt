@@ -257,6 +257,45 @@ class AssetRepository(
         assetDao.deleteById(asset.assetId)
     }
 
+    /**
+     * 执行账户间资金转账。
+     */
+    suspend fun executeTransfer(
+        fromAssetId: Long,
+        toAssetId: Long,
+        amount: Double,
+        serviceCharge: Double = 0.0,
+        remark: String? = null,
+        time: Long = System.currentTimeMillis(),
+    ): Boolean {
+        if (fromAssetId == toAssetId || amount <= 0.0) return false
+        val tDao = transferDao ?: return false
+        val now = System.currentTimeMillis()
+        val transfer = com.nonen.Bookkeeping.data.db.TransferEntity(
+            fromAssetId = fromAssetId,
+            toAssetId = toAssetId,
+            cost = roundDouble(amount),
+            toCost = roundDouble(amount),
+            serviceCharge = roundDouble(serviceCharge),
+            time = time,
+            remark = remark?.trim()?.ifEmpty { null },
+            createdAt = now,
+        )
+
+        if (database != null) {
+            database.withTransaction {
+                assetDao.updateBalance(fromAssetId, -(amount + serviceCharge))
+                assetDao.updateBalance(toAssetId, amount)
+                tDao.insert(transfer)
+            }
+        } else {
+            assetDao.updateBalance(fromAssetId, -(amount + serviceCharge))
+            assetDao.updateBalance(toAssetId, amount)
+            tDao.insert(transfer)
+        }
+        return true
+    }
+
     private fun roundDouble(v: Double): Double =
         String.format(Locale.US, "%.2f", v).toDouble()
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:background="@color/backgroundLight" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:id="@+id/tool_bar" android:background="@color/white" android:layout_width="match_parent" android:layout_height="50.0dp" android:elevation="3.0dp">
+        <ImageView android:id="@+id/btn_back" android:background="@drawable/selectable_item_circle" android:padding="16.0dp" android:layout_width="50.0dp" android:layout_height="50.0dp" android:src="@mipmap/ic_back" android:scaleType="fitCenter" android:tint="@color/black" android:layout_centerVertical="true" />
+        <ImageView android:id="@+id/ic_more" android:background="@drawable/selectable_item_circle" android:padding="15.0dp" android:layout_width="50.0dp" android:layout_height="50.0dp" android:src="@mipmap/ic_menu" android:scaleType="centerInside" android:tint="@color/textColorBlack" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+        <TextView android:textSize="15.0sp" android:textColor="@color/black" android:gravity="center_vertical" android:id="@+id/add" android:background="@drawable/selectable_item_circle" android:layout_width="wrap_content" android:layout_height="50.0dp" android:text="新增" android:singleLine="true" android:paddingStart="10.0dp" android:paddingEnd="10.0dp" android:layout_toStartOf="@+id/ic_more" />
+        <TextView android:textSize="18.0sp" android:textStyle="bold" android:textColor="@color/black" android:id="@+id/title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="180.0dp" android:text="周期记账" android:singleLine="true" android:layout_centerVertical="true" android:layout_toEndOf="@+id/btn_back" />
+    </RelativeLayout>
+    <androidx.core.widget.NestedScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@+id/tool_bar">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+            <RelativeLayout android:id="@+id/text_tip_layout" android:background="@drawable/selectable_item_light_primary_background" android:visibility="visible" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                <TextView android:textSize="12.0sp" android:textColor="@color/colorPrimaryDark" android:paddingTop="5.0dp" android:paddingBottom="5.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="每个周期最多可添加1999条记录，当达到数量上限时，需要重新创建周期" android:layout_centerVertical="true" android:lineSpacingExtra="3.0dp" android:layout_marginStart="10.0dp" android:layout_marginEnd="30.0dp" />
+                <ImageView android:id="@+id/tip_close" android:padding="3.0dp" android:layout_width="30.0dp" android:layout_height="30.0dp" android:src="@mipmap/ic_tip_close" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/cycle_list" android:paddingBottom="50.0dp" android:clipChildren="false" android:clipToPadding="false" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@+id/no_data_layout" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true">
+        <include android:layout_width="150.0dp" android:layout_height="150.0dp" android:layout_marginBottom="10.0dp" layout="@layout/layout_common_tip" />
+        <TextView android:textSize="14.0sp" android:textColor="@color/textGray" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="没有任何数据" />
+    </LinearLayout>
+</RelativeLayout>

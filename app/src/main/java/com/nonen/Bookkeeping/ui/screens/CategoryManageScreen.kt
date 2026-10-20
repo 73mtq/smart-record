@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -54,9 +55,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import android.widget.Toast
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.nonen.Bookkeeping.R
+import com.nonen.Bookkeeping.ui.components.YimuCategoryManageNativeView
 import com.nonen.Bookkeeping.core.Categories
 import com.nonen.Bookkeeping.data.db.CategoryEntity
 import com.nonen.Bookkeeping.ui.components.AnimatedSegmented
@@ -68,6 +74,7 @@ fun CategoryManageScreen(
     vm: CategoryManageViewModel,
     onBack: () -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var showAddDialog by remember { mutableStateOf(false) }
     var targetParentIdForAdd by remember { mutableStateOf(0) }
     var categoryToEdit by remember { mutableStateOf<CategoryEntity?>(null) }
@@ -81,125 +88,36 @@ fun CategoryManageScreen(
         vm.categories.filter { it.parentId != 0 }.groupBy { it.parentId }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier.safeDrawingPadding(),
-        topBar = {
-            CategoryManageHeader(
-                selectedType = vm.selectedType,
-                onBack = onBack,
-                onTypeChanged = vm::setType,
+    AndroidView(
+        modifier = Modifier.fillMaxSize().statusBarsPadding().semantics { testTagsAsResourceId = true },
+        factory = { viewContext -> YimuCategoryManageNativeView(viewContext) },
+        update = { view ->
+            view.bind(
+                object : YimuCategoryManageNativeView.Listener {
+                    override fun onBack() = onBack()
+                    override fun onTypeChanged(income: Boolean) = vm.setType(if (income) 1 else 0)
+                    override fun onAdd(parentId: Int) {
+                        targetParentIdForAdd = parentId
+                        showAddDialog = true
+                    }
+                    override fun onToggleExpand(categoryId: Int) = vm.toggleExpand(categoryId)
+                    override fun onEdit(category: CategoryEntity) { categoryToEdit = category }
+                    override fun onDelete(category: CategoryEntity) {
+                        vm.checkUsage(category.categoryId) { count ->
+                            usageCountToDelete = count
+                            categoryToDelete = category
+                        }
+                    }
+                    override fun onUnsupported() {
+                        Toast.makeText(context, R.string.yimu_local_unsupported, Toast.LENGTH_SHORT).show()
+                    }
+                },
+                vm.selectedType,
+                vm.categories,
+                vm.expandedParentIds,
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    targetParentIdForAdd = if (vm.selectedType == 1) {
-                        parents.firstOrNull()?.categoryId ?: 9
-                    } else {
-                        0
-                    }
-                    showAddDialog = true
-                },
-                containerColor = if (vm.selectedType == 1) IncomeColor else ExpenseColor,
-                contentColor = Color.White,
-                shape = CircleShape,
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "新增分类")
-            }
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            item { Spacer(Modifier.height(4.dp)) }
-
-            items(parents, key = { it.id }) { parent ->
-                val children = childrenMap[parent.categoryId] ?: emptyList()
-                val isExpanded = parent.categoryId in vm.expandedParentIds
-
-                ParentCategoryCard(
-                    category = parent,
-                    isExpanded = isExpanded,
-                    childrenCount = children.size,
-                    onToggleExpand = { vm.toggleExpand(parent.categoryId) },
-                    onToggleHide = { vm.toggleHide(parent) },
-                    onMoveUp = { vm.moveUp(parent, parents) },
-                    onMoveDown = { vm.moveDown(parent, parents) },
-                    onEdit = { categoryToEdit = parent },
-                    onDelete = {
-                        vm.checkUsage(parent.categoryId) { count ->
-                            usageCountToDelete = count
-                            categoryToDelete = parent
-                        }
-                    },
-                    onAddChild = {
-                        targetParentIdForAdd = parent.categoryId
-                        showAddDialog = true
-                    },
-                )
-
-                AnimatedVisibility(visible = isExpanded) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 24.dp, top = 6.dp, bottom = 6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        children.forEach { child ->
-                            ChildCategoryRow(
-                                category = child,
-                                onToggleHide = { vm.toggleHide(child) },
-                                onMoveUp = { vm.moveUp(child, children) },
-                                onMoveDown = { vm.moveDown(child, children) },
-                                onEdit = { categoryToEdit = child },
-                                onDelete = {
-                                    vm.checkUsage(child.categoryId) { count ->
-                                        usageCountToDelete = count
-                                        categoryToDelete = child
-                                    }
-                                },
-                            )
-                        }
-
-                        // 二级新增入口
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                .clickable {
-                                    targetParentIdForAdd = parent.categoryId
-                                    showAddDialog = true
-                                }
-                                .padding(vertical = 10.dp, horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "添加【${parent.categoryName}】二级子分类",
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium,
-                            )
-                        }
-                    }
-                }
-            }
-
-            item { Spacer(Modifier.height(80.dp)) }
-        }
-    }
+    )
 
     if (showAddDialog) {
         AddEditCategoryDialog(

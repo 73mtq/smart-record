@@ -36,10 +36,11 @@ class CategoryMigrationService(
 
     suspend fun migrate(): CategoryMigrationResult = withContext(Dispatchers.IO) {
         val startTime = System.currentTimeMillis()
+        val unmigratedList = transactionDao.getUnmigratedCategories()
 
         // 1. 播种迁移所需的自定义分类
         var seededCount = 0
-        CategoryMapping.CUSTOM_SEED_CATEGORIES.forEach { customCat ->
+        if (unmigratedList.isNotEmpty()) CategoryMapping.CUSTOM_SEED_CATEGORIES.forEach { customCat ->
             val existing = categoryDao.findCategory(customCat.categoryId, customCat.parentId)
             if (existing == null) {
                 categoryDao.insert(customCat)
@@ -48,7 +49,6 @@ class CategoryMigrationService(
         }
 
         // 2. 查询所有未完成分类外键关联的交易记录
-        val unmigratedList = transactionDao.getUnmigratedCategories()
         var migratedCount = 0
 
         for (tx in unmigratedList) {

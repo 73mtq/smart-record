@@ -60,6 +60,12 @@ class ReportRepositoryTest {
             flowOf(storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) })
         override suspend fun getFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): List<TransactionEntity> =
             storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) }
+        override suspend fun insertAll(transactions: List<TransactionEntity>) {
+            storage.addAll(transactions)
+        }
+        override suspend fun clearAll() {
+            storage.clear()
+        }
     }
 
     private class FakeAssetDao : AssetDao {
@@ -103,6 +109,9 @@ class ReportRepositoryTest {
         override suspend fun updatePositionWeight(assetId: Long, weight: Int, timestamp: Long) {
             val idx = storage.indexOfFirst { it.assetId == assetId }
             if (idx >= 0) storage[idx] = storage[idx].copy(positionWeight = weight, updatedAt = timestamp)
+        }
+        override suspend fun clearAll() {
+            storage.clear()
         }
     }
 

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@id/total_layout"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:layout_marginBottom="15dp"
+    android:layout_marginStart="15dp"
+    android:layout_marginEnd="15dp"
+    android:background="@drawable/shape_bg_setting">
+
+    <RelativeLayout
+        android:id="@id/parent_layout"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <ImageView
+            android:id="@id/arrow"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="15dp"
+            android:padding="2dp"
+            android:src="@mipmap/ic_right"
+            android:tint="@color/black" />
+
+        <ImageView
+            android:id="@id/icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:layout_toEndOf="@id/arrow" />
+
+        <TextView
+            android:id="@id/type_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="50dp"
+            android:layout_toStartOf="@id/btn_layout"
+            android:layout_toEndOf="@id/icon"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:id="@id/btn_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@id/edit"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:background="@drawable/selectable_item_circle"
+                android:padding="14dp"
+                android:src="@mipmap/ic_book_menu"
+                android:tint="@color/black" />
+
+            <ImageView
+                android:id="@id/delete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/selectable_item_circle"
+                android:padding="14dp"
+                android:src="@mipmap/ic_close"
+                android:tint="@color/black"
+                android:visibility="gone" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@id/child_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/parent_layout"
+        android:overScrollMode="never"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp" />
+</RelativeLayout>

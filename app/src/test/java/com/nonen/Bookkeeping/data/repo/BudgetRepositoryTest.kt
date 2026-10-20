@@ -80,6 +80,21 @@ class BudgetRepositoryTest {
         override suspend fun deleteCategoryBudgetsByBudgetId(budgetId: Long) {
             categoryBudgets.removeAll { it.budgetId == budgetId }
         }
+
+        override suspend fun getAllBudgets(): List<BudgetEntity> = budgets.toList()
+        override suspend fun getAllCategoryBudgets(): List<CategoryBudgetEntity> = categoryBudgets.toList()
+        override suspend fun insertBudgets(budgets: List<BudgetEntity>) {
+            this.budgets.addAll(budgets)
+        }
+        override suspend fun insertCategoryBudgets(categoryBudgets: List<CategoryBudgetEntity>) {
+            this.categoryBudgets.addAll(categoryBudgets)
+        }
+        override suspend fun clearAllCategoryBudgets() {
+            categoryBudgets.clear()
+        }
+        override suspend fun clearAllBudgets() {
+            budgets.clear()
+        }
     }
 
     private class FakeTransactionDao : TransactionDao {
@@ -117,6 +132,14 @@ class BudgetRepositoryTest {
 
         override suspend fun getFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): List<TransactionEntity> =
             storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) }
+
+        override suspend fun insertAll(transactions: List<TransactionEntity>) {
+            storage.addAll(transactions)
+        }
+
+        override suspend fun clearAll() {
+            storage.clear()
+        }
     }
 
 

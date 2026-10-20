@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundWhite">
+
+    <RelativeLayout
+        android:id="@id/tool_bar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <ImageView
+            android:id="@id/btn_back"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="?android:selectableItemBackground"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/ic_back"
+            android:tint="@color/black" />
+
+        <LinearLayout
+            android:id="@id/tab_layout"
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:layout_toEndOf="@id/btn_back"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@id/tab_expense"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="@string/yimu_expense"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="15sp" android:fontFamily="sans-serif-medium" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/colorPrimary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@id/tab_income"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="@string/yimu_income"
+                    android:textColor="@color/darkGrey"
+                    android:textSize="15sp" android:fontFamily="sans-serif-medium" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/colorPrimary"
+                    android:visibility="invisible" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@id/tab_transfer"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="@string/yimu_transfer"
+                    android:textColor="@color/darkGrey"
+                    android:textSize="15sp" android:fontFamily="sans-serif-medium" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/colorPrimary"
+                    android:visibility="invisible" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@id/tab_debt"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="@string/yimu_debt"
+                    android:textColor="@color/darkGrey"
+                    android:textSize="15sp" android:fontFamily="sans-serif-medium" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/colorPrimary"
+                    android:visibility="invisible" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@id/edit"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:gravity="center_vertical|end"
+            android:paddingStart="10dp"
+            android:paddingEnd="15dp"
+            android:singleLine="true"
+            android:text="@string/yimu_edit"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@id/bottom_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/divider" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:clipChildren="false">
+
+            <LinearLayout
+                android:id="@id/tag_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="6dp"
+                android:background="?android:selectableItemBackground"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp">
+
+                <ImageView
+                    android:id="@id/tag_btn_icon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@mipmap/ic_tag"
+                    android:tint="@color/black" />
+
+                <TextView
+                    android:id="@id/tag_btn_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="@string/yimu_label"
+                    android:textColor="@color/black"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@id/remark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@id/cost_layout"
+                android:layout_toEndOf="@id/tag_btn"
+                android:background="@null"
+                android:gravity="bottom"
+                android:hint="@string/yimu_add_note"
+                android:includeFontPadding="false"
+                android:maxHeight="150dp"
+                android:minHeight="45dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="13dp"
+                android:singleLine="false"
+                android:textColor="@color/darkGrey"
+                android:textColorHint="@color/grey"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@id/cost_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:clipChildren="false"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/symbol"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:layout_marginBottom="2dp"
+                        android:includeFontPadding="false"
+                        android:text="¥"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@id/cost"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:gravity="end"
+                        android:includeFontPadding="false"
+                        android:maxWidth="200dp"
+                        android:singleLine="true"
+                        android:text="0.00"
+                        android:textColor="@color/moneyPay"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/divider" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@id/menu_layout"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:orientation="horizontal"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp">
+
+                <LinearLayout
+                    android:id="@id/date_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="?android:selectableItemBackground"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@mipmap/ic_date_small"
+                        android:tint="@color/black" />
+
+                    <TextView
+                        android:id="@id/date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:paddingEnd="10dp"
+                        android:text="@string/yimu_today"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:id="@id/asset_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:background="?android:selectableItemBackground"
+                    android:paddingStart="10dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="45dp"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:id="@id/asset_icon"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@mipmap/ic_no_asset" />
+
+                            <TextView
+                                android:id="@id/asset_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="3dp"
+                                android:layout_marginEnd="10dp"
+                                android:maxWidth="100dp"
+                                android:singleLine="true"
+                                android:text="@string/yimu_no_asset"
+                                android:textColor="@color/black"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@id/reimbursement_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:background="?android:selectableItemBackground"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp">
+
+                    <ImageView
+                        android:id="@id/reimbursement_icon"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@mipmap/ic_data_no_baoxiao" />
+
+                    <TextView
+                        android:id="@id/reimbursement_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:layout_marginEnd="10dp"
+                        android:maxWidth="100dp"
+                        android:singleLine="true"
+                        android:text="@string/yimu_no_reimburse"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@id/add_file_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:background="?android:selectableItemBackground"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@mipmap/ic_file_small"
+                        android:tint="@color/black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:layout_marginEnd="10dp"
+                        android:maxWidth="80dp"
+                        android:singleLine="true"
+                        android:text="@string/yimu_attachment"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@id/discount_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:background="?android:selectableItemBackground"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@mipmap/ic_discount"
+                        android:tint="@color/black" />
+
+                    <TextView
+                        android:id="@id/discount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:singleLine="true"
+                        android:text="@string/yimu_discount"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@id/config_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:background="?android:selectableItemBackground"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@mipmap/ic_setting_add_bill"
+                        android:tint="@color/black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:layout_marginEnd="10dp"
+                        android:maxWidth="80dp"
+                        android:singleLine="true"
+                        android:text="@string/yimu_property"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@id/service_charge_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:background="?android:selectableItemBackground"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@mipmap/ic_service_charge"
+                        android:tint="@color/black" />
+
+                    <TextView
+                        android:id="@id/service_charge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:singleLine="true"
+                        android:text="@string/yimu_service_charge"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <com.nonen.Bookkeeping.ui.components.YimuNumberKeyboardView
+            android:id="@id/number_key_board"
+            android:layout_width="match_parent"
+            android:layout_height="220dp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@id/category_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottom_Layout"
+        android:layout_below="@id/tool_bar"
+        android:background="@color/backgroundWhite">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@id/bill_parent_type_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@id/bill_income_type_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:visibility="gone" />
+
+        <include
+            android:id="@id/transfer_panel"
+            layout="@layout/yimu_transfer_panel"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@id/debt_placeholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="80dp"
+            android:gravity="center"
+            android:text="@string/yimu_local_unsupported"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </FrameLayout>
+</RelativeLayout>

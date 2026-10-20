@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@color/white" android:layout_width="match_parent" android:layout_height="46.0dp" android:elevation="3.0dp">
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+            <TextView android:textSize="13.0sp" android:textStyle="bold" android:textColor="@color/darkGrey" android:gravity="center" android:id="@+id/start_day" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="2020年5月11日" />
+            <TextView android:textSize="14.0sp" android:textStyle="bold" android:textColor="@color/darkGrey" android:gravity="center" android:paddingBottom="2.0dp" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="—" android:layout_marginStart="6.0dp" android:layout_marginEnd="6.0dp" />
+            <TextView android:textSize="13.0sp" android:textStyle="bold" android:textColor="@color/darkGrey" android:gravity="center" android:id="@+id/end_day" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="2020年6月11日" />
+        </LinearLayout>
+        <ImageView android:id="@+id/date_setting" android:background="@drawable/selectable_item_circle" android:padding="14.0dp" android:layout_width="46.0dp" android:layout_height="46.0dp" android:src="@mipmap/ic_date_setting" android:tint="@color/iconTint" android:layout_marginEnd="7.0dp" android:layout_alignParentEnd="true" />
+    </RelativeLayout>
+    <androidx.core.widget.NestedScrollView android:orientation="vertical" android:clipChildren="false" android:clipToPadding="false" android:layout_width="match_parent" android:layout_height="match_parent" android:overScrollMode="never">
+        <LinearLayout android:orientation="vertical" android:paddingBottom="30.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <LinearLayout android:orientation="vertical" android:background="@drawable/shape_bg_budget" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:paddingTop="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@+id/pay_layout" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_weight="1.0">
+                        <TextView android:textSize="13.0sp" android:textColor="@color/textColorLight" android:id="@+id/pay_num_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="总支出" />
+                        <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/textColorLight" android:id="@+id/pay_num" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="0.00" android:singleLine="true" android:shadowColor="@color/colorPrimaryDark" />
+                    </LinearLayout>
+                    <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@+id/income_layout" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_weight="1.0">
+                        <TextView android:textSize="13.0sp" android:textColor="@color/textColorLight" android:id="@+id/income_num_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="总收入" />
+                        <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/textColorLight" android:id="@+id/income_num" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="0.00" android:singleLine="true" android:shadowColor="@color/colorPrimaryDark" />
+                    </LinearLayout>
+                    <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@+id/balance_layout" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_weight="1.0">
+                        <TextView android:textSize="13.0sp" android:textColor="@color/textColorLight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="总结余" />
+                        <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/textColorLight" android:id="@+id/balance_num" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="0.00" android:singleLine="true" android:shadowColor="@color/colorPrimaryDark" />
+                    </LinearLayout>
+                </LinearLayout>
+                <ImageView android:layout_gravity="center_horizontal" android:id="@+id/more_info" android:padding="4.0dp" android:layout_width="120.0dp" android:layout_height="25.0dp" android:src="@mipmap/ic_bottom_small" android:tint="@color/textColorLight" />
+            </LinearLayout>
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent">
+                <LinearLayout android:orientation="vertical" android:id="@+id/chart_layout" android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <RelativeLayout android:id="@+id/bill_line_layout" android:background="@drawable/shape_bg_theme_content_5" android:paddingTop="10.0dp" android:paddingBottom="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                        <LinearLayout android:orientation="horizontal" android:id="@+id/bill_line_title" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                            <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="收支走势" android:layout_marginStart="10.0dp" />
+                        </LinearLayout>
+                        <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@+id/line_menu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="20.0dp" android:layout_alignParentEnd="true">
+                            <View android:background="@color/moneyPay" android:layout_width="12.0dp" android:layout_height="3.0dp" android:layout_marginStart="15.0dp" />
+                            <TextView android:textSize="11.0sp" android:textColor="@color/darkGrey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="支出" android:layout_marginStart="6.0dp" />
+                            <View android:background="@color/moneyIncome" android:layout_width="12.0dp" android:layout_height="3.0dp" android:layout_marginStart="15.0dp" />
+                            <TextView android:textSize="11.0sp" android:textColor="@color/darkGrey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="收入" android:layout_marginStart="6.0dp" />
+                        </LinearLayout>
+                        <com.github.mikephil.charting.charts.LineChart android:id="@+id/bill_line_chart" android:layout_width="match_parent" android:layout_height="150.0dp" android:layout_marginTop="10.0dp" android:layout_below="@+id/bill_line_title" />
+                        <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10.0dp" android:layout_below="@+id/bill_line_chart">
+                            <TextView android:textSize="10.0sp" android:textColor="@color/darkGrey" android:id="@+id/bill_line_start_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2021.5.12" android:layout_marginStart="15.0dp" />
+                            <TextView android:textSize="10.0sp" android:textColor="@color/darkGrey" android:id="@+id/bill_line_end_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2021.5.12" android:layout_marginEnd="15.0dp" android:layout_alignParentEnd="true" />
+                        </RelativeLayout>
+                    </RelativeLayout>
+                    <RelativeLayout android:id="@+id/asset_line_layout" android:background="@drawable/shape_bg_theme_content_5" android:paddingTop="10.0dp" android:paddingBottom="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                        <LinearLayout android:orientation="horizontal" android:id="@+id/asset_line_title" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                            <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="资产走势" android:layout_marginStart="10.0dp" />
+                            <ImageView android:id="@+id/line_arrow" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_bottom_small" android:tint="@color/iconTint" android:layout_marginStart="5.0dp" />
+                        </LinearLayout>
+                        <com.github.mikephil.charting.charts.LineChart android:id="@+id/asset_line_chart" android:layout_width="match_parent" android:layout_height="150.0dp" android:layout_marginTop="10.0dp" android:layout_below="@+id/asset_line_title" />
+                        <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10.0dp" android:layout_below="@+id/asset_line_chart">
+                            <TextView android:textSize="10.0sp" android:textColor="@color/darkGrey" android:id="@+id/asset_line_start_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2021.5.12" android:layout_marginStart="15.0dp" />
+                            <TextView android:textSize="10.0sp" android:textColor="@color/darkGrey" android:id="@+id/asset_line_end_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2021.5.12" android:layout_marginEnd="15.0dp" android:layout_alignParentEnd="true" />
+                        </RelativeLayout>
+                    </RelativeLayout>
+                    <LinearLayout android:orientation="vertical" android:id="@+id/member_layout" android:background="@drawable/shape_bg_theme_content_5" android:paddingTop="10.0dp" android:paddingBottom="10.0dp" android:layout_width="match_parent" android:layout_height="255.0dp" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                        <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                            <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="成员收支" android:layout_marginStart="10.0dp" />
+                            <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:background="@drawable/bg_statistics_bar_menu" android:layout_width="wrap_content" android:layout_height="22.0dp" android:layout_centerVertical="true" android:layout_marginEnd="10.0dp" android:layout_alignParentEnd="true">
+                                <TextView android:textSize="11.0sp" android:gravity="center" android:id="@+id/member_pay" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="支出" android:paddingStart="10.0dp" android:paddingEnd="10.0dp" />
+                                <TextView android:textSize="11.0sp" android:gravity="center" android:id="@+id/member_income" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="收入" android:paddingStart="10.0dp" android:paddingEnd="10.0dp" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                        <RelativeLayout android:layout_width="match_parent" android:layout_height="200.0dp">
+                            <com.github.mikephil.charting.charts.PieChart android:id="@+id/pie_member_chart" android:layout_width="match_parent" android:layout_height="200.0dp" />
+                            <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@+id/member_chart_check" android:layout_width="60.0dp" android:layout_height="wrap_content" android:layout_centerInParent="true">
+                                <ImageView android:id="@+id/asset_chart_check_icon" android:layout_width="20.0dp" android:layout_height="20.0dp" android:layout_marginTop="2.0dp" android:layout_marginBottom="2.0dp" android:src="@mipmap/ic_checkout" android:tint="@color/black" />
+                                <TextView android:textSize="10.0sp" android:textColor="@color/black" android:id="@+id/member_chart_check_tip_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="支出占比" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                    </LinearLayout>
+                    <RelativeLayout android:id="@+id/category_chart_layout" android:background="@drawable/shape_bg_theme_content_5" android:paddingTop="10.0dp" android:paddingBottom="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                        <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@+id/check_pie_mode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10.0dp">
+                            <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/black" android:id="@+id/pie_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="分类占比" />
+                            <ImageView android:layout_width="16.0dp" android:layout_height="16.0dp" android:src="@mipmap/ic_checkout" android:tint="@color/black" android:layout_marginStart="5.0dp" />
+                        </LinearLayout>
+                        <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@+id/category_pie_menu" android:background="@drawable/bg_statistics_bar_menu" android:layout_width="wrap_content" android:layout_height="22.0dp" android:layout_marginEnd="10.0dp" android:layout_alignParentEnd="true">
+                            <TextView android:textSize="11.0sp" android:gravity="center" android:id="@+id/pie_parent" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="一级分类" android:paddingStart="10.0dp" android:paddingEnd="10.0dp" />
+                            <TextView android:textSize="11.0sp" android:gravity="center" android:id="@+id/pie_all" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="全部" android:paddingStart="10.0dp" android:paddingEnd="10.0dp" />
+                        </LinearLayout>
+                        <RelativeLayout android:id="@+id/pie_chart_layout" android:layout_width="match_parent" android:layout_height="200.0dp" android:layout_below="@+id/check_pie_mode">
+                            <com.github.mikephil.charting.charts.PieChart android:id="@+id/pie_chart" android:layout_width="match_parent" android:layout_height="match_parent" />
+                            <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@+id/pie_chart_check" android:layout_width="60.0dp" android:layout_height="wrap_content" android:layout_centerInParent="true">
+                                <TextView android:textSize="12.0sp" android:textColor="@color/darkGrey" android:id="@+id/pie_chart_check_text" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="支出" />
+                                <ImageView android:id="@+id/pie_chart_check_icon" android:layout_width="20.0dp" android:layout_height="20.0dp" android:layout_marginTop="2.0dp" android:layout_marginBottom="2.0dp" android:src="@mipmap/ic_checkout" android:tint="@color/black" />
+                                <TextView android:textSize="10.0sp" android:textColor="@color/black" android:id="@+id/pie_chart_check_tip_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="切换到收入" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                        <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_below="@+id/pie_chart_layout" android:layout_alignParentEnd="true">
+                            <CheckBox android:textColor="@color/darkGrey" android:id="@+id/category_num_check" android:layout_width="match_parent" android:layout_height="wrap_content" android:checked="false" android:text="显示收支金额" style="@style/autoCheckBox" />
+                            <CheckBox android:textColor="@color/darkGrey" android:id="@+id/filter_category_check" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content" android:checked="true" android:text="过滤占比小于1%的分类" style="@style/autoCheckBox" />
+                        </LinearLayout>
+                    </RelativeLayout>
+                    <LinearLayout android:orientation="vertical" android:id="@+id/bill_data_layout" android:background="@drawable/shape_bg_theme_content_5" android:paddingTop="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@+id/bill_data_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10.0dp">
+                            <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/black" android:id="@+id/data_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="分类数据" />
+                            <ImageView android:layout_width="16.0dp" android:layout_height="16.0dp" android:src="@mipmap/ic_checkout" android:tint="@color/black" android:layout_marginStart="5.0dp" />
+                        </LinearLayout>
+                        <androidx.recyclerview.widget.RecyclerView android:id="@+id/bill_data" android:layout_width="match_parent" android:layout_height="wrap_content" android:overScrollMode="never" />
+                    </LinearLayout>
+                    <RelativeLayout android:id="@+id/tag_chart_layout" android:background="@drawable/shape_bg_theme_content_5" android:paddingTop="10.0dp" android:paddingBottom="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                        <RelativeLayout android:gravity="center_vertical" android:id="@+id/tag_pie_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="10.0dp">
+                            <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="标签占比" />
+                            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@+id/tag_type_layout" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="10.0dp" android:layout_alignParentEnd="true">
+                                <TextView android:textSize="13.0sp" android:textColor="@color/textColorPrimary" android:id="@+id/tag_type_info" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="所有标签" />
+                                <ImageView android:layout_width="15.0dp" android:layout_height="15.0dp" android:src="@mipmap/ic_bottom_small" android:tint="@color/grey" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                        <RelativeLayout android:id="@+id/tag_pie_layout" android:layout_width="match_parent" android:layout_height="200.0dp" android:layout_below="@+id/tag_pie_title">
+                            <com.github.mikephil.charting.charts.PieChart android:id="@+id/tag_pie_chart" android:layout_width="match_parent" android:layout_height="match_parent" />
+                            <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@+id/tag_chart_check" android:layout_width="60.0dp" android:layout_height="wrap_content" android:layout_centerInParent="true">
+                                <TextView android:textSize="12.0sp" android:textColor="@color/black" android:id="@+id/tag_chart_check_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="支出" />
+                                <ImageView android:id="@+id/tag_chart_check_icon" android:layout_width="20.0dp" android:layout_height="20.0dp" android:layout_marginTop="2.0dp" android:layout_marginBottom="2.0dp" android:src="@mipmap/ic_checkout" android:tint="@color/black" />
+                                <TextView android:textSize="10.0sp" android:textColor="@color/black" android:id="@+id/tag_chart_check_tip_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="点击切换" />
+                            </LinearLayout>
+                        </RelativeLayout>
+                        <CheckBox android:textColor="@color/darkGrey" android:id="@+id/tag_num_check" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="显示标签金额" android:layout_below="@+id/tag_pie_layout" android:layout_alignParentEnd="true" style="@style/autoCheckBox" />
+                    </RelativeLayout>
+                    <RelativeLayout android:orientation="vertical" android:id="@+id/tag_data_layout" android:background="@drawable/shape_bg_theme_content_5" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+                        <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/black" android:id="@+id/tag_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10.0dp" android:layout_marginBottom="10.0dp" android:text="标签数据" android:layout_marginStart="10.0dp" />
+                        <ImageView android:id="@+id/tag_sort_btn" android:background="@drawable/selectable_item_circle" android:padding="11.0dp" android:layout_width="38.0dp" android:layout_height="38.0dp" android:src="@mipmap/ic_sort" android:tint="@color/iconTint" android:layout_alignParentEnd="true" />
+                        <androidx.recyclerview.widget.RecyclerView android:id="@+id/tag_data" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_below="@+id/tag_title" android:overScrollMode="never" />
+                    </RelativeLayout>
+                </LinearLayout>
+            </RelativeLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

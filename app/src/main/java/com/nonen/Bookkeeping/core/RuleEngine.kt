@@ -102,7 +102,26 @@ class RuleEngine(
                 ?.takeIf { it in allowed }
                 ?.let { return MatchDetail(it, "平台分类", platformCategory) }
 
-            // 4. 内置关键词
+            // 4. 本地模型推断（离线 SVM 统计推断）
+            if (body.isNotBlank()) {
+                val modelService = com.nonen.Bookkeeping.core.nlp.ClassificationModelService.getInstance()
+                if (modelService != null) {
+                    val predictions = modelService.predict(body)
+                    val top = predictions.maxByOrNull { it.value }
+                    if (top != null && top.value >= 0.15) {
+                        val parts = top.key.split("-")
+                        val parentCat = parts.getOrNull(0) ?: if (isIncome) "收入" else "其他"
+                        val childCat = parts.getOrNull(1)
+                        val mapped = CategoryMapping.resolve(parentCat, childCat, isIncome)
+                        val targetCat = mapped.parentName
+                        if (targetCat in allowed) {
+                            return MatchDetail(targetCat, "本地模型推断", "${top.key}:${String.format(java.util.Locale.US, "%.2f", top.value)}")
+                        }
+                    }
+                }
+            }
+
+            // 5. 内置关键词
             if (body.isNotBlank()) {
                 builtin.forEach {
                     if (body.contains(it.keyword, ignoreCase = true)) {

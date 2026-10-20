@@ -18,6 +18,8 @@ class BillImporter(
     suspend fun import(
         rows: List<ParsedBillRow>,
         source: String,
+        assetId: Long = 1L,
+        bookId: Long = 1L,
         onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     ): ImportResult {
         var success = 0
@@ -52,6 +54,8 @@ class BillImporter(
                         merchant = row.merchant,
                         timestamp = timestamp,
                         source = source,
+                        assetId = assetId,
+                        bookId = bookId,
                         rawData = row.rawData,
                         hash = HashUtil.transactionHash(timestamp, signedAmount, row.merchant, source),
                     )

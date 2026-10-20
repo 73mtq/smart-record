@@ -35,11 +35,14 @@ data class ImportResult(
 
 object CsvSupport {
 
-    // 微信 CSV：2026-08-01 10:00:00；支付宝 CSV：2026/8/27 14:56
     private val FORMATTERS = listOf(
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+        DateTimeFormatter.ofPattern("yyyy/M/d HH:mm:ss"),
         DateTimeFormatter.ofPattern("yyyy/M/d HH:mm"),
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+        DateTimeFormatter.ofPattern("yyyy-M-d HH:mm"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+        DateTimeFormatter.ofPattern("yyyy/M/d"),
     )
     private val DATE_PREFIX = Regex("""^\d{4}[-/]\d{1,2}[-/]\d{1,2}""")
 
@@ -93,4 +96,20 @@ object CsvSupport {
             .replace(",", "")
             .toDoubleOrNull()
             ?.takeIf { it > 0.0 }
+
+    /**
+     * 将二维行数据输出为带 UTF-8 BOM 的 CSV 字节数组，确保外部表格软件直接打开不乱码。
+     */
+    fun buildCsv(rows: List<List<Any?>>): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        // 写入 UTF-8 BOM
+        out.write(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()))
+        val writer = java.io.OutputStreamWriter(out, StandardCharsets.UTF_8)
+        val printer = org.apache.commons.csv.CSVPrinter(writer, CSVFormat.DEFAULT)
+        rows.forEach { row ->
+            printer.printRecord(row.map { it?.toString().orEmpty() })
+        }
+        printer.flush()
+        return out.toByteArray()
+    }
 }

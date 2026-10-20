@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="50dp">
+
+    <ImageView
+        android:id="@id/book_icon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="10dp"
+        android:padding="5dp"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/ic_main_account_book" />
+
+    <TextView
+        android:id="@id/name"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_toEndOf="@id/book_icon"
+        android:background="@drawable/selectable_item_expand_mask"
+        android:gravity="center_vertical"
+        android:paddingStart="5dp"
+        android:paddingEnd="15dp"
+        android:singleLine="true"
+        android:textColor="@color/black"
+        android:textSize="15sp" />
+
+    <ImageView
+        android:id="@id/tick"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="15dp"
+        android:src="@mipmap/ic_tick"
+        android:visibility="gone"
+        app:tint="@color/iconTint" />
+</RelativeLayout>

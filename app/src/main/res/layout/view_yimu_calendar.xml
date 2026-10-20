@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.haibin.calendarview.CalendarLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/calendarLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:calendar_content_view_id="@+id/calendar_content"
+    app:default_status="expand">
+    <com.nonen.Bookkeeping.ui.calendar.YimuCalendarView
+        android:id="@+id/calendarView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:calendar_padding="10dp"
+        app:current_day_lunar_text_color="@color/colorPrimary"
+        app:current_day_text_color="@color/colorPrimary"
+        app:current_month_lunar_text_color="@color/grey"
+        app:current_month_text_color="@color/darkGrey"
+        app:day_text_size="14sp"
+        app:min_year="1980"
+        app:max_year="2099"
+        app:month_view="com.nonen.Bookkeeping.ui.calendar.ActivityMonthView"
+        app:week_view="com.nonen.Bookkeeping.ui.calendar.CustomWeekView"
+        app:month_view_show_mode="mode_only_current"
+        app:selected_lunar_text_color="@color/white"
+        app:selected_text_color="@color/white"
+        app:selected_theme_color="@color/colorPrimary" />
+    <androidx.core.widget.NestedScrollView
+        android:id="@id/calendar_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/calendar_transactions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </androidx.core.widget.NestedScrollView>
+</com.haibin.calendarview.CalendarLayout>

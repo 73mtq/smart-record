@@ -86,13 +86,15 @@ class AppContainer(val appContext: Context) {
     val dreamDao get() = database.dreamDao()
 
     val ruleRepository = RuleRepository(ruleDao, merchantDao)
-    val transactionRepository = TransactionRepository(transactionDao, ruleDao, merchantDao, settings, assetDao, transferDao)
+    val transactionRepository = TransactionRepository(transactionDao, ruleDao, merchantDao, settings, assetDao, transferDao, database)
     val categoryRepository = com.nonen.Bookkeeping.data.repo.CategoryRepository(categoryDao)
     val assetRepository = com.nonen.Bookkeeping.data.repo.AssetRepository(assetDao, transferDao, transactionDao, database)
     val budgetRepository = com.nonen.Bookkeeping.data.repo.BudgetRepository(budgetDao, transactionDao, categoryDao)
     val periodicRepository = com.nonen.Bookkeeping.data.repo.PeriodicRepository(cycleDao)
     val periodicTransactionExecutor = com.nonen.Bookkeeping.data.service.PeriodicTransactionExecutor(database, cycleDao, transactionDao, transferDao, assetDao)
-    val templateRepository = com.nonen.Bookkeeping.data.repo.TemplateRepository(moduleBillDao, transactionRepository)
+    val templateRepository = com.nonen.Bookkeeping.data.repo.TemplateRepository(
+        moduleBillDao, transactionRepository, categoryRepository, assetRepository,
+    )
     val savingsGoalRepository = com.nonen.Bookkeeping.data.repo.SavingsGoalRepository(dreamDao)
     val reportRepository = com.nonen.Bookkeeping.data.repo.ReportRepository(transactionDao, assetDao, categoryDao)
 
@@ -100,6 +102,7 @@ class AppContainer(val appContext: Context) {
     val categoryMigrationService = com.nonen.Bookkeeping.data.migration.CategoryMigrationService(database)
     val ruleEngine = RuleEngine(ruleDao, merchantDao)
     val billImporter = BillImporter(transactionRepository, ruleEngine)
+    val fullBackupService = com.nonen.Bookkeeping.export.FullBackupService(database, settings, appContext)
 
     init {
         // 1. 执行分类迁移（平滑升级历史账单关联）
@@ -126,6 +129,19 @@ class AppContainer(val appContext: Context) {
                 }
             if (missing.isNotEmpty()) {
                 ruleDao.insertAll(missing)
+            }
+        }
+
+        // 4. 检查是否有未完成的备份恢复中断状态并自愈
+        applicationScope.launch {
+            fullBackupService.checkAndRepairPendingRecovery()
+        }
+
+        // 5. 异步初始化离线自然语言分类模型
+        applicationScope.launch {
+            try {
+                com.nonen.Bookkeeping.core.nlp.ClassificationModelService.initializeFromAssets(appContext)
+            } catch (_: Exception) {
             }
         }
     }

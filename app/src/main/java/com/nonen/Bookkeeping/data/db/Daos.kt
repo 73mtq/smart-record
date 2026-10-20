@@ -83,6 +83,12 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE bookId = :bookId AND transactionType = 'EXPENSE' AND timestamp >= :start AND timestamp < :end ORDER BY timestamp DESC")
     suspend fun getExpensesBetween(bookId: Long, start: Long, end: Long): List<TransactionEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(transactions: List<TransactionEntity>)
+
+    @Query("DELETE FROM transactions")
+    suspend fun clearAll()
 }
 
 @Dao
@@ -113,6 +119,9 @@ interface CategoryRuleDao {
 
     @Query("DELETE FROM category_rules WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM category_rules")
+    suspend fun clearAll()
 }
 
 @Dao
@@ -130,6 +139,9 @@ interface MerchantCategoryDao {
     /** 同一商户同一方向只保留一条：存在则改分类并累加纠正次数 */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: MerchantCategoryEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<MerchantCategoryEntity>)
 
     @Query("DELETE FROM merchant_categories")
     suspend fun clearAll()

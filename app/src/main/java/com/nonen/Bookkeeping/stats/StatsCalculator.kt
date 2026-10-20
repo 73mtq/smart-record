@@ -2,6 +2,7 @@ package com.nonen.Bookkeeping.stats
 
 import com.nonen.Bookkeeping.data.db.AssetEntity
 import com.nonen.Bookkeeping.data.db.TransactionEntity
+import com.nonen.Bookkeeping.data.db.TransferEntity
 import com.nonen.Bookkeeping.data.repo.AssetRepository
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -254,6 +255,7 @@ object StatsCalculator {
         currentAssets: List<AssetEntity>,
         transactions: List<TransactionEntity>,
         zone: ZoneId = ZoneId.systemDefault(),
+        transfers: List<TransferEntity> = emptyList(),
     ): List<AssetTrendPoint> {
         val start = minOf(startDate, endDate)
         val end = maxOf(startDate, endDate)
@@ -271,6 +273,11 @@ object StatsCalculator {
                     val assetId = tx.assetId ?: continue
                     deltaMap[assetId] = (deltaMap[assetId] ?: 0.0) + tx.amount
                 }
+            }
+
+            transfers.filter { it.time > dayEndMillis }.forEach { transfer ->
+                deltaMap[transfer.fromAssetId] = (deltaMap[transfer.fromAssetId] ?: 0.0) - transfer.cost - transfer.serviceCharge
+                deltaMap[transfer.toAssetId] = (deltaMap[transfer.toAssetId] ?: 0.0) + transfer.toCost
             }
 
             var totalAsset = 0.0

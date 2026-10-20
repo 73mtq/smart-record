@@ -44,6 +44,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.nonen.Bookkeeping.R
@@ -74,6 +77,7 @@ fun SearchScreen(vm: SearchViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
     var datePickTarget by remember { mutableStateOf<String?>(null) } // "start" / "end"
 
     Scaffold(
+        modifier = Modifier.semantics { testTagsAsResourceId = true },
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
@@ -106,7 +110,7 @@ fun SearchScreen(vm: SearchViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit
                         disabledContainerColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("search_input"),
                 )
             }
 

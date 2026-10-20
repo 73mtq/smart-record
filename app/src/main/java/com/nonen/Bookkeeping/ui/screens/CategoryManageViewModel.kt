@@ -42,10 +42,6 @@ class CategoryManageViewModel(
         viewModelScope.launch {
             categoryRepository.observeByType(selectedType).collectLatest { list ->
                 categories = list
-                // 默认展开前两个一级分类
-                if (expandedParentIds.isEmpty()) {
-                    expandedParentIds = list.filter { it.parentId == 0 }.take(2).map { it.categoryId }.toSet()
-                }
             }
         }
     }

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:scrollbars="none" android:background="@color/backgroundLight" android:layout_width="match_parent" android:layout_height="match_parent" android:overScrollMode="never"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <LinearLayout android:orientation="vertical" android:background="@drawable/shape_bg_setting" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+            <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginBottom="5.0dp" android:text="数据备份" android:layout_marginStart="15.0dp" />
+            <RelativeLayout android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="75.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="10.0dp" android:layout_toStartOf="@+id/switch_remote">
+                    <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="打开云备份" />
+                        <ImageView android:layout_width="15.0dp" android:layout_height="15.0dp" android:src="@mipmap/ic_vip" android:layout_marginStart="5.0dp" />
+                    </LinearLayout>
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将数据存储在云端，多设备首次同步时，请确保有数据的设备同步完成后，其他设备再打开云备份" android:lineSpacingExtra="3.0dp" />
+                </LinearLayout>
+                <com.kyleduo.switchbutton.SwitchButton android:id="@+id/switch_remote" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/data_sync_all" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="75.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="10.0dp" android:layout_toStartOf="@+id/data_sync_all_more">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="重新上传备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="当云备份数据一直缺失或错误时，此操作可将本地数据重新同步至云服务器" android:lineSpacingExtra="3.0dp" />
+                </LinearLayout>
+                <ImageView android:id="@+id/data_sync_all_more" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/data_sync_download" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="75.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="10.0dp" android:layout_toStartOf="@+id/data_sync_download_more">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="重新下载备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="当本地数据一直缺失或错误时，此操作可将云备份数据重新同步至本地" android:lineSpacingExtra="3.0dp" />
+                </LinearLayout>
+                <ImageView android:id="@+id/data_sync_download_more" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_toStartOf="@+id/switch_many_device">
+                    <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@+id/many_device_tip" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="多设备使用" />
+                        <ImageView android:layout_width="15.0dp" android:layout_height="15.0dp" android:src="@mipmap/ic_tip" android:tint="@color/iconTint" android:layout_marginStart="5.0dp" />
+                    </LinearLayout>
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="使用多台设备同时记账，建议开启此选项" android:singleLine="true" />
+                </LinearLayout>
+                <com.kyleduo.switchbutton.SwitchButton android:id="@+id/switch_many_device" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="附件自动上传" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="账单附件会自动上传至云端备份" />
+                </LinearLayout>
+                <com.kyleduo.switchbutton.SwitchButton android:id="@+id/switch_file_auto" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/data_clear" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="云数据清除" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="完全清除服务器端的数据" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/local_data_clear" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="本地数据清除" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="清除本地数据，但会保留备份文件" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/history_data" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="恢复历史数据" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="当操作错误时，可恢复至历史某一时间点数据" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+        </LinearLayout>
+        <LinearLayout android:orientation="vertical" android:background="@drawable/shape_bg_setting" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+            <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginBottom="5.0dp" android:text="本地备份" android:layout_marginStart="15.0dp" />
+            <RelativeLayout android:id="@+id/local_backup_move" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="15.0dp">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="数据迁移" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将一台设备的数据迁移至另一台设备" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/local_backup" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="15.0dp" android:layout_toStartOf="@+id/ic_more">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="执行本地备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:id="@+id/local_backup_path" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将数据文件存储在本地文件路径中" android:singleLine="true" />
+                </LinearLayout>
+                <ImageView android:id="@+id/ic_more" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/restore_backup" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_toStartOf="@+id/restore_backup_more">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="恢复本地备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="非默认路径重装应用，需先设置备份路径" android:singleLine="true" />
+                </LinearLayout>
+                <ImageView android:id="@+id/restore_backup_more" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/local_backup_file_manager" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="15.0dp">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="备份文件管理" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="删除或分享本地备份的数据文件" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_toStartOf="@+id/auto_backup">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="本地自动备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:id="@+id/auto_backup_tip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="在进入和退出应用时进行一次数据备份" android:singleLine="true" />
+                </LinearLayout>
+                <com.kyleduo.switchbutton.SwitchButton android:id="@+id/auto_backup" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/backup_path" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="配置备份路径" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:id="@+id/backup_path_info" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="恢复本地备份的数据文件" android:singleLine="true" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+        </LinearLayout>
+        <LinearLayout android:orientation="vertical" android:background="@drawable/shape_bg_setting" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginBottom="50.0dp" android:layout_marginStart="15.0dp" android:layout_marginEnd="15.0dp">
+            <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0dp" android:layout_marginBottom="5.0dp" android:text="WebDAV备份" android:layout_marginStart="15.0dp" />
+            <RelativeLayout android:id="@+id/webdav_setup" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="15.0dp" android:layout_toStartOf="@+id/webdav_status">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="网盘参数配置" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将备份文件同步至支持WebDAV的网盘" android:singleLine="true" />
+                </LinearLayout>
+                <TextView android:textSize="13.0sp" android:textColor="@color/grey" android:id="@+id/webdav_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="未配置" android:layout_centerVertical="true" android:layout_marginEnd="10.0dp" android:layout_toStartOf="@+id/webdav_setup_more" />
+                <ImageView android:id="@+id/webdav_setup_more" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/webdav_backup" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="15.0dp" android:layout_toStartOf="@+id/webdav_ic_more">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="执行网盘备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="将数据文件存储在配置的网盘中" />
+                </LinearLayout>
+                <ImageView android:id="@+id/webdav_ic_more" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/restore_webdav_backup" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="恢复网盘备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="恢复网盘备份的数据文件" android:singleLine="true" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/remote_backup_file_manager" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="15.0dp">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="备份文件管理" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="删除远程备份的数据文件" />
+                </LinearLayout>
+                <ImageView android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_toStartOf="@+id/auto_webdav_backup">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="网盘自动备份" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="在应用正常退出时进行一次数据备份" android:singleLine="true" />
+                </LinearLayout>
+                <com.kyleduo.switchbutton.SwitchButton android:id="@+id/auto_webdav_backup" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@+id/webdav_backup_num_layout" android:background="?android:selectableItemBackground" android:layout_width="match_parent" android:layout_height="60.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp">
+                <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerVertical="true" android:layout_marginEnd="15.0dp" android:layout_toStartOf="@+id/webdav_backup_num">
+                    <TextView android:textSize="15.0sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="每日自动备份次数" />
+                    <TextView android:textSize="12.0sp" android:textColor="@color/grey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3.0dp" android:text="设置每日自动备份次数，节省流量" android:singleLine="true" />
+                </LinearLayout>
+                <TextView android:textSize="13.0sp" android:textColor="@color/grey" android:id="@+id/webdav_backup_num" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="无限制" android:layout_centerVertical="true" android:layout_marginEnd="10.0dp" android:layout_toStartOf="@+id/webdav_backup_more" />
+                <ImageView android:id="@+id/webdav_backup_more" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@mipmap/ic_more" android:tint="@color/grey" android:layout_centerVertical="true" android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

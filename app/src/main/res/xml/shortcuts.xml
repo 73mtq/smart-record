@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="quick_record"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_record_short"
+        android:shortcutLongLabel="@string/shortcut_record_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nonen.Bookkeeping"
+            android:targetClass="com.nonen.Bookkeeping.MainActivity">
+            <extra android:name="shortcut_target" android:value="record" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="quick_asset"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_asset_short"
+        android:shortcutLongLabel="@string/shortcut_asset_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nonen.Bookkeeping"
+            android:targetClass="com.nonen.Bookkeeping.MainActivity">
+            <extra android:name="shortcut_target" android:value="asset_manage" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="quick_calendar"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_calendar_short"
+        android:shortcutLongLabel="@string/shortcut_calendar_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nonen.Bookkeeping"
+            android:targetClass="com.nonen.Bookkeeping.MainActivity">
+            <extra android:name="shortcut_target" android:value="calendar" />
+        </intent>
+    </shortcut>
+</shortcuts>

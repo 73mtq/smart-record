@@ -83,6 +83,10 @@ class AssetRepositoryTest {
         override suspend fun deleteById(assetId: Long) {
             storage.removeAll { it.assetId == assetId }
         }
+
+        override suspend fun clearAll() {
+            storage.clear()
+        }
     }
 
     private class FakeTransactionDao : TransactionDao {
@@ -124,6 +128,12 @@ class AssetRepositoryTest {
             flowOf(storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) })
         override suspend fun getFilteredRange(start: Long, end: Long, bookId: Long?, assetId: Long?): List<TransactionEntity> =
             storage.filter { it.timestamp in start..end && (bookId == null || it.bookId == bookId) && (assetId == null || it.assetId == assetId) }
+        override suspend fun insertAll(transactions: List<TransactionEntity>) {
+            storage.addAll(transactions)
+        }
+        override suspend fun clearAll() {
+            storage.clear()
+        }
     }
 
 

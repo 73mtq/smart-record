@@ -36,7 +36,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import com.nonen.Bookkeeping.ui.components.YimuTopAppBar as TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +47,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.layout.statusBarsPadding
+import com.nonen.Bookkeeping.ui.components.YimuPeriodicNativeView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -67,70 +71,18 @@ fun PeriodicScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text("周期记账与转账") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            viewModel.triggerExecution { count ->
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(if (count > 0) "已自动补记 $count 笔周期账目" else "当前所有周期账单均已入账")
-                                }
-                            }
-                        },
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = "立即补记")
-                    }
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "新增周期规则")
-                    }
-                },
-            )
+    val context = LocalContext.current
+    val back = onBack
+    AndroidView(
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        factory = { YimuPeriodicNativeView(it) },
+        update = { view ->
+            view.bind(object : YimuPeriodicNativeView.Listener {
+                override fun onBack() = back()
+                override fun onAdd() { showAddDialog = true }
+            })
         },
-    ) { padding ->
-        if (cycles.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("暂无周期记账规则", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("创建首个周期规则")
-                    }
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(cycles, key = { it.cycleId }) { cycle ->
-                    CycleRuleItem(
-                        cycle = cycle,
-                        onTogglePause = { viewModel.togglePause(cycle.cycleId) },
-                        onDelete = { viewModel.deleteCycle(cycle.cycleId) },
-                    )
-                }
-            }
-        }
-    }
+    )
 
     if (showAddDialog) {
         AddCycleDialog(

@@ -1,4 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="window_background">#0B0B0F</color>
+    <color name="window_background">#151C24</color>
+
+    <color name="colorPrimary">#19383C</color>
+    <color name="colorPrimaryDark">#B8B8B8</color>
+    <color name="colorAccent">#48AB93</color>
+    <color name="colorPrimaryText">#48AB93</color>
+    <color name="colorPrimaryLight">#3348AB93</color>
+    <color name="colorPrimaryAlpha10">#1A48AB93</color>
+    <color name="colorPrimaryAlpha30">#4D48AB93</color>
+    <color name="colorPrimaryAlpha50">#8048AB93</color>
+    <color name="colorPrimaryLightNoAlpha">#485A5C</color>
+
+    <color name="moneyPay">#FB5655</color>
+    <color name="moneyIncome">#48AB93</color>
+
+    <color name="backgroundLight">#151C24</color>
+    <color name="background">#151C24</color>
+    <color name="backgroundWhite">#151C24</color>
+    <color name="bgGray">#485A5C</color>
+
+    <color name="white">#212A33</color>
+    <color name="black">#B8B8B8</color>
+    <color name="blackAlpha10">#1A000000</color>
+    <color name="darkGrey">#B8B8B8</color>
+    <color name="grey">#999999</color>
+    <color name="textGray">#B8B8B8</color>
+    <color name="iconTint">#B8B8B8</color>
+    <color name="divider">#595959</color>
+
+    <color name="textColorPrimary">#B8B8B8</color>
+    <color name="textColorWhite">#FFFFFF</color>
+    <color name="textColorBlack">#FFFFFF</color>
+    <color name="textColorLight">#B8B8B8</color>
+
+    <color name="red">#C53E14</color>
+    <color name="redAlpha15">#26FB5655</color>
+    <color name="transparent">#00000000</color>
+
+    <color name="statistics_color_one">#D09E8A</color>
+    <color name="statistics_color_two">#4C4C4C</color>
+    <color name="pieChartNone">#595959</color>
 </resources>

@@ -54,15 +54,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.core.Categories
 import com.nonen.Bookkeeping.core.RuleEngine
 import com.nonen.Bookkeeping.data.repo.RuleRepository
+import androidx.compose.foundation.layout.statusBarsPadding
 import com.nonen.Bookkeeping.ui.components.AnimatedSegmented
+import com.nonen.Bookkeeping.ui.components.YimuCategoryKeyNativeView
 import com.nonen.Bookkeeping.ui.theme.AppleBlue
 import com.nonen.Bookkeeping.ui.theme.ExpenseColor
 import com.nonen.Bookkeeping.ui.theme.IncomeColor
@@ -202,185 +207,19 @@ fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit) {
         }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.rules_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
+    AndroidView(
+        modifier = Modifier.fillMaxSize().statusBarsPadding().semantics { testTagsAsResourceId = true },
+        factory = { viewContext -> YimuCategoryKeyNativeView(viewContext) },
+        update = { view ->
+            view.bind(
+                object : YimuCategoryKeyNativeView.Listener {
+                    override fun onBack() = onBack()
+                    override fun onAdd() { showAdd = true }
                 },
+                customRules.isNotEmpty(),
             )
         },
-        floatingActionButton = {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(InkPrimary)
-                    .clickable { showAdd = true },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = stringResource(R.string.cd_add_rule),
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.rules_priority_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                )
-            }
-
-            item {
-                RuleTestingCard(vm = vm)
-            }
-
-            item {
-                PresetRecommendationsCard(
-                    existingKeywords = customKeywords,
-                    onAddPreset = { preset ->
-                        vm.add(preset.keyword, preset.category, preset.isIncome) { ok ->
-                            if (!ok) duplicateWarning = true
-                        }
-                    },
-                )
-            }
-
-            item {
-                MerchantMemoryCard(
-                    count = merchantCount,
-                    onClear = { confirmClearMemory = true },
-                )
-            }
-
-            item {
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        listOf(
-                            0 to "全部 (${rules.size})",
-                            1 to "自定义 (${customRules.size})",
-                            2 to "内置 (${builtinRules.size})",
-                        ).forEach { (type, label) ->
-                            val selected = filterType == type
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        if (selected) AppleBlue else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                    )
-                                    .clickable { filterType = type }
-                                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                            ) {
-                                Text(
-                                    text = label,
-                                    fontSize = 12.sp,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = { Text("搜索规则关键词或分类") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Clear, contentDescription = "清除", modifier = Modifier.size(16.dp))
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AppleBlue,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-
-            if (displayRules.isEmpty()) {
-                item {
-                    Text(
-                        text = if (rules.isEmpty()) stringResource(R.string.rules_empty) else "没有找到匹配的规则",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                    )
-                }
-            } else {
-                items(displayRules, key = { it.id }) { rule ->
-                    Card(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                    ) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    "${rule.keyword} → ${rule.category}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium,
-                                )
-                                Text(
-                                    stringResource(if (rule.isCustom) R.string.rules_source_custom else R.string.rules_source_builtin),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (rule.isCustom) IncomeColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            IconButton(onClick = { vm.delete(rule.id) }) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = stringResource(R.string.action_delete),
-                                    tint = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            item { Spacer(Modifier.height(96.dp)) }
-        }
-    }
+    )
 
     if (showAdd) {
         AddRuleDialog(

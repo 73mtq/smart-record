@@ -67,6 +67,13 @@ class StatsViewModel(
 ) : ViewModel() {
 
     private val scope: CoroutineScope = externalScope ?: viewModelScope
+    private var selectedBookId: Long? = null
+
+    fun selectBook(id: Long) {
+        if (selectedBookId == id) return
+        selectedBookId = id
+        load()
+    }
 
     var period by mutableStateOf(StatsPeriod.MONTH)
     var isIncome by mutableStateOf(false)
@@ -169,7 +176,10 @@ class StatsViewModel(
             customStart = customStart,
             customEnd = customEnd,
         ),
-        fetch = { start, end -> repo.getRange(start, end) },
+        fetch = { start, end ->
+            val book = selectedBookId
+            if (book == null) repo.getRange(start, end) else repo.getBookRange(start, end, book)
+        },
     )
 }
 

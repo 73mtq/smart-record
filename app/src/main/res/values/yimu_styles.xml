@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="YimuReferenceTextTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="YimuBottomTitleActive">
+        <item name="android:textSize">11sp</item>
+    </style>
+    <style name="YimuBottomTitleInactive">
+        <item name="android:textSize">11sp</item>
+    </style>
+</resources>

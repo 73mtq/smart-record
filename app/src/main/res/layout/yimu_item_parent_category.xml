@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@id/total_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp">
+
+    <ImageView
+        android:id="@id/icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/shape_type_normal"
+        android:padding="11dp"
+        android:src="@mipmap/ic_temp" />
+
+    <TextView
+        android:id="@id/icon_text"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@id/icon_more"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_alignBottom="@id/icon"
+        android:layout_alignEnd="@id/icon"
+        android:layout_marginEnd="-3dp"
+        android:background="@drawable/shape_circle_white"
+        android:padding="2dp"
+        android:src="@mipmap/ic_more_category"
+        android:tint="@color/colorPrimaryLightNoAlpha" />
+
+    <TextView
+        android:id="@id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/icon"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/textColorBlack"
+        android:textSize="12sp" />
+</RelativeLayout>

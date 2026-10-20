@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="12.0sp" android:textColor="@color/darkGrey" android:id="@+id/month_info" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1月" />
+    <com.nonen.Bookkeeping.ui.components.YimuHeatMapMonthView android:id="@+id/month_info_view" android:layout_width="80.0dp" android:layout_height="75.0dp" android:layout_marginTop="5.0dp" />
+</LinearLayout>

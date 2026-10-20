@@ -1,13 +1,19 @@
 package com.nonen.Bookkeeping.parse
 
+import com.nonen.Bookkeeping.core.Categories
+import com.nonen.Bookkeeping.core.HashUtil
+import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.export.BackupExporter
+import kotlin.math.abs
 
-/** 本应用导出的 Excel 备份解析出的一行。 */
+/**
+ * 本应用导出的 Excel 备份或一木记账 23 列 Excel 解析出的一行标准记录。
+ */
 data class BackupRow(
     val timestamp: Long? = null,
     val amount: Double? = null,
     val isIncome: Boolean = false,
-    /** 类型列缺失/非法时为 false，按失败行计 */
+    /** 类型列缺失或数值非法时为 false，按失败行计 */
     val typeValid: Boolean = true,
     val category: String? = null,
     val subCategory: String? = null,
@@ -15,23 +21,37 @@ data class BackupRow(
     val note: String? = null,
     val source: String? = null,
     val account: String? = null,
+    val book: String? = null,
     val tag: String? = null,
     val refund: String? = null,
+    val discount: String? = null,
+    val reimbursementAccount: String? = null,
+    val reimbursementAmount: String? = null,
+    val reimbursementDetail: String? = null,
+    val multiCurrency: String? = null,
+    val address: String? = null,
+    val createdUser: String? = null,
+    val other: String? = null,
+    val attachments: List<String> = emptyList(),
     /** 导出时的去重哈希，原样回灌保证「导出→导入」幂等 */
     val hash: String? = null,
 )
 
 /**
- * 本应用 Excel 备份解析器：表头按列名定位，导入回灌用。
- * 时间列兼容文本（yyyy-MM-dd HH:mm:ss 等）与被 Excel 重存后的日期序列号。
+ * 23 列标准 Excel 与备份解析器：表头按列名动态定位，兼容 .xls、.xlsx 与 CSV。
  */
 object BackupExcelParser {
 
-    private fun mapToInternalCategory(mainCat: String?, subCat: String?, isIncome: Boolean): String {
+    private val STANDARD_PRIMARY_CATEGORIES = setOf(
+        "食品餐饮", "出行交通", "居家生活", "休闲娱乐", "文化教育",
+        "健康医疗", "购物消费", "送礼人情", "其他", "收入",
+    )
+
+    fun mapToInternalCategory(mainCat: String?, subCat: String?, isIncome: Boolean): String {
         val s = subCat?.trim().orEmpty()
         val m = mainCat?.trim().orEmpty()
         if (s.isNotEmpty()) {
-            if (s in com.nonen.Bookkeeping.core.Categories.allCategories) return s
+            if (s in Categories.allCategories) return s
             when (s) {
                 "早餐", "午餐", "晚餐", "饮料酒水", "休闲零食", "生鲜食品", "粮油调味", "请客吃饭", "外卖", "小吃", "快餐" -> return "餐饮"
                 "打车", "公共交通", "火车", "飞机", "停车费", "加油", "租车", "骑行" -> return "交通"
@@ -61,7 +81,7 @@ object BackupExcelParser {
             }
         }
         if (m.isNotEmpty()) {
-            if (m in com.nonen.Bookkeeping.core.Categories.allCategories) return m
+            if (m in Categories.allCategories) return m
             when (m) {
                 "食品餐饮" -> return "餐饮"
                 "出行交通" -> return "交通"
@@ -78,15 +98,51 @@ object BackupExcelParser {
         return if (s.isNotBlank()) s else if (m.isNotBlank()) m else if (isIncome) "其他收入" else "其他"
     }
 
-    private fun mapAccountToSource(account: String?): String = when (account?.trim()) {
+    fun normalizeCategory(mainCat: String?, subCat: String?, isIncome: Boolean): Pair<String, String?> {
+        val m = mainCat?.trim().orEmpty()
+        val s = subCat?.trim().orEmpty().ifBlank { null }
+
+        if (m in STANDARD_PRIMARY_CATEGORIES) {
+            return m to s
+        }
+
+        val standardMain = when (m) {
+            "餐饮" -> "食品餐饮"
+            "交通" -> "出行交通"
+            "居住", "通讯", "宠物" -> "居家生活"
+            "购物", "服饰美容", "母婴" -> "购物消费"
+            "娱乐", "旅行" -> "休闲娱乐"
+            "医疗" -> "健康医疗"
+            "教育" -> "文化教育"
+            "人情" -> "送礼人情"
+            "金融" -> "其他"
+            "软件服务" -> "居家生活"
+            "生活费", "奖学金", "工资", "兼职", "闲置出售", "平台收益", "退税", "理财" -> "收入"
+            else -> if (m.isNotBlank()) m else if (isIncome) "收入" else "其他"
+        }
+        val finalSub = s ?: when (m) {
+            "服饰美容" -> "服饰运动"
+            "母婴" -> "母婴玩具"
+            "通讯" -> "话费宽带"
+            "宠物" -> "宠物用品"
+            "旅行" -> "旅游度假"
+            "生活费", "奖学金", "工资", "兼职", "闲置出售", "平台收益", "退税", "理财" -> m
+            else -> null
+        }
+        return standardMain to finalSub
+    }
+
+    fun mapAccountToSource(account: String?): String = when (account?.trim()) {
         "微信支付", "微信" -> "wechat"
         "支付宝" -> "alipay"
         "银行卡" -> "bank"
-        "现金/手动", "手动" -> "manual"
+        "现金/手动", "手动", "现金" -> "manual"
         else -> account?.trim().orEmpty().ifBlank { "excel" }
     }
 
-    /** @return null 表示不是本应用或一木记账的备份格式（找不到表头） */
+    /**
+     * @return null 表示无法定位到必要表头（非支持的账单格式）
+     */
     fun parse(bytes: ByteArray): List<BackupRow>? {
         val table = XlsxSupport.readAnyTable(bytes)
         val headerIdx = table.indexOfFirst { row ->
@@ -111,12 +167,24 @@ object BackupExcelParser {
         val cAmount = col("金额", BackupExporter.HEADER_AMOUNT)
         val cCategory = col("类别", BackupExporter.HEADER_CATEGORY)
         val cSubCategory = col("二级分类")
-        val cMerchant = col(BackupExporter.HEADER_MERCHANT, "商户")
-        val cNote = col("备注", BackupExporter.HEADER_NOTE)
         val cAccount = col("账户", BackupExporter.HEADER_SOURCE, "来源")
+        val cBook = col("账本")
         val cRefund = col("退款")
+        val cDiscount = col("优惠")
+        val cNote = col("备注", BackupExporter.HEADER_NOTE)
         val cTag = col("标签")
-        val cHash = col("其他", BackupExporter.HEADER_HASH, "校验码")
+        val cReimburseAcc = col("报销账户")
+        val cReimburseAmt = col("报销金额")
+        val cReimburseDetail = col("报销明细")
+        val cCurrency = col("多币种")
+        val cAddress = col("地址")
+        val cUser = col("创建用户")
+        val cOther = col("其他", BackupExporter.HEADER_HASH, "校验码")
+        val cMerchant = col(BackupExporter.HEADER_MERCHANT, "商户")
+
+        val attachCols = listOf(
+            col("附件1"), col("附件2"), col("附件3"), col("附件4"), col("附件5"),
+        ).filter { it >= 0 }
 
         if (cTime < 0 || cType < 0 || cAmount < 0) return null
 
@@ -129,7 +197,7 @@ object BackupExcelParser {
                     ?.replace("￥", "")
                     ?.replace(",", "")
                 val amtDouble = rawAmtStr?.toDoubleOrNull()
-                val amount = amtDouble?.let { kotlin.math.abs(it) }?.takeIf { it > 0.0 }
+                val amount = amtDouble?.let { abs(it) }?.takeIf { it > 0.0 }
                 val isIncome = when {
                     type == "收入" -> true
                     type == "支出" -> false
@@ -138,11 +206,11 @@ object BackupExcelParser {
                 }
                 val typeValid = type in setOf("收入", "支出") || (type.isEmpty() && amtDouble != null)
 
-                val mainCategory = if (cCategory >= 0) row.getOrNull(cCategory)?.trim()?.ifBlank { null } else null
-                val subCategory = if (cSubCategory >= 0) row.getOrNull(cSubCategory)?.trim()?.ifBlank { null } else null
-                val finalCategory = mapToInternalCategory(mainCategory, subCategory, isIncome)
+                val rawCategory = if (cCategory >= 0) row.getOrNull(cCategory)?.trim()?.ifBlank { null } else null
+                val rawSubCategory = if (cSubCategory >= 0) row.getOrNull(cSubCategory)?.trim()?.ifBlank { null } else null
+                val finalCategory = mapToInternalCategory(rawCategory, rawSubCategory, isIncome)
 
-                val rawOther = if (cHash >= 0) row.getOrNull(cHash)?.trim()?.ifBlank { null } else null
+                val rawOther = if (cOther >= 0) row.getOrNull(cOther)?.trim()?.ifBlank { null } else null
                 val (explicitHash, otherMerchant) = if (rawOther != null && rawOther.contains("|")) {
                     val parts = rawOther.split("|", limit = 2)
                     parts[0].ifBlank { null } to parts[1].ifBlank { null }
@@ -154,16 +222,22 @@ object BackupExcelParser {
                 val merchant = explicitMerchant ?: otherMerchant
                 val note = if (cNote >= 0) row.getOrNull(cNote)?.trim()?.ifBlank { null } else null
                 val rawAccount = if (cAccount >= 0) row.getOrNull(cAccount)?.trim()?.ifBlank { null } else null
+                val rawBook = if (cBook >= 0) row.getOrNull(cBook)?.trim()?.ifBlank { null } else null
                 val source = mapAccountToSource(rawAccount)
                 val rawRefund = if (cRefund >= 0) row.getOrNull(cRefund)?.trim()?.ifBlank { null } else null
+                val rawDiscount = if (cDiscount >= 0) row.getOrNull(cDiscount)?.trim()?.ifBlank { null } else null
                 val rawTag = if (cTag >= 0) row.getOrNull(cTag)?.trim()?.ifBlank { null } else null
 
                 val timestamp = CsvSupport.parseFlexibleTimestamp(row.getOrNull(cTime))
 
                 val hash = explicitHash ?: if (timestamp != null && amount != null) {
                     val signed = if (isIncome) amount else -amount
-                    com.nonen.Bookkeeping.core.HashUtil.transactionHash(timestamp, signed, merchant ?: note, source)
+                    HashUtil.transactionHash(timestamp, signed, merchant ?: note, source)
                 } else null
+
+                val attachments = attachCols.mapNotNull { idx ->
+                    row.getOrNull(idx)?.trim()?.ifBlank { null }
+                }
 
                 BackupRow(
                     timestamp = timestamp,
@@ -171,15 +245,87 @@ object BackupExcelParser {
                     isIncome = isIncome,
                     typeValid = typeValid,
                     category = finalCategory,
-                    subCategory = subCategory,
+                    subCategory = rawSubCategory,
                     merchant = merchant,
                     note = note,
                     source = source,
                     account = rawAccount,
+                    book = rawBook,
                     tag = rawTag,
                     refund = rawRefund,
+                    discount = rawDiscount,
+                    reimbursementAccount = if (cReimburseAcc >= 0) row.getOrNull(cReimburseAcc)?.trim()?.ifBlank { null } else null,
+                    reimbursementAmount = if (cReimburseAmt >= 0) row.getOrNull(cReimburseAmt)?.trim()?.ifBlank { null } else null,
+                    reimbursementDetail = if (cReimburseDetail >= 0) row.getOrNull(cReimburseDetail)?.trim()?.ifBlank { null } else null,
+                    multiCurrency = if (cCurrency >= 0) row.getOrNull(cCurrency)?.trim()?.ifBlank { null } else null,
+                    address = if (cAddress >= 0) row.getOrNull(cAddress)?.trim()?.ifBlank { null } else null,
+                    createdUser = if (cUser >= 0) row.getOrNull(cUser)?.trim()?.ifBlank { null } else null,
+                    other = rawOther,
+                    attachments = attachments,
                     hash = hash,
                 )
             }
+    }
+
+    /**
+     * 将 BackupRow 映射为领域实体 TransactionEntity。
+     * 自动匹配关联的 assetId、bookId、parentCategoryId、childCategoryId。
+     */
+    fun toEntity(
+        row: BackupRow,
+        assetNameToId: Map<String, Long> = emptyMap(),
+        bookNameToId: Map<String, Long> = emptyMap(),
+        categoryNameToIds: Map<String, Pair<Int, Int?>> = emptyMap(),
+        defaultAssetId: Long = 1L,
+        defaultBookId: Long = 1L,
+    ): TransactionEntity? {
+        val timestamp = row.timestamp ?: return null
+        val amount = row.amount ?: return null
+        if (!row.typeValid) return null
+
+        val signed = if (row.isIncome) amount else -amount
+        val source = row.source ?: "excel"
+        val categoryName = row.category ?: if (row.isIncome) "收入" else "其他"
+        val subCategoryName = row.subCategory
+
+        val childCatIds = subCategoryName?.let { categoryNameToIds[it] }
+        val standardParentName = when (categoryName) {
+            "餐饮" -> "食品餐饮"
+            "交通" -> "出行交通"
+            "居住" -> "居家生活"
+            "购物" -> "购物消费"
+            "娱乐" -> "休闲娱乐"
+            "医疗" -> "健康医疗"
+            "教育" -> "文化教育"
+            "人情" -> "送礼人情"
+            else -> categoryName
+        }
+        val parentCatIds = categoryNameToIds[categoryName] ?: categoryNameToIds[standardParentName]
+
+        val parentId = childCatIds?.first ?: parentCatIds?.first
+        val childId = childCatIds?.second ?: parentCatIds?.second
+
+        val assetId = row.account?.let { assetNameToId[it] } ?: defaultAssetId
+        val bookId = row.book?.let { bookNameToId[it] } ?: defaultBookId
+
+        val hash = row.hash ?: HashUtil.transactionHash(timestamp, signed, row.merchant ?: row.note, source)
+
+        return TransactionEntity(
+            amount = signed,
+            category = categoryName,
+            subCategory = subCategoryName,
+            note = row.note,
+            merchant = row.merchant,
+            timestamp = timestamp,
+            source = source,
+            account = row.account,
+            tag = row.tag,
+            transactionType = if (!row.refund.isNullOrBlank()) "REFUND" else (if (row.isIncome) "INCOME" else "EXPENSE"),
+            assetId = assetId,
+            bookId = bookId,
+            parentCategoryId = parentId,
+            childCategoryId = childId,
+            hash = hash,
+        )
     }
 }

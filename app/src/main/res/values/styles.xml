@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="autoCheckBox" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:scaleX">0.75</item>
+        <item name="android:scaleY">0.75</item>
+    </style>
+</resources>

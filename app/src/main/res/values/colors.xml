@@ -1,5 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FBF8EE</color>
-    <color name="window_background">#F5F5F7</color>
+    <color name="window_background">#F4F4F4</color>
+
+    <color name="colorPrimary">#48AB93</color>
+    <color name="colorPrimaryDark">#118C7B</color>
+    <color name="colorAccent">#48AB93</color>
+    <color name="colorPrimaryText">#48AB93</color>
+    <color name="colorPrimaryLight">#3348AB93</color>
+    <color name="colorPrimaryAlpha10">#1A48AB93</color>
+    <color name="colorPrimaryAlpha30">#4D48AB93</color>
+    <color name="colorPrimaryAlpha50">#8048AB93</color>
+    <color name="colorPrimaryLightNoAlpha">#7DDDC6</color>
+
+    <color name="moneyPay">#FB5655</color>
+    <color name="moneyIncome">#48AB93</color>
+
+    <color name="backgroundLight">#F4F4F4</color>
+    <color name="background">#EBE8E8</color>
+    <color name="backgroundWhite">#FFFFFF</color>
+    <color name="bgGray">#F4F4F4</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="blackAlpha3">#08000000</color>
+    <color name="blackAlpha10">#1A000000</color>
+    <color name="darkGrey">#666666</color>
+    <color name="grey">#999999</color>
+    <color name="textGray">#8A8A8A</color>
+    <color name="iconTint">#504E4E</color>
+    <color name="divider">#CAC2C2</color>
+
+    <color name="textColorPrimary">#48AB93</color>
+    <color name="textColorWhite">#FFFFFF</color>
+    <color name="textColorBlack">#000000</color>
+    <color name="textColorLight">#FFFFFF</color>
+
+    <color name="red">#FF0000</color>
+    <color name="redAlpha15">#26FB5655</color>
+    <color name="transparent">#00000000</color>
+
+    <color name="statistics_color_one">#D09E8A</color>
+    <color name="statistics_color_two">#4C4C4C</color>
+    <color name="pieChartNone">#EBE8E8</color>
+    <color name="redLight">#4DFB5655</color>
+    <color name="greenLight">#4D48AB93</color>
 </resources>

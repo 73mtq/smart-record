@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,7 +38,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,10 +49,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nonen.Bookkeeping.data.repo.CategoryBudgetDetail
+import com.nonen.Bookkeeping.ui.components.YimuBudgetNativeView
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,99 +71,23 @@ fun BudgetScreen(
     var showTotalDialog by remember { mutableStateOf(false) }
     var showCategoryDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("预算管理") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { viewModel.prevMonth() }) {
-                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "上月")
-                        }
-                        Text(
-                            text = "${year}年${month}月",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        IconButton(onClick = { viewModel.nextMonth() }) {
-                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "下月")
-                        }
-                    }
+    val context = LocalContext.current
+    val back = onBack
+    AndroidView(
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        factory = { YimuBudgetNativeView(it) },
+        update = { view ->
+            view.render(
+                year, month, overview.totalBudget, overview.totalExpense, overview.remainingBudget,
+                overview.usageRatio, overview.categoryDetails.size,
+                object : YimuBudgetNativeView.Listener {
+                    override fun onBack() = back()
+                    override fun onEditTotal() { showTotalDialog = true }
+                    override fun onAddCategory() { showCategoryDialog = true }
                 },
             )
         },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // 总预算卡片
-            item {
-                TotalBudgetCard(
-                    totalBudget = overview.totalBudget,
-                    totalExpense = overview.totalExpense,
-                    remaining = overview.remainingBudget,
-                    usageRatio = overview.usageRatio,
-                    isOverBudget = overview.isOverBudget,
-                    onEditClick = { showTotalDialog = true },
-                )
-            }
-
-            // 分类预算标题栏
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "分类预算",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    OutlinedButton(onClick = { showCategoryDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("添加分类")
-                    }
-                }
-            }
-
-            // 分类预算列表
-            if (overview.categoryDetails.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text("暂无分类预算，点击右上角添加", style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-            } else {
-                items(overview.categoryDetails) { item ->
-                    CategoryBudgetItem(
-                        item = item,
-                        onDelete = { viewModel.deleteCategoryBudget(item.categoryBudgetId) },
-                    )
-                }
-            }
-        }
-    }
+    )
 
     if (showTotalDialog) {
         SetTotalBudgetDialog(

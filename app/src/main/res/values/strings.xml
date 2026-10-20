@@ -230,4 +230,12 @@
     <!-- 来源应用名 -->
     <string name="source_wechat">微信</string>
     <string name="source_alipay">支付宝</string>
+
+    <!-- 桌面快捷方式 -->
+    <string name="shortcut_record_short">记一笔</string>
+    <string name="shortcut_record_long">快速记一笔账</string>
+    <string name="shortcut_asset_short">资产账户</string>
+    <string name="shortcut_asset_long">查看管理资产与账户</string>
+    <string name="shortcut_calendar_short">收支日历</string>
+    <string name="shortcut_calendar_long">查看收支日历与明细</string>
 </resources>

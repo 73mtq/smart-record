@@ -23,7 +23,12 @@ object XlsxSupport {
         ) {
             return readXlsSheet(bytes)
         }
-        return readFirstSheet(bytes)
+        if (bytes.size >= 2 && bytes[0] == 0x50.toByte() && bytes[1] == 0x4B.toByte()) {
+            return readFirstSheet(bytes)
+        }
+        return runCatching {
+            CsvSupport.readRecords(CsvSupport.decode(bytes)).map { row -> row.map { it as String? } }
+        }.getOrDefault(emptyList())
     }
 
     /** 读取 BIFF8 格式的 .xls 文件首个工作表 */

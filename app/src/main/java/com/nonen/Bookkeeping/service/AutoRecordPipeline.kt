@@ -258,6 +258,7 @@ object AutoRecordPipeline {
      * MIUI/HyperOS 除「显示悬浮窗」外还需「后台弹出界面」「锁屏显示」，
      * 通知给出标准悬浮窗页与应用信息页两个入口。
      */
+    @android.annotation.SuppressLint("NotificationPermission")
     private fun promptOverlayPermission(context: Context, reason: String? = null) {
         val now = System.currentTimeMillis()
         if (now - lastPermissionPromptAt < 5 * 60 * 1000L) return
@@ -311,6 +312,7 @@ object AutoRecordPipeline {
         }.onFailure { android.util.Log.w(TAG, "悬浮窗权限提醒发送失败", it) }
     }
 
+    @android.annotation.SuppressLint("NotificationPermission")
     private fun showRecordedNotification(context: Context, signedAmount: Double, category: String) {
         runCatching {
             val manager = context.getSystemService(android.app.NotificationManager::class.java) ?: return

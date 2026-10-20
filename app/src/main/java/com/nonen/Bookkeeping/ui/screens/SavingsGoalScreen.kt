@@ -34,7 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import com.nonen.Bookkeeping.ui.components.YimuTopAppBar as TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,6 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.layout.statusBarsPadding
+import com.nonen.Bookkeeping.ui.components.YimuDreamNativeView
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -63,65 +67,18 @@ fun SavingsGoalScreen(
     var actionGoalId by remember { mutableStateOf<Long?>(null) }
     var isDepositAction by remember { mutableStateOf(true) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("储蓄目标与愿望清单") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showCreateDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "新建目标")
-                    }
-                },
-            )
+    val context = LocalContext.current
+    val back = onBack
+    AndroidView(
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        factory = { YimuDreamNativeView(it) },
+        update = { view ->
+            view.bind(object : YimuDreamNativeView.Listener {
+                override fun onBack() = back()
+                override fun onAdd() { showCreateDialog = true }
+            })
         },
-    ) { padding ->
-        if (goals.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("暂无储蓄目标", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(onClick = { showCreateDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("创建首个储蓄愿望")
-                    }
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(goals, key = { it.dream.dreamId }) { goal ->
-                    GoalCardItem(
-                        goal = goal,
-                        onDeposit = {
-                            actionGoalId = goal.dream.dreamId
-                            isDepositAction = true
-                        },
-                        onWithdraw = {
-                            actionGoalId = goal.dream.dreamId
-                            isDepositAction = false
-                        },
-                        onDelete = { viewModel.deleteGoal(goal.dream.dreamId) },
-                    )
-                }
-            }
-        }
-    }
+    )
 
     if (showCreateDialog) {
         CreateGoalDialog(

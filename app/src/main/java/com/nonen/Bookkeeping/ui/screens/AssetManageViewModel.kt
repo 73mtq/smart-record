@@ -105,6 +105,33 @@ class AssetManageViewModel(
         showTransferDialog = false
     }
 
+    fun transfer(
+        fromAssetId: Long,
+        toAssetId: Long,
+        amount: Double,
+        serviceCharge: Double = 0.0,
+        remark: String? = null,
+        onDone: () -> Unit = {},
+    ) {
+        if (fromAssetId == toAssetId) {
+            errorMessage = "转出账户与转入账户不能相同"
+            return
+        }
+        if (amount <= 0.0) {
+            errorMessage = "转账金额必须大于 0"
+            return
+        }
+        scope.launch {
+            val success = assetRepo.executeTransfer(fromAssetId, toAssetId, amount, serviceCharge, remark)
+            if (success) {
+                closeTransferDialog()
+                onDone()
+            } else {
+                errorMessage = "转账执行失败"
+            }
+        }
+    }
+
     fun openDeleteDialog(asset: AssetEntity) {
         if (asset.assetId == AssetRepository.DEFAULT_ASSET_ID) {
             errorMessage = "默认现金账户不可删除"

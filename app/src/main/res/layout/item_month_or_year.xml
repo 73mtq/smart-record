@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center_horizontal" android:orientation="vertical" android:id="@+id/total_layout" android:clickable="true" android:layout_width="wrap_content" android:layout_height="40.0dp" android:paddingStart="15.0dp" android:paddingEnd="15.0dp"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="14.0sp" android:textStyle="bold" android:textColor="@color/colorPrimary" android:id="@+id/name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6.0dp" android:text="当月" />
+    <ImageView android:id="@+id/choice_icon" android:layout_width="12.0dp" android:layout_height="8.0dp" android:layout_marginTop="6.0dp" android:src="@mipmap/ic_top" android:scaleType="fitCenter" android:tint="@color/colorPrimaryText" />
+</LinearLayout>
