@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 复刻原版 activity_bill_search.xml（去除搜索结果/抽屉等未采状态）：工具栏 + 搜索历史 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@id/search_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toEndOf="@id/btn_back"
+            android:layout_toStartOf="@id/btn_layout"
+            android:background="@color/white"
+            android:hint="搜索账单、标签(输入#触发，空格结束)"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:textColorHint="@color/grey"
+            android:textSize="14sp" />
+
+        <ImageView
+            android:id="@id/btn_back"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/selectable_item_circle"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/ic_search_back"
+            android:tint="@color/black" />
+
+        <LinearLayout
+            android:id="@id/btn_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@id/btn_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_marginEnd="5dp"
+                android:background="@drawable/selectable_item_circle"
+                android:gravity="center_vertical"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:singleLine="true"
+                android:text="筛选"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@id/search_history"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@id/clear_history_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="center_horizontal"
+                android:background="?android:selectableItemBackground"
+                android:gravity="center"
+                android:text="清空历史记录"
+                android:textColor="@color/grey"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:id="@id/search_history_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:overScrollMode="never" />
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

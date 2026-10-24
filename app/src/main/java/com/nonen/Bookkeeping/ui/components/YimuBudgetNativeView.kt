@@ -88,8 +88,9 @@ class YimuBudgetNativeView @JvmOverloads constructor(
             setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART)
             setDrawGridLines(false)
             axisLineColor = ContextCompat.getColor(context, R.color.colorPrimary)
-            axisMinimum = -1.1f
-            axisMaximum = 1.1f
+            // 参考刻度 0.0/-0.5/-1.0 步 0.5 → 轴范围 ±1.2；±1.1 时 MPChart 算出 0.4 步长（实测）
+            axisMinimum = -1.2f
+            axisMaximum = 1.2f
             valueFormatter = object : ValueFormatter() {
                 override fun getFormattedValue(value: Float): String = String.format(Locale.US, "%.1f", value)
             }
@@ -128,8 +129,9 @@ class YimuBudgetNativeView @JvmOverloads constructor(
             setFillDrawable(ContextCompat.getDrawable(context, R.drawable.fade_income))
             highLightColor = 0
         }
-        lineChart.xAxis.axisMinimum = -0.5f
-        lineChart.xAxis.axisMaximum = 30.5f
+        // 原版 budget 图 xAxis 无 min/max 钳制，首点贴 plot 左缘（-0.5 会使线缩进约 16px）
+        lineChart.xAxis.resetAxisMinimum()
+        lineChart.xAxis.resetAxisMaximum()
         lineChart.data = LineData(listOf(pay, remaining))
         lineChart.invalidate()
     }

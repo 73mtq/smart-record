@@ -390,12 +390,9 @@ class AddEditViewModel(
         category = catName
         val parentId = catId ?: CategoryMapping.resolve(catName, null, isIncome).parentId
         parentCategoryId = parentId
-        // 原版选中一级分类后默认落到第一个子分类，账单显示「食品餐饮-午餐」这类完整名称
-        val firstChild = liveCategories.firstOrNull {
-            it.parentId == parentId && it.categoryType == if (isIncome) 1 else 0
-        }
-        subCategory = firstChild?.categoryName.orEmpty()
-        childCategoryId = firstChild?.categoryId
+        // 参考实测：点一级分类进入二级选择页时无预选（add_bill_child_category 参考侧早餐无圆底）
+        subCategory = catName
+        childCategoryId = null
         isCategoryManuallyChosen = true
     }
 

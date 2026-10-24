@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 一木记账 AI 记账面板复刻：原版 res/layout/dialog_add_bill（AddBillDialog.java:1030 inflate）。
+     层级/尺寸/颜色/图标均取自 aapt2 dump xmltree res/jx.xml 解码结果与 work/tmp/probe/ref_assets 原始资源。
+     实测修正（2026-10-24 probe 1149/1174）：底部图标行位于白色卡片内部，无账本图标时 book_icon 为 GONE。 -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+
+            <LinearLayout
+                android:id="@+id/book_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="15dp">
+
+                <ImageView
+                    android:id="@+id/book_icon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="5dp"
+                    android:scaleType="centerInside" />
+
+                <TextView
+                    android:id="@+id/book_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/textColorWhite"
+                    android:textStyle="bold"
+                    android:text="@string/yimu_fast_add_default_book" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@mipmap/ic_account_book_more"
+                    android:scaleType="centerInside"
+                    android:tint="@color/textColorWhite" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/expand_btn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/selectable_item_circle"
+                android:padding="11dp"
+                android:src="@mipmap/ic_expand"
+                android:tint="@color/textColorWhite" />
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/content_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_bg_setting"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/word_edit_tip"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/add_btn"
+                        android:background="@color/transparent"
+                        android:gravity="top"
+                        android:lineSpacingExtra="8dp"
+                        android:paddingStart="20dp"
+                        android:paddingTop="20dp"
+                        android:paddingEnd="20dp"
+                        android:paddingBottom="20dp"
+                        android:singleLine="true"
+                        android:textSize="14sp"
+                        android:textColor="@color/blackAlpha25"
+                        android:visibility="gone" />
+
+                    <EditText
+                        android:id="@+id/word_edit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/add_btn"
+                        android:background="@color/transparent"
+                        android:gravity="top"
+                        android:hint="@string/yimu_fast_add_hint"
+                        android:imeOptions="flagNoEnterAction"
+                        android:inputType="textMultiLine"
+                        android:lineSpacingExtra="8dp"
+                        android:paddingStart="20dp"
+                        android:paddingTop="20dp"
+                        android:paddingEnd="20dp"
+                        android:paddingBottom="20dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/textGray"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:id="@+id/analysis_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBottom="@id/word_edit"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginEnd="20dp"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:id="@+id/category_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:text="@string/yimu_fast_add_category"
+                                android:textColor="@color/grey"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/category_info"
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:textColor="@color/textColorPrimary"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/from_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:text="@string/yimu_fast_add_from"
+                                android:textColor="@color/grey"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/from_info"
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:textColor="@color/black"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/to_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="30dp"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:text="@string/yimu_fast_add_to"
+                                android:textColor="@color/grey"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/to_info"
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:textColor="@color/black"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/num_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="30dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:text="@string/yimu_fast_add_amount"
+                                android:textColor="@color/grey"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/num_info"
+                                android:layout_width="wrap_content"
+                                android:layout_height="30dp"
+                                android:gravity="center_vertical"
+                                android:singleLine="true"
+                                android:textColor="@color/moneyPay"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/add_btn"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_alignParentEnd="true">
+
+                        <ImageView
+                            android:id="@+id/add_background"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@mipmap/ic_fast_add_bg"
+                            android:tint="@color/colorPrimaryAlpha30" />
+
+                        <ImageView
+                            android:layout_width="19dp"
+                            android:layout_height="19dp"
+                            android:layout_marginStart="19dp"
+                            android:layout_marginTop="14dp"
+                            android:src="@mipmap/ic_fast_add"
+                            android:tint="@color/textColorWhite" />
+                    </RelativeLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp">
+
+                    <ImageView
+                        android:id="@+id/tag_btn"
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/calendar_btn"
+                        android:background="@drawable/selectable_item_circle"
+                        android:padding="13dp"
+                        android:src="@mipmap/ic_tag"
+                        android:tint="@color/black" />
+
+                    <LinearLayout
+                        android:id="@+id/reimbursement_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/asset_layout"
+                        android:background="@drawable/selectable_item_expand"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp">
+
+                        <ImageView
+                            android:id="@+id/reimbursement_icon"
+                            android:layout_width="19dp"
+                            android:layout_height="19dp"
+                            android:layout_gravity="center_vertical"
+                            android:src="@mipmap/ic_data_no_baoxiao" />
+
+                        <TextView
+                            android:id="@+id/reimbursement_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="5dp"
+                            android:maxWidth="70dp"
+                            android:singleLine="true"
+                            android:text="@string/yimu_fast_add_no_reimburse"
+                            android:textColor="@color/black"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/asset_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_toEndOf="@id/tag_btn"
+                        android:background="@drawable/selectable_item_expand"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:id="@+id/asset_icon"
+                                android:layout_width="19dp"
+                                android:layout_height="19dp"
+                                android:layout_gravity="center_vertical"
+                                android:src="@mipmap/ic_no_asset" />
+
+                            <TextView
+                                android:id="@+id/asset_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="5dp"
+                                android:maxWidth="70dp"
+                                android:singleLine="true"
+                                android:text="@string/yimu_fast_add_no_asset"
+                                android:textColor="@color/black"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/asset_num_tip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/yimu_fast_add_insufficient"
+                            android:textColor="@color/red"
+                            android:textSize="11sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/calendar_btn"
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="5dp"
+                        android:background="@drawable/selectable_item_circle">
+
+                        <ImageView
+                            android:layout_width="45dp"
+                            android:layout_height="45dp"
+                            android:padding="13dp"
+                            android:src="@mipmap/ic_calendar"
+                            android:tint="@color/black" />
+
+                        <TextView
+                            android:id="@+id/date_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:paddingTop="3dp"
+                            android:textColor="@color/black"
+                            android:textSize="7sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+                </RelativeLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+</RelativeLayout>

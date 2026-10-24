@@ -15,6 +15,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.ui.components.CalendarUiState
 import com.nonen.Bookkeeping.ui.components.YimuCalendarNativeView
+import com.nonen.Bookkeeping.ui.components.YimuFastAddDialog
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -39,6 +40,9 @@ fun YimuCalendarScreen(vm: CalendarViewModel, onEdit: (Long) -> Unit, onAdd: (Lo
                 }
                 override fun onToday() = vm.goToToday()
                 override fun onAdd(date: LocalDate) = onAdd(date)
+                override fun onFastAdd() {
+                    YimuFastAddDialog(context).show()
+                }
                 override fun onEdit(id: Long) = onEdit(id)
                 override fun onMonthClick() {
                     Toast.makeText(context, R.string.yimu_local_unsupported, Toast.LENGTH_SHORT).show()

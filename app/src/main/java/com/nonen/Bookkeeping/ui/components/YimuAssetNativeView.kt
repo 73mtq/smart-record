@@ -12,7 +12,6 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.data.db.AssetEntity
 import java.util.Locale
@@ -31,7 +30,7 @@ class YimuAssetNativeView @JvmOverloads constructor(
     private val liabilities = findViewById<TextView>(R.id.liabilities)
     private val tip = findViewById<View>(R.id.asset_tip)
     private val list = findViewById<RecyclerView>(R.id.asset_list)
-    private val fab = findViewById<FloatingActionButton>(R.id.add_btn)
+    private val fab = findViewById<View>(R.id.add_btn)
     private val eye = findViewById<ImageView>(R.id.ic_num_hide)
     private val setting = findViewById<View>(R.id.asset_setting)
     private val adapter = AssetAdapter()
@@ -43,10 +42,6 @@ class YimuAssetNativeView @JvmOverloads constructor(
     init {
         list.layoutManager = LinearLayoutManager(context)
         list.adapter = adapter
-        fab.setMaxImageSize((32 * resources.displayMetrics.density).toInt())
-        fab.scaleType = ImageView.ScaleType.CENTER
-        fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.colorPrimary))
-        fab.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
         eye.setImageResource(R.mipmap.ic_num_not_hide)
         eye.setOnClickListener {
             hidden = !hidden

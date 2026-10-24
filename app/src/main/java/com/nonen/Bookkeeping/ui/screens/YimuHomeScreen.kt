@@ -34,6 +34,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.graphics.Typeface
 import com.nonen.Bookkeeping.ui.components.HomeAccountBookPopup
+import com.nonen.Bookkeeping.ui.components.YimuFastAddDialog
 import com.nonen.Bookkeeping.ui.components.YimuNativeHomeList
 import com.nonen.Bookkeeping.ui.components.bindNativeTemplateDrawer
 import com.nonen.Bookkeeping.R
@@ -187,7 +188,10 @@ fun YimuHomeScreen(
                             setImageResource(R.mipmap.ic_add_ai_bill)
                             setMaxImageSize((32 * resources.displayMetrics.density).toInt())
                             contentDescription = viewContext.getString(R.string.action_add_record)
-                            setOnClickListener { onAdd() }
+                            // 原版 add_btn 落点为 AI 记账面板（AddBillDialog），非记一笔页（2026-10-24 双侧实测）
+                            setOnClickListener {
+                                YimuFastAddDialog(viewContext) { vm.refreshToday() }.show()
+                            }
                         } }, update = {
                             it.backgroundTintList = ColorStateList.valueOf(primary)
                             it.imageTintList = ColorStateList.valueOf(foreground)

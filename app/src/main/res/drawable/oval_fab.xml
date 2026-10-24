@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 参考实测 FAB 圆 182px=56dp 正圆（Material FAB 内容圆 180px 差 2px，borderWidth 调节无效） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/colorPrimary" />
+</shape>

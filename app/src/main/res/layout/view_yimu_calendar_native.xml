@@ -326,7 +326,7 @@
         </RelativeLayout>
     </com.haibin.calendarview.CalendarLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <FrameLayout
         android:id="@id/add_btn"
         android:layout_width="56dp"
         android:layout_height="56dp"
@@ -334,10 +334,18 @@
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
+        android:background="@drawable/oval_fab"
         android:contentDescription="新增记账"
-        android:src="@mipmap/ic_add_ai_bill"
-        app:backgroundTint="@color/colorPrimary"
-        app:elevation="6dp"
-        app:fabSize="normal"
-        app:tint="@color/white" />
+        android:elevation="6dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="31.5dp"
+            android:layout_height="31.5dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+                android:src="@mipmap/ic_add_ai_bill"
+                android:tint="@color/white" />
+    </FrameLayout>
 </RelativeLayout>

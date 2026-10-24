@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 复刻原版 item_search_history.xml -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="?android:selectableItemBackground"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@id/icon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="15dp"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/ic_history"
+        android:tint="@color/darkGrey" />
+
+    <TextView
+        android:id="@id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="15dp"
+        android:layout_toEndOf="@id/icon"
+        android:singleLine="true"
+        android:text="哦哦"
+        android:textColor="@color/darkGrey"
+        android:textSize="15sp" />
+
+    <ImageView
+        android:id="@id/clear"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentEnd="true"
+        android:padding="20dp"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/ic_close"
+        android:tint="@color/darkGrey" />
+</RelativeLayout>

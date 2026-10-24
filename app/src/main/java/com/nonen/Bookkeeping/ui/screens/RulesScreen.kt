@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -56,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -65,7 +68,6 @@ import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.core.Categories
 import com.nonen.Bookkeeping.core.RuleEngine
 import com.nonen.Bookkeeping.data.repo.RuleRepository
-import androidx.compose.foundation.layout.statusBarsPadding
 import com.nonen.Bookkeeping.ui.components.AnimatedSegmented
 import com.nonen.Bookkeeping.ui.components.YimuCategoryKeyNativeView
 import com.nonen.Bookkeeping.ui.theme.AppleBlue
@@ -207,10 +209,12 @@ fun RulesScreen(vm: RulesViewModel, onBack: () -> Unit) {
         }
     }
 
+    val statusBarPx = WindowInsets.statusBars.getTop(LocalDensity.current)
     AndroidView(
-        modifier = Modifier.fillMaxSize().statusBarsPadding().semantics { testTagsAsResourceId = true },
+        modifier = Modifier.fillMaxSize().semantics { testTagsAsResourceId = true },
         factory = { viewContext -> YimuCategoryKeyNativeView(viewContext) },
         update = { view ->
+            view.applyToolbarInset(statusBarPx)
             view.bind(
                 object : YimuCategoryKeyNativeView.Listener {
                     override fun onBack() = onBack()

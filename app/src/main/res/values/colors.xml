@@ -25,6 +25,7 @@
     <color name="black">#000000</color>
     <color name="blackAlpha3">#08000000</color>
     <color name="blackAlpha10">#1A000000</color>
+    <color name="blackAlpha25">#40000000</color>
     <color name="darkGrey">#666666</color>
     <color name="grey">#999999</color>
     <color name="textGray">#8A8A8A</color>

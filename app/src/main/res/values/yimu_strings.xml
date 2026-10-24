@@ -86,4 +86,14 @@
     <string name="yimu_new_category">新增</string>
     <string name="yimu_set_time">设置时间</string>
     <string name="yimu_clear">清空</string>
+    <string name="yimu_fast_add_hint">试试“工资卡收入10元”、“昨天打车20元”\n“支付宝转到微信15元”、“长按可再记”</string>
+    <string name="yimu_fast_add_default_book">日常账本</string>
+    <string name="yimu_fast_add_no_asset">无账户</string>
+    <string name="yimu_fast_add_no_reimburse">不报销</string>
+    <string name="yimu_fast_add_insufficient">余额不足</string>
+    <string name="yimu_fast_add_no_amount">未识别到金额，请检查输入</string>
+    <string name="yimu_fast_add_category">分类：</string>
+    <string name="yimu_fast_add_from">转出：</string>
+    <string name="yimu_fast_add_to">转入：</string>
+    <string name="yimu_fast_add_amount">金额：</string>
 </resources>

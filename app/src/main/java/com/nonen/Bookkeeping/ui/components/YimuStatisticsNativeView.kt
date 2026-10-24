@@ -159,6 +159,9 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
     private val selfAssetLine = selfView.findViewById<LineChart>(R.id.asset_line_chart)
     private val selfLineStart = selfView.findViewById<TextView>(R.id.bill_line_start_time)
     private val selfLineEnd = selfView.findViewById<TextView>(R.id.bill_line_end_time)
+    private val selfPieTitle = selfView.findViewById<TextView>(R.id.pie_title)
+    private val selfPieParent = selfView.findViewById<TextView>(R.id.pie_parent)
+    private val selfPieAll = selfView.findViewById<TextView>(R.id.pie_all)
     private val monthLine = monthView.findViewById<LineChart>(R.id.line_chart)
     private val monthCategoryChart = monthView.findViewById<PieChart>(R.id.pie_chart)
     private var listener: Listener? = null
@@ -196,8 +199,17 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
         yearHeatList.adapter = yearHeatAdapter
         yearView.findViewById<View>(R.id.member_layout).visibility = View.GONE
         selfView.findViewById<View>(R.id.member_layout).visibility = View.GONE
-        configureBillLineChart(selfLine)
-        configureMonthLineChart(selfAssetLine)
+        configureSelfLineChart(selfLine, commaFormatter = true)
+        configureSelfLineChart(selfAssetLine, commaFormatter = false)
+        // 参考资产走势（空数据平线 0.0）轴刻度 ±1.0 步 0.5，等效轴范围 ±1.2（实测标签间距 84.8px/407px plot）
+        selfAssetLine.axisLeft.apply {
+            axisMinimum = -1.2f
+            axisMaximum = 1.2f
+            valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String =
+                    String.format(Locale.US, "%.1f", value)
+            }
+        }
     }
 
     fun render(state: StatisticsUiState, listener: Listener) {
@@ -266,8 +278,14 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             renderPie(monthCategoryChart, emptyList())
             return
         }
+        // 原版 x4.java:424-427：小于总额 2.5% 的分类钳到 2.5% 参与扇区角度计算，标签百分比仍用原始值
+        val threshold = total * 0.025
+        val clampedSum = entries.sumOf { maxOf(it.second, threshold) }
         val slices = entries.map { (name, value) ->
-            PieEntry(value.toFloat(), "$name ${String.format(Locale.US, "%.2f", value / total * 100)}%")
+            PieEntry(
+                (maxOf(value, threshold) / clampedSum * 100.0).toFloat(),
+                "$name ${String.format(Locale.US, "%.2f", value / total * 100)}%",
+            )
         }
         val colors = entries.indices.map { PIE_COLORS[it % PIE_COLORS.size] }
         val set = PieDataSet(slices, "").apply {
@@ -302,10 +320,7 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             val name = item.findViewById<TextView>(R.id.name)
             val icon = item.findViewById<ImageView>(R.id.choice_icon)
             name.text = label
-            name.setTextColor(ContextCompat.getColor(context,
-                if (selected) R.color.colorPrimary else R.color.darkGrey))
-            name.setTypeface(null, if (selected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
-            icon.visibility = if (selected) View.VISIBLE else View.INVISIBLE
+            renderChoiceItem(name, icon, selected)
             monthList.addView(item)
         }
     }
@@ -384,8 +399,9 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             setDrawGridLines(false)
             axisLineColor = ContextCompat.getColor(context, R.color.colorPrimary)
             textSize = 7f
-            axisMinimum = -1.1f
-            axisMaximum = 1.1f
+            // 参考刻度步长 0.5（标签间距 84.8px）→ 轴范围 ±1.2；±1.1 时 MPChart 算出 0.4 步长（实测）
+            axisMinimum = -1.2f
+            axisMaximum = 1.2f
             valueFormatter = object : ValueFormatter() {
                 override fun getFormattedValue(value: Float): String =
                     String.format(Locale.US, "%.1f", value)
@@ -417,8 +433,13 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             setFillDrawable(ContextCompat.getDrawable(context, R.drawable.fade_asset))
             highLightColor = 0
         }
+        // 原版 H1（i4.java:1333）：xAxis labelCount=当月天数 + formatter(index+1)，参考实测 1,3,5…31
         chart.xAxis.axisMinimum = 0f
         chart.xAxis.axisMaximum = (values.size - 1).toFloat()
+        chart.xAxis.setLabelCount(values.size, false)
+        chart.xAxis.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String = (value.toInt() + 1).toString()
+        }
         chart.data = LineData(dataSet)
         chart.invalidate()
     }
@@ -426,6 +447,13 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
     private fun money2(value: Double): String = String.format(Locale.US, "%,.2f", value)
 
     private fun dp(value: Int): Int = Math.round(value * resources.displayMetrics.density)
+
+    /** 原版 je 适配器：未选中 @color/grey(#999999)、选中 colorPrimaryText 并显示箭头，不加粗（条目 XML 恒为 bold）。 */
+    private fun renderChoiceItem(name: TextView, icon: ImageView, selected: Boolean) {
+        name.setTextColor(ContextCompat.getColor(context,
+            if (selected) R.color.colorPrimaryText else R.color.grey))
+        icon.visibility = if (selected) View.VISIBLE else View.GONE
+    }
 
     private fun renderYear(state: StatisticsYearUi) {
         yearList.removeAllViews()
@@ -435,14 +463,12 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             val name = item.findViewById<TextView>(R.id.name)
             val icon = item.findViewById<ImageView>(R.id.choice_icon)
             name.text = label
-            name.setTextColor(ContextCompat.getColor(context,
-                if (selected) R.color.colorPrimary else R.color.darkGrey))
-            name.setTypeface(null, if (selected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
-            icon.visibility = if (selected) View.VISIBLE else View.INVISIBLE
+            renderChoiceItem(name, icon, selected)
             yearList.addView(item)
         }
-        renderThreeToggle(yearBarPay, yearBarIncome, yearBarBalance)
-        renderThreeToggle(heatPay, heatIncome, heatBalance)
+        // 年页三联参考弧实测 16px(≈5dp，与容器同心)；normal 页参考弧为 bg_statistics_btn 的 8dp
+        renderThreeToggle(yearBarPay, yearBarIncome, yearBarBalance, containerRound = true)
+        renderThreeToggle(heatPay, heatIncome, heatBalance, containerRound = true)
         yearPay.text = money2(state.pay)
         yearIncome.text = money2(state.income)
         yearBalance.text = money2(state.balance)
@@ -490,8 +516,9 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             color = ContextCompat.getColor(context, R.color.moneyPay)
             highLightColor = 0
             setDrawValues(true)
-            valueTextSize = 8f
-            valueTextColor = ContextCompat.getColor(context, R.color.black)
+            // 原版年图分支 setValueTextSize(6.0f)+textColorBlack（i4.java 1896 行）；8sp 时 cap 高 18px vs 参考 14px
+            valueTextSize = 6f
+            valueTextColor = ContextCompat.getColor(context, R.color.textColorBlack)
         }
         val data = BarData(dataSet)
         data.barWidth = 0.5f
@@ -540,6 +567,9 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
         selfPay.text = money2(state.pay)
         selfIncome.text = money2(state.income)
         selfBalance.text = money2(state.balance)
+        // 原版 T1/s0 默认支出模式：pie_title 运行时置为"支出占比"，分类切换条默认选中"一级分类"
+        selfPieTitle.text = "支出占比"
+        renderToggle(selfPieParent, selfPieAll, true)
         selfView.findViewById<TextView>(R.id.asset_line_start_time).text =
             state.startLabel.replace("年", ".").replace("月", ".").replace("日", "")
         selfView.findViewById<TextView>(R.id.asset_line_end_time).text =
@@ -548,7 +578,8 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
         renderAssetLine(selfAssetLine, state.dailyPay.map { 0f })
     }
 
-    private fun configureBillLineChart(chart: LineChart) {
+    /** 原版 i4.Q0：轴开启、labelCount(5,false)、左轴 colorPrimary 线、7sp darkGrey、offsets(40,20,15,5)。 */
+    private fun configureSelfLineChart(chart: LineChart, commaFormatter: Boolean) {
         chart.setViewPortOffsets(dp(40).toFloat(), dp(20).toFloat(), dp(15).toFloat(), dp(5).toFloat())
         chart.description.isEnabled = false
         chart.setTouchEnabled(false)
@@ -560,10 +591,29 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
         chart.setBackgroundColor(0)
         chart.axisRight.isEnabled = false
         chart.legend.isEnabled = false
-        chart.axisLeft.setDrawLabels(false)
-        chart.axisLeft.setDrawAxisLine(false)
-        chart.axisLeft.setDrawGridLines(false)
-        chart.xAxis.isEnabled = false
+        chart.xAxis.apply {
+            isEnabled = true
+            setDrawGridLines(false)
+            setPosition(XAxis.XAxisPosition.BOTTOM)
+            textColor = ContextCompat.getColor(context, R.color.darkGrey)
+            setDrawAxisLine(true)
+            setDrawLabels(false)
+        }
+        chart.axisLeft.apply {
+            setLabelCount(5, false)
+            textColor = ContextCompat.getColor(context, R.color.darkGrey)
+            setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART)
+            setDrawGridLines(false)
+            axisLineColor = ContextCompat.getColor(context, R.color.colorPrimary)
+            textSize = 7f
+        }
+        if (commaFormatter) {
+            // 参考 bill 图轴刻度 0 / 1,000 / 2,000 / 3,000（千分位整数）
+            val format = java.text.DecimalFormat("#,###")
+            chart.axisLeft.valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String = format.format(value.toDouble())
+            }
+        }
     }
 
     private fun renderBillLines(pay: List<Float>, income: List<Float>) {
@@ -593,16 +643,17 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             setDrawValues(false)
             highLightColor = 0
         }
-        val maxValue = (pay + income).maxOrNull() ?: 0f
-        selfLine.axisLeft.axisMinimum = -maxValue * 0.1f
+        // 原版 a2 对 bill 图无轴钳制，min/max 由数据加默认 spaceTop/Bottom 决定（参考刻度 0/1,000/2,000/3,000）
+        selfLine.axisLeft.resetAxisMinimum()
         selfLine.axisLeft.resetAxisMaximum()
         selfLine.data = LineData(listOf(paySet, incomeSet))
         selfLine.invalidate()
     }
 
-    private fun renderThreeToggle(pay: TextView, income: TextView, balance: TextView) {
+    private fun renderThreeToggle(pay: TextView, income: TextView, balance: TextView, containerRound: Boolean = false) {
         val primary = ContextCompat.getColor(context, R.color.colorPrimary)
-        pay.background = pill(primary)
+        pay.background = if (containerRound) pill(primary)
+        else ContextCompat.getDrawable(context, R.drawable.bg_statistics_btn)
         income.background = null
         balance.background = null
         pay.setTextColor(Color.WHITE)
@@ -612,8 +663,9 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
 
     private fun renderToggle(pay: TextView, income: TextView, expenseMode: Boolean) {
         val primary = ContextCompat.getColor(context, R.color.colorPrimary)
-        pay.background = if (expenseMode) pill(primary) else null
-        income.background = if (!expenseMode) pill(primary) else null
+        val selected = ContextCompat.getDrawable(context, R.drawable.bg_statistics_btn)
+        pay.background = if (expenseMode) selected else null
+        income.background = if (!expenseMode) selected else null
         pay.setTextColor(if (expenseMode) Color.WHITE else primary)
         income.setTextColor(if (!expenseMode) Color.WHITE else primary)
     }

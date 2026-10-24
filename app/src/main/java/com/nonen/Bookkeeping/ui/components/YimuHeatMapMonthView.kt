@@ -19,7 +19,8 @@ class YimuHeatMapMonthView @JvmOverloads constructor(
 
     private val density = resources.displayMetrics.density
     private val dot = 8f * density
-    private val gap = 3f * density
+    // 原版网格步长为整型像素 dp(8)+dp(3)=26+10=36px；浮点 9.75f 会累积漂移（第 7 颗圆心偏差 1.5px）
+    private val gap = Math.round(3f * density).toFloat()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var month = YearMonth.now()
     private var mode = PAY

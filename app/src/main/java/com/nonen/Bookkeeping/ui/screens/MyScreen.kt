@@ -38,6 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import com.nonen.Bookkeeping.AppContainer
 import com.nonen.Bookkeeping.R
 import java.time.LocalDate
@@ -66,76 +68,47 @@ fun MyScreen(
     val days = ceil((System.currentTimeMillis() - profile.getLong("registerTime")) / 86_400_000.0).toInt().coerceAtLeast(1)
     val nickname = profile.getString("name")
     val recordText = stringResource(R.string.yimu_record_days, days, records.size)
-    val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
-    val nicknameColor = context.getColor(R.color.colorPrimaryText)
     val unsupported = { Toast.makeText(context, R.string.yimu_local_unsupported, Toast.LENGTH_SHORT).show() }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        Box(Modifier.fillMaxWidth()) {
-            Image(painterResource(R.mipmap.bg_my_two), null, Modifier.fillMaxWidth(), contentScale = ContentScale.FillWidth)
-            Box(Modifier.padding(start = 15.dp, end = 15.dp, top = 83.dp, bottom = 15.dp).fillMaxWidth().aspectRatio(980f / 376f)) {
-                Image(painterResource(R.mipmap.bg_my_one), null, Modifier.matchParentSize(), contentScale = ContentScale.FillBounds)
-                AndroidView(modifier = Modifier.align(Alignment.Center).fillMaxWidth(), factory = { nativeContext ->
-                    val density = nativeContext.resources.displayMetrics.density
-                    LinearLayout(nativeContext).apply {
-                        orientation = LinearLayout.VERTICAL
-                        gravity = Gravity.CENTER_HORIZONTAL
-                        setPadding(0, (30 * density).toInt(), 0, 0)
-                        addView(TextView(nativeContext).apply { id = R.id.nick_name; setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16f); setTypeface(typeface, Typeface.BOLD) },
-                            LinearLayout.LayoutParams(-2, -2))
-                        addView(TextView(nativeContext).apply { id = R.id.record_day_num; gravity = Gravity.CENTER; setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12f); letterSpacing = 0.2f; setLineSpacing(3 * density, 1f) },
-                            LinearLayout.LayoutParams(-1, -2).apply { topMargin = (10 * density).toInt(); marginStart = (20 * density).toInt(); marginEnd = (20 * density).toInt() })
-                    }
-                }, update = { layout ->
-                    (layout.getChildAt(0) as TextView).apply { text = nickname; setTextColor(nicknameColor) }
-                    (layout.getChildAt(1) as TextView).apply { text = recordText; setTextColor(textColor) }
-                })
-            }
-            Image(
-                painterResource(R.mipmap.ic_launcher_no_color), null,
-                Modifier.padding(top = 50.dp).size(70.dp).clip(CircleShape).align(Alignment.TopCenter),
-            )
-            AndroidView(
-                modifier = Modifier.padding(top = 104.dp, start = 52.dp).size(18.dp).align(Alignment.TopCenter),
-                factory = { nativeContext -> ImageView(nativeContext).apply {
-                    id = R.id.vip_icon
-                    setImageResource(R.mipmap.ic_vip)
-                    scaleType = ImageView.ScaleType.FIT_XY
-                } },
-            )
-        }
-        Column(Modifier.padding(horizontal = 15.dp).clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface).padding(vertical = 25.dp)) {
-            Row(Modifier.fillMaxWidth()) {
-                MyGridItem(R.string.yimu_auto, R.mipmap.ic_auto, Modifier.weight(1f), unsupported)
-                MyGridItem(R.string.yimu_cycle, R.mipmap.ic_cycle, Modifier.weight(1f), onPeriodic)
-                MyGridItem(R.string.yimu_dream, R.mipmap.ic_dream_list, Modifier.weight(1f), onDream)
-                MyGridItem(R.string.yimu_keyword, R.mipmap.ic_ai_type, Modifier.weight(1f), onRules)
-            }
-            Row(Modifier.fillMaxWidth().padding(top = 25.dp)) {
-                MyGridItem(R.string.yimu_book, R.mipmap.ic_book_manager, Modifier.weight(1f), onBook)
-                MyGridItem(R.string.yimu_tag, R.mipmap.ic_tag_manager, Modifier.weight(1f), unsupported)
-                MyGridItem(R.string.yimu_category, R.mipmap.ic_category_manager, Modifier.weight(1f), onCategory)
-                MyGridItem(R.string.yimu_settings, R.mipmap.ic_setting_manager, Modifier.weight(1f), onSettings)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val refreshObserver = remember {
+        androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // 从设置/分类等页面返回时刷新记录数（原生视图只在此重建文案）
             }
         }
-        Spacer(Modifier.height(15.dp))
-        MyGroup(R.string.yimu_data_management) {
-            MyAction(R.string.yimu_cloud_sync, R.mipmap.ic_remote, unsupported, R.string.yimu_local_data, Color(0xFFF44336))
-            MyAction(R.string.yimu_data_backup, R.mipmap.ic_backup, onBackup)
-            MyAction(R.string.yimu_import_export, R.mipmap.ic_import_manager, onImportExport)
-        }
-        Spacer(Modifier.height(15.dp))
-        MyGroup(R.string.yimu_other) {
-            MyAction(R.string.yimu_theme, R.mipmap.ic_user_theme, onAppearance)
-            MyAction(R.string.yimu_widget, R.mipmap.ic_widget, unsupported)
-            MyAction(R.string.yimu_manual, R.mipmap.ic_user_guide, unsupported)
-            MyAction(R.string.yimu_invite, R.mipmap.ic_invitation, unsupported)
-            MyAction(R.string.yimu_feedback, R.mipmap.ic_my_feedback, unsupported)
-            MyAction(R.string.yimu_rate, R.mipmap.ic_my_evaluate, unsupported)
-            MyAction(R.string.yimu_about, R.mipmap.ic_my_about, onSettings)
-        }
-        Spacer(Modifier.height(15.dp))
     }
+    DisposableEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.addObserver(refreshObserver)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(refreshObserver) }
+    }
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize().semantics { testTagsAsResourceId = true },
+        factory = { viewContext -> com.nonen.Bookkeeping.ui.components.YimuMyNativeView(viewContext) },
+        update = { view ->
+            view.bind(nickname, recordText, showVip = true,
+                listener = object : com.nonen.Bookkeeping.ui.components.YimuMyNativeView.Listener {
+                    override fun onAuto() = unsupported()
+                    override fun onCycle() = onPeriodic()
+                    override fun onDream() = onDream()
+                    override fun onRules() = onRules()
+                    override fun onBook() = onBook()
+                    override fun onTag() = unsupported()
+                    override fun onCategory() = onCategory()
+                    override fun onSettings() = onSettings()
+                    override fun onCloudSync() = unsupported()
+                    override fun onDataBackup() = onBackup()
+                    override fun onImportExport() = onImportExport()
+                    override fun onTheme() = onAppearance()
+                    override fun onWidget() = unsupported()
+                    override fun onGuide() = unsupported()
+                    override fun onInvitation() = unsupported()
+                    override fun onFeedback() = unsupported()
+                    override fun onEvaluate() = unsupported()
+                    override fun onAbout() = onSettings()
+                })
+        },
+    )
 }
 
 @Composable

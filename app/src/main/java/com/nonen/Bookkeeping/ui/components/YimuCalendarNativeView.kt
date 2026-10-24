@@ -15,7 +15,6 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.haibin.calendarview.Calendar
 import com.haibin.calendarview.CalendarLayout
 import com.haibin.calendarview.CalendarView
@@ -49,6 +48,7 @@ class YimuCalendarNativeView @JvmOverloads constructor(
         fun onMonthChange(month: YearMonth)
         fun onToday()
         fun onAdd(date: LocalDate)
+        fun onFastAdd()
         fun onEdit(id: Long)
         fun onMonthClick()
         fun onMore()
@@ -73,7 +73,7 @@ class YimuCalendarNativeView @JvmOverloads constructor(
     private val tipLayout = findViewById<View>(R.id.tip_layout)
     private val dataLayout = findViewById<View>(R.id.data_layout)
     private val list = findViewById<RecyclerView>(R.id.data_list)
-    private val fab = findViewById<FloatingActionButton>(R.id.add_btn)
+    private val fab = findViewById<View>(R.id.add_btn)
     private val todayButton = findViewById<View>(R.id.back_today)
     private val addButton = findViewById<View>(R.id.add_bill)
     private val moreButton = findViewById<View>(R.id.btn_more)
@@ -87,9 +87,6 @@ class YimuCalendarNativeView @JvmOverloads constructor(
     init {
         list.layoutManager = LinearLayoutManager(context)
         list.adapter = adapter
-        fab.scaleType = ImageView.ScaleType.CENTER
-        fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.colorPrimary))
-        fab.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
         calendarView.setOnCalendarSelectListener(object : CalendarView.OnCalendarSelectListener {
             override fun onCalendarSelect(calendar: Calendar, isClick: Boolean) {
                 val date = LocalDate.of(calendar.year, calendar.month, calendar.day)
@@ -105,7 +102,7 @@ class YimuCalendarNativeView @JvmOverloads constructor(
         monthText.setOnClickListener { listener?.onMonthClick() }
         todayButton.setOnClickListener { listener?.onToday() }
         addButton.setOnClickListener { state?.let { listener?.onAdd(it.selected) } }
-        fab.setOnClickListener { state?.let { listener?.onAdd(it.selected) } }
+        fab.setOnClickListener { listener?.onFastAdd() }
         moreButton.setOnClickListener { listener?.onMore() }
         calendarLayout.viewTreeObserver.addOnPreDrawListener {
             val expanded = calendarLayout.isExpand
