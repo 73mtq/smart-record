@@ -3,7 +3,7 @@
 ## 1. 状态
 
 - **阶段：S17（统计页缺口补齐、图表空态与 AI 记账实时识别）。** 修复统计页「标签占比」空图表显示图表库无数据文案的问题，补齐标签占比饼图与标签数据列表、分类数据列表、报表统计列表、年页资产走势与分类占比、自定义页分类占比；接入月份条与年份条切换、自定义页起止日期选择；首页 AI 记账面板改为输入过程中本地解析并回填分类、金额与日期。详见 `docs/reports/2026-11-15-statistics-tags-fast-add.md`。
-- **HEAD：fbc48c8**，本轮改动已提交（见 git log）。
+- **HEAD：9e24fa2**，本轮两个提交（`fda96fb` 主体、`9e24fa2` 排序补充）已推送到 `origin/main`。
 - **验证：** `assembleDebug`、`testDebugUnitTest`（181 用例、0 失败）、`lintDebug` 全部 BUILD SUCCESSFUL。真机（95f79212）确认：快速记账输入 12 显示「分类：出行交通 公共交通」「金额：12.00」；月页点击「9月」后分类数据列表高度 1432、报表列表高度 3900；分类占比饼图出现真实扇区颜色；年页分类数据列表高度 1743、月度报表高度 1300；自定义页点击起始日期弹出 `YimuDateDialog`。
 - **取巧点：** 统计页原生内容在 uiautomator 中不可见（Compose `AndroidView` 子树未暴露），控件定位改用 `work/scripts/view_tree_bounds.py` 解析 `dumpsys activity top`；页面滚动需用 `input touchscreen swipe`。
 - **上一阶段：** S16 真机回归 24 页通过、7 页未通过，遗留 64px tile 抗锯齿与两个系统弹窗差异，见第 8、9 节与 `docs/reports/2026-11-14-calendar-night-regression.md`。
