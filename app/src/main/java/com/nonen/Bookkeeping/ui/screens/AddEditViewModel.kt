@@ -11,6 +11,8 @@ import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.data.repo.TransactionRepository
 import com.nonen.Bookkeeping.parse.PaymentTextParser
 import com.nonen.Bookkeeping.data.repo.RuleRepository
+import com.nonen.Bookkeeping.data.repo.TagRepository
+import com.nonen.Bookkeeping.data.db.TagEntity
 import com.nonen.Bookkeeping.core.CategoryMapping
 import com.nonen.Bookkeeping.data.db.CategoryEntity
 import com.nonen.Bookkeeping.data.repo.CategoryRepository
@@ -39,6 +41,7 @@ class AddEditViewModel(
     private val categoryRepo: CategoryRepository? = null,
     private val assetRepo: com.nonen.Bookkeeping.data.repo.AssetRepository? = null,
     private val templateRepo: com.nonen.Bookkeeping.data.repo.TemplateRepository? = null,
+    private val tagRepo: TagRepository? = null,
     private val txId: Long,
     private val externalScope: CoroutineScope? = null,
     initialBookId: Long = 1L,
@@ -80,6 +83,7 @@ class AddEditViewModel(
         keyboard = AmountKeyboardState()
         note = ""
         tag = ""
+        selectedTagIds = emptyList()
         timestamp = System.currentTimeMillis()
     }
 
@@ -119,6 +123,11 @@ class AddEditViewModel(
     var merchant by mutableStateOf("")
     var account by mutableStateOf("")
     var tag by mutableStateOf("")
+    /** 可选标签列表（一级在前，二级随父级排列） */
+    var liveTags by mutableStateOf<List<TagEntity>>(emptyList())
+        private set
+    /** 当前账单关联的标签 ID */
+    var selectedTagIds by mutableStateOf<List<Long>>(emptyList())
     var transactionType by mutableStateOf(initialTransactionType)
     var refundOriginalId by mutableStateOf<Long?>(null)
     var targetAccount by mutableStateOf(Categories.defaultAccounts.getOrElse(1) { "支付宝" })
@@ -170,6 +179,7 @@ class AddEditViewModel(
         observeCategories()
         observeAssets()
         observeTemplates()
+        observeTags()
         if (txId != 0L) {
             scope.launch {
                 repo.getById(txId)?.let { t ->
@@ -188,6 +198,7 @@ class AddEditViewModel(
                     merchant = t.merchant.orEmpty()
                     account = t.account ?: Categories.defaultAccounts.first()
                     tag = t.tag.orEmpty()
+                    selectedTagIds = tagRepo?.getTagIdsForTransaction(txId).orEmpty()
                     transactionType = t.transactionType
                     refundOriginalId = t.refundOriginalId
                     targetAccount = t.targetAccount ?: Categories.defaultAccounts.getOrElse(1) { "支付宝" }
@@ -238,6 +249,15 @@ class AddEditViewModel(
                     assetId = defaultAsset.assetId
                     account = defaultAsset.assetName
                 }
+            }
+        }
+    }
+
+    private fun observeTags() {
+        scope.launch {
+            val tRepo = tagRepo ?: return@launch
+            tRepo.observeAll().collectLatest { list ->
+                liveTags = list
             }
         }
     }
@@ -525,13 +545,18 @@ class AddEditViewModel(
                 val entity = buildTransaction(value)
                 if (original != null) {
                     repo.update(entity)
+                    tagRepo?.setTagsForTransaction(entity.id, selectedTagIds)
                     repo.learnFromEdit(entity, originalCategory)
                     onDone()
-                } else if (repo.insertIfNew(entity)) {
-                    repo.learnFromEdit(entity, null)
-                    onDone()
                 } else {
-                    errorMessageRes = R.string.error_duplicate_record
+                    val newId = repo.insertIfNewReturningId(entity)
+                    if (newId != null) {
+                        tagRepo?.setTagsForTransaction(newId, selectedTagIds)
+                        repo.learnFromEdit(entity, null)
+                        onDone()
+                    } else {
+                        errorMessageRes = R.string.error_duplicate_record
+                    }
                 }
             } finally {
                 saving = false

@@ -55,12 +55,17 @@ class TransactionRepository(
         dao.countSimilarAuto(amount, timestamp - windowMs, timestamp + windowMs) > 0
 
     /** @return false 表示 hash 重复，已存在相同记录 */
-    suspend fun insertIfNew(entity: TransactionEntity): Boolean = database.withTransaction {
-        val inserted = dao.insert(entity) != -1L
-        if (inserted) {
+    suspend fun insertIfNew(entity: TransactionEntity): Boolean = insertIfNewReturningId(entity) != null
+
+    /** @return 新记录 ID；hash 重复时返回 null */
+    suspend fun insertIfNewReturningId(entity: TransactionEntity): Long? = database.withTransaction {
+        val id = dao.insert(entity)
+        if (id == -1L) {
+            null
+        } else {
             assetDao?.updateBalance(entity.assetId, entity.amount)
+            id
         }
-        inserted
     }
 
     suspend fun update(entity: TransactionEntity) = database.withTransaction {

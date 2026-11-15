@@ -32,8 +32,10 @@ import com.nonen.Bookkeeping.ui.motion.motionSpring
 import com.nonen.Bookkeeping.ui.motion.rememberReducedMotion
 import com.nonen.Bookkeeping.ui.screens.AddEditScreen
 import com.nonen.Bookkeeping.ui.screens.AddEditViewModel
+import com.nonen.Bookkeeping.ui.screens.AboutScreen
 import com.nonen.Bookkeeping.ui.screens.AssetManageScreen
 import com.nonen.Bookkeeping.ui.screens.AssetManageViewModel
+import com.nonen.Bookkeeping.ui.screens.GuideScreen
 import com.nonen.Bookkeeping.ui.screens.BudgetScreen
 import com.nonen.Bookkeeping.ui.screens.BudgetViewModel
 import com.nonen.Bookkeeping.ui.screens.CalendarScreen
@@ -59,6 +61,8 @@ import com.nonen.Bookkeeping.ui.screens.SettingsPage
 import com.nonen.Bookkeeping.ui.screens.StatisticsBillFilter
 import com.nonen.Bookkeeping.ui.screens.StatisticsBillListScreen
 import com.nonen.Bookkeeping.ui.screens.StatisticsBillListViewModel
+import com.nonen.Bookkeeping.ui.screens.TagEditScreen
+import com.nonen.Bookkeeping.ui.screens.TagManageScreen
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 import com.nonen.Bookkeeping.data.db.BookEntity
@@ -77,6 +81,10 @@ object Routes {
     const val TEMPLATE = "template"
     const val SAVINGS_GOAL = "savings_goal"
     const val CALENDAR = "calendar"
+    const val TAG_MANAGE = "tag_manage"
+    const val ABOUT = "about"
+    const val GUIDE = "guide/{document}?title={title}"
+    const val TAG_EDIT = "tag_edit/{tagId}?parentTagId={parentTagId}"
     const val SETTINGS = "settings"
     const val APPEARANCE = "appearance"
     const val IMPORT_EXPORT = "import_export"
@@ -87,6 +95,8 @@ object Routes {
 
     fun add(txId: Long, date: LocalDate? = null) = "add/$txId" + (date?.let { "?date=$it" } ?: "")
     fun fromTemplate(templateId: Long) = "add/0?templateId=$templateId"
+    fun tagEdit(tagId: Long, parentTagId: Long = 0L) = "tag_edit/$tagId?parentTagId=$parentTagId"
+    fun guide(document: String, title: String) = "guide/$document?title=${Uri.encode(title)}"
     fun editTemplate(templateId: Long, moduleType: Int = 0): String {
         require(moduleType in 0..1)
         return "add/0?templateId=$templateId&editTemplate=true&templateType=$moduleType"
@@ -171,6 +181,9 @@ fun AppNavHost(
                 onAppearance = { nav.navigateSingleTop(Routes.APPEARANCE) },
                 onImportExport = { nav.navigateSingleTop(Routes.IMPORT_EXPORT) },
                 onBackup = { nav.navigateSingleTop(Routes.BACKUP) },
+                onTagManage = { nav.navigateSingleTop(Routes.TAG_MANAGE) },
+                onAbout = { nav.navigateSingleTop(Routes.ABOUT) },
+                onGuide = { nav.navigateSingleTop(Routes.guide("guide.html", "使用指南")) },
                 initialTab = entry.arguments?.getInt("tab") ?: 0,
             )
         }
@@ -200,6 +213,7 @@ fun AppNavHost(
                         categoryRepo = container.categoryRepository,
                         assetRepo = container.assetRepository,
                         templateRepo = container.templateRepository,
+                        tagRepo = container.tagRepository,
                         txId = txId,
                         initialBookId = selectedBookId,
                         initialTemplateId = templateId,
@@ -260,6 +274,7 @@ fun AppNavHost(
 
         composable(Routes.APPEARANCE) {
             YimuThemeScreen(
+                container = container,
                 onBack = { nav.popBackStack() },
                 onThemeMode = { mode -> scope.launch { container.settings.setThemeMode(mode) } },
             )
@@ -373,6 +388,51 @@ fun AppNavHost(
                 onBack = { nav.popBackStack() },
                 onEdit = { txId -> nav.navigate(Routes.add(txId)) },
                 onAdd = { nav.navigate(Routes.add(0L, vm.selectedDate.value)) },
+            )
+        }
+
+        composable(Routes.TAG_MANAGE) {
+            TagManageScreen(
+                container = container,
+                onBack = { nav.popBackStack() },
+                onAddTag = { parentTagId -> nav.navigate(Routes.tagEdit(0L, parentTagId)) },
+                onEditTag = { tagId -> nav.navigate(Routes.tagEdit(tagId)) },
+            )
+        }
+
+        composable(
+            Routes.TAG_EDIT,
+            arguments = listOf(
+                navArgument("tagId") { type = NavType.LongType },
+                navArgument("parentTagId") { type = NavType.LongType; defaultValue = 0L },
+            ),
+        ) { entry ->
+            TagEditScreen(
+                container = container,
+                tagId = entry.arguments?.getLong("tagId") ?: 0L,
+                parentTagId = entry.arguments?.getLong("parentTagId") ?: 0L,
+                onBack = { nav.popBackStack() },
+            )
+        }
+
+        composable(Routes.ABOUT) {
+            AboutScreen(
+                onBack = { nav.popBackStack() },
+                onOpenDocument = { document, title -> nav.navigate(Routes.guide(document, title)) },
+            )
+        }
+
+        composable(
+            Routes.GUIDE,
+            arguments = listOf(
+                navArgument("document") { type = NavType.StringType },
+                navArgument("title") { type = NavType.StringType },
+            ),
+        ) { entry ->
+            GuideScreen(
+                document = entry.arguments?.getString("document") ?: "guide.html",
+                title = entry.arguments?.getString("title") ?: "使用指南",
+                onBack = { nav.popBackStack() },
             )
         }
     }

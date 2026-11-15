@@ -57,6 +57,7 @@ fun YimuNativeHomeList(
     onChooseMonth: () -> Unit,
     onOpenTemplates: () -> Unit,
     onScrolled: (Boolean) -> Unit,
+    themeBackground: Int = R.mipmap.bg_main,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -70,6 +71,7 @@ fun YimuNativeHomeList(
         selection = colors.primaryContainer.toArgb(),
         primary = colors.primary.toArgb(),
         onPrimary = colors.onPrimary.toArgb(),
+        summaryBackground = themeBackground,
     )
     val state = NativeHomeState(transactions, today, hideAmount, noteFirst, simpleCategory, showTime, showAssetIcon,
         selected.toSet(), palette)
@@ -129,6 +131,7 @@ private data class NativeHomePalette(
     val selection: Int,
     val primary: Int,
     val onPrimary: Int,
+    val summaryBackground: Int,
 )
 
 private data class NativeHomeState(
@@ -258,7 +261,10 @@ private class NativeHomeAdapter(private val context: Context) : RecyclerView.Ada
                 typeface = boldTypeface
             }
         }
-        view.findViewById<View>(R.id.home_background).setOnClickListener { callbacks?.onChooseMonth?.invoke() }
+        view.findViewById<View>(R.id.home_background).apply {
+            setBackgroundResource(state.palette.summaryBackground)
+            setOnClickListener { callbacks?.onChooseMonth?.invoke() }
+        }
         view.findViewById<View>(R.id.budget_setting).setOnClickListener { callbacks?.onBudget?.invoke() }
         view.findViewById<View>(R.id.add_bill_btn).apply {
             background = background(state.palette.primary, allCorners())

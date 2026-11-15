@@ -77,6 +77,8 @@ fun YimuHomeScreen(
     val simpleCategory by settings.simpleCategory.collectAsState(initial = false)
     val showTime by settings.showTransactionTime.collectAsState(initial = false)
     val showAssetIcon by settings.showAssetIcon.collectAsState(initial = false)
+    val themeKey by settings.themeKey.collectAsState(initial = settings.cachedThemeKey())
+    val themeBackground = com.nonen.Bookkeeping.ui.theme.ThemeCatalog.backgroundFor(themeKey) ?: R.mipmap.bg_main
     val context = LocalContext.current
     var listScrolled by remember { mutableStateOf(false) }
     var drawerOpen by remember { mutableStateOf(false) }
@@ -160,7 +162,9 @@ fun YimuHomeScreen(
                             onLongSelect = { id -> selected = selected + id },
                             onAdd = onAdd, onBudget = onBudget, onChooseMonth = { monthPicker = true },
                             onOpenTemplates = { drawerOpen = true },
-                            onScrolled = { listScrolled = it }, modifier = Modifier.fillMaxSize())
+                            onScrolled = { listScrolled = it },
+                            themeBackground = themeBackground,
+                            modifier = Modifier.fillMaxSize())
                     }
                     if (selected.isNotEmpty()) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         TextButton(onClick = { selected = emptySet() }) { Text("取消") }

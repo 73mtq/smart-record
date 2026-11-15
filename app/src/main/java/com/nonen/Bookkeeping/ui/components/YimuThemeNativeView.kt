@@ -36,6 +36,9 @@ class YimuThemeNativeView @JvmOverloads constructor(
 
         /** 夜间主题（萤火）与默认主题（一木）可切换到对应日/夜模式 */
         fun onThemeMode(mode: ThemeMode) = Unit
+
+        /** 选择主题外观：四季或纯色主题只切换主色，夜间与默认会同时切换日/夜模式 */
+        fun onThemeSelected(themeKey: String) = Unit
     }
 
     private data class ThemeChildItem(
@@ -58,6 +61,7 @@ class YimuThemeNativeView @JvmOverloads constructor(
     private val backgroundList: RecyclerView
     private val themeParentList: RecyclerView
     private var listener: Listener? = null
+    private var currentThemeKey: String = "default"
 
     init {
         LayoutInflater.from(context).inflate(R.layout.yimu_theme, this, true)
@@ -77,8 +81,12 @@ class YimuThemeNativeView @JvmOverloads constructor(
         bindThemeParents()
     }
 
-    fun bind(listener: Listener) {
+    fun bind(listener: Listener, currentThemeKey: String = "default") {
         this.listener = listener
+        if (this.currentThemeKey != currentThemeKey) {
+            this.currentThemeKey = currentThemeKey
+            themeParentList.adapter?.notifyDataSetChanged()
+        }
     }
 
     fun applyToolbarInset(statusBarPx: Int) {
@@ -260,13 +268,19 @@ class YimuThemeNativeView @JvmOverloads constructor(
                 null
             }
             holder.itemView.findViewById<View>(R.id.vip_icon).visibility = if (item.vip) View.VISIBLE else View.GONE
-            holder.itemView.findViewById<View>(R.id.select_layout).visibility = View.GONE
+            holder.itemView.findViewById<View>(R.id.select_layout).visibility =
+                if (item.themeKey == currentThemeKey) View.VISIBLE else View.GONE
             holder.itemView.setOnClickListener {
                 when (item.themeKey) {
                     "night" -> listener?.onThemeMode(ThemeMode.DARK)
                     "default" -> listener?.onThemeMode(ThemeMode.LIGHT)
-                    else -> listener?.onUnsupported(item.name)
+                    "self_add" -> {
+                        listener?.onUnsupported(item.name)
+                        return@setOnClickListener
+                    }
+                    else -> Unit
                 }
+                listener?.onThemeSelected(item.themeKey)
             }
         }
     }
@@ -289,8 +303,9 @@ class YimuThemeNativeView @JvmOverloads constructor(
             drawable.setColor(requireNotNull(item.color))
             cover.setImageDrawable(drawable)
             holder.itemView.findViewById<View>(R.id.vip_icon).visibility = if (item.vip) View.VISIBLE else View.GONE
-            holder.itemView.findViewById<View>(R.id.select_layout).visibility = View.GONE
-            holder.itemView.setOnClickListener { listener?.onUnsupported(item.name) }
+            holder.itemView.findViewById<View>(R.id.select_layout).visibility =
+                if (item.themeKey == currentThemeKey) View.VISIBLE else View.GONE
+            holder.itemView.setOnClickListener { listener?.onThemeSelected(item.themeKey) }
         }
     }
 }

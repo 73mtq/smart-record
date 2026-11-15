@@ -160,6 +160,7 @@ class AssetManageViewModel(
         type: Int,
         groupName: String?,
         intoTotalAsset: Boolean,
+        remark: String? = null,
     ) {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) {
@@ -177,6 +178,7 @@ class AssetManageViewModel(
                     assetType = type,
                     groupName = groupName?.trim()?.ifEmpty { null },
                     intoTotalAsset = intoTotalAsset,
+                    remark = remark?.trim()?.ifEmpty { null },
                 )
                 assetRepo.updateAsset(updated)
             } else {
@@ -187,6 +189,7 @@ class AssetManageViewModel(
                     type = type,
                     groupName = groupName,
                     intoTotalAsset = intoTotalAsset,
+                    remark = remark,
                 )
             }
             closeAddEditDialog()

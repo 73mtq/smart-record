@@ -73,6 +73,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             val app = application as BookkeepingApp
             val mode by app.container.settings.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+            val themeKey by app.container.settings.themeKey.collectAsState(
+                initial = app.container.settings.cachedThemeKey(),
+            )
+            val primaryColor = com.nonen.Bookkeeping.ui.theme.ThemeCatalog.colorFor(themeKey)
             val appLockEnabled by app.container.settings.appLockEnabled.collectAsState(initial = false)
 
             val darkTheme = when (mode) {
@@ -124,7 +128,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            BookkeepingTheme(darkTheme = darkTheme) {
+            BookkeepingTheme(darkTheme = darkTheme, primaryColor = primaryColor) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,

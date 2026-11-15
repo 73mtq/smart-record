@@ -80,6 +80,8 @@ class SettingsStore(context: Context, private val store: DataStore<Preferences> 
     private val KEY_SHOW_TIME = booleanPreferencesKey("show_transaction_time")
     private val KEY_SHOW_ASSET_ICON = booleanPreferencesKey("show_asset_icon")
     private val KEY_TEMPLATE_TIP_HIDDEN = booleanPreferencesKey("template_tip_hidden")
+    private val KEY_THEME_KEY = stringPreferencesKey("theme_key")
+    private val KEY_THEME_LOGO = stringPreferencesKey("theme_logo")
 
     val autoRecordEnabled: Flow<Boolean> = store.data.map { it[KEY_AUTO_RECORD] ?: true }
     val listenScope: Flow<ListenScope> = store.data.map { ListenScope.from(it[KEY_LISTEN_SCOPE]) }
@@ -97,6 +99,10 @@ class SettingsStore(context: Context, private val store: DataStore<Preferences> 
     val showTransactionTime: Flow<Boolean> = store.data.map { it[KEY_SHOW_TIME] ?: false }
     val showAssetIcon: Flow<Boolean> = store.data.map { it[KEY_SHOW_ASSET_ICON] ?: false }
     val templateTipHidden: Flow<Boolean> = store.data.map { it[KEY_TEMPLATE_TIP_HIDDEN] ?: false }
+    /** 主题外观 key：night/default/spring/summer/autumn/winter/simple* */
+    val themeKey: Flow<String> = store.data.map { it[KEY_THEME_KEY] ?: "default" }
+    /** 应用内 LOGO 资源名 */
+    val themeLogo: Flow<String> = store.data.map { it[KEY_THEME_LOGO] ?: "ic_launcher" }
 
     suspend fun snapshot(): SettingsSnapshot = SettingsSnapshot(
         autoRecordEnabled = autoRecordEnabled.first(),
@@ -124,8 +130,23 @@ class SettingsStore(context: Context, private val store: DataStore<Preferences> 
         store.edit { it[KEY_THEME_MODE] = value.name }
     }
 
+    suspend fun setThemeKey(value: String) {
+        themeCache.edit().putString("theme_key", value).apply()
+        store.edit { it[KEY_THEME_KEY] = value }
+    }
+
+    suspend fun setThemeLogo(value: String) {
+        themeCache.edit().putString("theme_logo", value).apply()
+        store.edit { it[KEY_THEME_LOGO] = value }
+    }
+
     /** 仅供 Activity 启动时同步读取主题模式 */
     fun cachedThemeMode(): ThemeMode = ThemeMode.from(themeCache.getString("theme_mode", null))
+
+    /** 仅供 Activity 启动时同步读取主题外观 */
+    fun cachedThemeKey(): String = themeCache.getString("theme_key", null) ?: "default"
+
+    fun cachedThemeLogo(): String = themeCache.getString("theme_logo", null) ?: "ic_launcher"
     suspend fun setDynamicColor(value: Boolean) = store.edit { it[KEY_DYNAMIC_COLOR] = value }
     suspend fun setHideAmount(value: Boolean) = store.edit { it[KEY_HIDE_AMOUNT] = value }
     suspend fun setAppLockEnabled(value: Boolean) = store.edit { it[KEY_APP_LOCK] = value }

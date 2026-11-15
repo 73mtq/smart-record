@@ -36,7 +36,7 @@ import com.nonen.Bookkeeping.data.entity.ModuleBillEntity
         DreamEntity::class,
         DreamLogEntity::class,
     ],
-    version = 6,
+    version = 8,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -546,6 +546,32 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_dream_logs_dreamId` ON `dream_logs` (`dreamId`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_dream_logs_time` ON `dream_logs` (`time`)")
+            }
+        }
+
+        /**
+         * v6 → v7：
+         * tags 表补齐原版标签字段：颜色、隐藏、一级标签关联、更新时间。
+         * 只新增列与索引，不改动已有标签与关联。
+         */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `tags` ADD COLUMN `color` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `tags` ADD COLUMN `hide` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `tags` ADD COLUMN `parentTagId` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `tags` ADD COLUMN `updateTime` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_tags_parentTagId` ON `tags` (`parentTagId`)")
+            }
+        }
+
+        /**
+         * v7 → v8：
+         * assets 表补齐账户图标与备注字段，供资产行与账户选择弹窗展示。
+         */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `assets` ADD COLUMN `icon` TEXT DEFAULT NULL")
+                db.execSQL("ALTER TABLE `assets` ADD COLUMN `remark` TEXT DEFAULT NULL")
             }
         }
     }

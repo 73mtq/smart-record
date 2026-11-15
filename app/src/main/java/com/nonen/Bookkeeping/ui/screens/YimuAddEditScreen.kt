@@ -8,8 +8,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -259,9 +261,7 @@ fun YimuAddEditScreen(
             onDispose { assetDialog.dismiss() }
         }
     }
-    if (dialog == "tag") AlertDialog(onDismissRequest = { dialog = null }, title = { Text(stringResource(R.string.yimu_label)) },
-        text = { OutlinedTextField(draft, { draft = it }, singleLine = true) },
-        confirmButton = { TextButton(onClick = { vm.tag = draft; dialog = null }) { Text("保存") } })
+    if (dialog == "tag") TagChoiceDialog(vm) { dialog = null }
     if (dialog == "date") {
         val state = rememberDatePickerState(selectedDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
         DatePickerDialog(onDismissRequest = { dialog = null }, confirmButton = { TextButton(onClick = {
@@ -380,10 +380,7 @@ private fun YimuAddBillNativeScreen(
         confirmButton = { TextButton(enabled = draft.toDoubleOrNull()?.isFinite() == true, onClick = {
             vm.transferServiceCharge = requireNotNull(draft.toDoubleOrNull()); dialog = null
         }) { Text(stringResource(R.string.yimu_save)) } })
-    if (dialog == "tag") AlertDialog(onDismissRequest = { dialog = null },
-        title = { Text(stringResource(R.string.yimu_label)) },
-        text = { OutlinedTextField(draft, { draft = it }, singleLine = true) },
-        confirmButton = { TextButton(onClick = { vm.tag = draft; dialog = null }) { Text("保存") } })
+    if (dialog == "tag") TagChoiceDialog(vm) { dialog = null }
     vm.errorMessageRes?.let { message ->
         AlertDialog(onDismissRequest = { vm.errorMessageRes = null }, text = { Text(stringResource(message)) },
             confirmButton = { TextButton(onClick = { vm.errorMessageRes = null }) { Text("确定") } })
@@ -416,5 +413,57 @@ private fun TransferAccountRow(title: Int, account: String?, onClick: () -> Unit
         Text(stringResource(title), fontSize = 15.sp)
         Spacer(Modifier.weight(1f))
         Text(account ?: stringResource(R.string.yimu_select_account), fontSize = 15.sp)
+    }
+}
+
+/** 标签多选弹窗：一级标签与缩进的二级标签，确认后回填名称与关联 ID。 */
+@Composable
+private fun TagChoiceDialog(vm: AddEditViewModel, onDismiss: () -> Unit) {
+    var selected by remember(vm.selectedTagIds) { mutableStateOf(vm.selectedTagIds.toSet()) }
+    val parents = vm.liveTags.filter { it.parentTagId == 0L }
+    val childrenByParent = vm.liveTags.filter { it.parentTagId != 0L }.groupBy { it.parentTagId }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.yimu_label)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                if (parents.isEmpty()) {
+                    Text(
+                        text = "还没有标签，可在 我的 → 标签管理 中创建",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                parents.forEach { parent ->
+                    TagChoiceRow(parent.tagName, selected.contains(parent.tagId)) { checked ->
+                        selected = if (checked) selected + parent.tagId else selected - parent.tagId
+                    }
+                    childrenByParent[parent.tagId].orEmpty().forEach { child ->
+                        TagChoiceRow(child.tagName, selected.contains(child.tagId), indent = true) { checked ->
+                            selected = if (checked) selected + child.tagId else selected - child.tagId
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                vm.selectedTagIds = selected.toList()
+                vm.tag = vm.liveTags.filter { it.tagId in selected }.joinToString(",") { it.tagName }
+                onDismiss()
+            }) { Text("保存") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+@Composable
+private fun TagChoiceRow(name: String, checked: Boolean, indent: Boolean = false, onChange: (Boolean) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(40.dp).padding(start = if (indent) 20.dp else 0.dp).clickable { onChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = { onChange(it) })
+        Text(name, fontSize = 14.sp)
     }
 }

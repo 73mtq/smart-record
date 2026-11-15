@@ -262,8 +262,29 @@ interface TagDao {
     @Query("SELECT * FROM tags WHERE tagName = :name LIMIT 1")
     suspend fun findByName(name: String): TagEntity?
 
+    @Query("SELECT * FROM tags WHERE tagId = :tagId")
+    suspend fun getById(tagId: Long): TagEntity?
+
+    @Query("SELECT * FROM tags WHERE parentTagId = :parentTagId ORDER BY positionWeight ASC, tagId ASC")
+    suspend fun getByParent(parentTagId: Long): List<TagEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(tag: TagEntity): Long
+
+    @Update
+    suspend fun update(tag: TagEntity)
+
+    @Delete
+    suspend fun delete(tag: TagEntity)
+
+    @Query("DELETE FROM tags WHERE tagId = :tagId")
+    suspend fun deleteById(tagId: Long)
+
+    @Query("DELETE FROM transaction_tag_refs WHERE tagId = :tagId")
+    suspend fun clearRefsForTag(tagId: Long)
+
+    @Query("SELECT COUNT(*) FROM transaction_tag_refs WHERE tagId = :tagId")
+    suspend fun countRefsForTag(tagId: Long): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(tags: List<TagEntity>)

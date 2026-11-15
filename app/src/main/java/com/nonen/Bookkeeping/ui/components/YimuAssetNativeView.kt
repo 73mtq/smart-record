@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.data.db.AssetEntity
+import com.nonen.Bookkeeping.data.repo.AssetRepository
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -206,14 +207,27 @@ class YimuAssetNativeView @JvmOverloads constructor(
             private val cost: TextView = view.findViewById(R.id.cost)
 
             fun bind(asset: AssetEntity) {
-                // 账户图标与备注在原版由 ImageView 加载与 Asset.remark 填充，当前实体无对应字段
-                icon.setImageResource(R.mipmap.ic_asset_not_check)
+                icon.setImageResource(assetIconRes(asset))
                 name.text = asset.assetName
-                remark.visibility = View.GONE
+                val remarkText = asset.remark.orEmpty().trim()
+                remark.text = remarkText
+                remark.visibility = if (remarkText.isEmpty()) View.GONE else View.VISIBLE
                 cost.text = assetAmountText(asset.assetNumber, masked)
                 cost.setTextColor(assetCostColor(asset))
                 itemView.setOnClickListener { onClick(asset) }
                 itemView.setOnLongClickListener { onLongClick(asset); true }
+            }
+
+            /** 账户图标：优先使用账户自带的图标资源名，缺失时按账户类型回退。 */
+            private fun assetIconRes(asset: AssetEntity): Int {
+                val custom = asset.icon?.takeIf { it.isNotBlank() }?.let { name ->
+                    itemView.resources.getIdentifier(name, "mipmap", itemView.context.packageName)
+                }
+                if (custom != null && custom != 0) return custom
+                return when (asset.assetType) {
+                    AssetRepository.TYPE_FUND, AssetRepository.TYPE_CREDIT -> R.mipmap.ic_asset_choice_one
+                    else -> R.mipmap.ic_asset_not_check
+                }
             }
         }
     }

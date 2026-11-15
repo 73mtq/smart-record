@@ -59,6 +59,9 @@ fun MyScreen(
     onAppearance: () -> Unit,
     onImportExport: () -> Unit,
     onBackup: () -> Unit,
+    onTag: () -> Unit = {},
+    onAbout: () -> Unit = onSettings,
+    onGuide: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val records by remember(container) {
@@ -93,7 +96,7 @@ fun MyScreen(
                     override fun onDream() = onDream()
                     override fun onRules() = onRules()
                     override fun onBook() = onBook()
-                    override fun onTag() = unsupported()
+                    override fun onTag() = onTag()
                     override fun onCategory() = onCategory()
                     override fun onSettings() = onSettings()
                     override fun onCloudSync() = unsupported()
@@ -101,11 +104,11 @@ fun MyScreen(
                     override fun onImportExport() = onImportExport()
                     override fun onTheme() = onAppearance()
                     override fun onWidget() = unsupported()
-                    override fun onGuide() = unsupported()
+                    override fun onGuide() = onGuide()
                     override fun onInvitation() = unsupported()
                     override fun onFeedback() = unsupported()
                     override fun onEvaluate() = unsupported()
-                    override fun onAbout() = onSettings()
+                    override fun onAbout() = onAbout()
                 })
         },
     )

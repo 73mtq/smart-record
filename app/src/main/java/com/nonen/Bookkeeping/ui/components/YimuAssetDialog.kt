@@ -121,7 +121,13 @@ class YimuAssetDialog(
                 name.setTextColor(context.getColor(R.color.black))
                 cost.visibility = View.VISIBLE
                 cost.text = String.format(java.util.Locale.US, "%,.2f", asset.assetNumber)
-                icon.setImageResource(R.mipmap.ic_main_account_book)
+                val remarkText = asset.remark.orEmpty().trim()
+                remark.text = remarkText
+                remark.visibility = if (remarkText.isEmpty()) View.GONE else View.VISIBLE
+                val custom = asset.icon?.takeIf { it.isNotBlank() }?.let { name ->
+                    context.resources.getIdentifier(name, "mipmap", context.packageName)
+                }
+                icon.setImageResource(if (custom != null && custom != 0) custom else R.mipmap.ic_main_account_book)
                 icon.imageTintList = ColorStateList.valueOf(context.getColor(R.color.textColorPrimary))
             }
             holder.itemView.setOnClickListener {

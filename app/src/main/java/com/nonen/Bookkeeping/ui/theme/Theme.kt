@@ -70,10 +70,18 @@ private val AppShapes = Shapes(
 @Composable
 fun BookkeepingTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
+    primaryColor: Int = ThemeCatalog.DEFAULT_PRIMARY,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) DarkColors else LightColors
+    val base = if (darkTheme) DarkColors else LightColors
+    val primary = Color(primaryColor)
+    val colorScheme = base.copy(
+        primary = primary,
+        primaryContainer = primary.copy(alpha = 0.1f),
+        secondary = primary,
+        secondaryContainer = primary.copy(alpha = 0.1f),
+        tertiary = primary,
+    )
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -85,6 +93,7 @@ fun BookkeepingTheme(
                 isAppearanceLightStatusBars = !darkTheme
                 isAppearanceLightNavigationBars = !darkTheme
             }
+            ThemeTint.apply(window.decorView, primaryColor)
         }
     }
 

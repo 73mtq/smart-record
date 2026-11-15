@@ -28,6 +28,10 @@ data class AssetEntity(
     val positionWeight: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
+    /** 账户图标资源名，null 使用默认图标 */
+    val icon: String? = null,
+    /** 账户备注 */
+    val remark: String? = null,
 )
 
 /**
@@ -168,6 +172,7 @@ data class BookEntity(
     tableName = "tags",
     indices = [
         Index(value = ["tagName"], unique = true),
+        Index("parentTagId"),
     ],
 )
 data class TagEntity(
@@ -175,6 +180,12 @@ data class TagEntity(
     val tagName: String,
     val positionWeight: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
+    /** 标签颜色，0 表示跟随主题 */
+    val color: Int = 0,
+    val hide: Boolean = false,
+    /** 一级标签 ID，0 表示自身是一级标签 */
+    val parentTagId: Long = 0L,
+    val updateTime: Long = 0L,
 )
 
 /**

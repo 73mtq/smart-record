@@ -59,6 +59,9 @@ fun MainScreen(
     onAppearance: () -> Unit = {},
     onImportExport: () -> Unit = {},
     onBackup: () -> Unit = {},
+    onTagManage: () -> Unit = {},
+    onAbout: () -> Unit = {},
+    onGuide: () -> Unit = {},
     initialTab: Int = 0,
 ) {
     val vm: MainViewModel = viewModel(factory = vmFactory { MainViewModel(container) })
@@ -116,6 +119,9 @@ fun MainScreen(
                     container, onSettings, onCategoryManage, onRules, onPeriodic, onSavingsGoal,
                     onTemplate, onBudget, onBook = { showBooks = true },
                     onAppearance = onAppearance, onImportExport = onImportExport, onBackup = onBackup,
+                    onTag = onTagManage,
+                    onAbout = onAbout,
+                    onGuide = onGuide,
                 )
             }
         }

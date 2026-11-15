@@ -64,6 +64,8 @@ class AssetRepository(
         groupName: String? = null,
         intoTotalAsset: Boolean = true,
         currency: String? = "CNY",
+        icon: String? = null,
+        remark: String? = null,
     ): Long {
         val maxId = assetDao.getMaxAssetId() ?: 0L
         val nextId = kotlin.math.max(101L, maxId + 1L)
@@ -84,6 +86,8 @@ class AssetRepository(
             positionWeight = nextWeight,
             createdAt = now,
             updatedAt = now,
+            icon = icon?.trim()?.ifEmpty { null },
+            remark = remark?.trim()?.ifEmpty { null },
         )
         assetDao.insert(entity)
         return nextId
@@ -98,6 +102,8 @@ class AssetRepository(
             assetNumber = roundDouble(asset.assetNumber),
             totalQuota = roundDouble(asset.totalQuota),
             groupName = asset.groupName?.trim()?.ifEmpty { null },
+            icon = asset.icon?.trim()?.ifEmpty { null },
+            remark = asset.remark?.trim()?.ifEmpty { null },
             updatedAt = System.currentTimeMillis(),
         )
         assetDao.update(updated)

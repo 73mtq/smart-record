@@ -18,6 +18,7 @@ import com.nonen.Bookkeeping.data.repo.CategoryRepository
 import com.nonen.Bookkeeping.data.repo.PeriodicRepository
 import com.nonen.Bookkeeping.data.repo.ReportRepository
 import com.nonen.Bookkeeping.data.repo.RuleRepository
+import com.nonen.Bookkeeping.data.repo.TagRepository
 import com.nonen.Bookkeeping.data.repo.SavingsGoalRepository
 import com.nonen.Bookkeeping.data.repo.TemplateRepository
 import com.nonen.Bookkeeping.data.repo.TransactionRepository
@@ -41,6 +42,8 @@ class AppContainer(val appContext: Context) {
             AppDatabase.MIGRATION_3_4,
             AppDatabase.MIGRATION_4_5,
             AppDatabase.MIGRATION_5_6,
+            AppDatabase.MIGRATION_6_7,
+            AppDatabase.MIGRATION_7_8,
         )
         .addCallback(object : RoomDatabase.Callback() {
             /** 早期版本把默认现金账户的分组名写成“现金账户”，原版分组名是“资金账户”，打开时统一更正 */
@@ -85,6 +88,7 @@ class AppContainer(val appContext: Context) {
     val dreamDao get() = database.dreamDao()
 
     val ruleRepository = RuleRepository(ruleDao, merchantDao)
+    val tagRepository = TagRepository(tagDao)
     val transactionRepository = TransactionRepository(transactionDao, ruleDao, merchantDao, settings, assetDao, transferDao, database)
     val categoryRepository = CategoryRepository(categoryDao)
     val assetRepository = AssetRepository(assetDao, transferDao, transactionDao, database)

@@ -533,9 +533,10 @@ private fun AssetItemRow(
 private fun AddEditAssetDialog(
     editingAsset: AssetEntity?,
     onDismiss: () -> Unit,
-    onConfirm: (name: String, balance: Double, quota: Double, type: Int, groupName: String?, intoTotalAsset: Boolean) -> Unit,
+    onConfirm: (name: String, balance: Double, quota: Double, type: Int, groupName: String?, intoTotalAsset: Boolean, remark: String?) -> Unit,
 ) {
     var name by remember { mutableStateOf(editingAsset?.assetName ?: "") }
+    var remark by remember { mutableStateOf(editingAsset?.remark ?: "") }
     var balanceText by remember { mutableStateOf(editingAsset?.let { String.format(Locale.US, "%.2f", it.assetNumber) } ?: "0.00") }
     var quotaText by remember { mutableStateOf(editingAsset?.let { String.format(Locale.US, "%.2f", it.totalQuota) } ?: "0.00") }
     var type by remember { mutableIntStateOf(editingAsset?.assetType ?: AssetRepository.TYPE_FUND) }
@@ -607,6 +608,14 @@ private fun AddEditAssetDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
+                OutlinedTextField(
+                    value = remark,
+                    onValueChange = { remark = it },
+                    label = { Text("备注（选填）") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { intoTotalAsset = !intoTotalAsset },
@@ -624,7 +633,7 @@ private fun AddEditAssetDialog(
                 onClick = {
                     val balance = balanceText.toDoubleOrNull() ?: 0.0
                     val quota = quotaText.toDoubleOrNull() ?: 0.0
-                    onConfirm(name, balance, quota, type, groupName, intoTotalAsset)
+                    onConfirm(name, balance, quota, type, groupName, intoTotalAsset, remark.ifBlank { null })
                 },
             ) {
                 Text("保存")
