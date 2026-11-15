@@ -23,7 +23,8 @@
 ## 已完成（2026-11-15，提交 f6e36ed）
 
 - 标签体系（v7 迁移）、关于我们、使用指南与本地文档、主题市场主色/四季背景、资产图标与备注（v8 迁移）。
-- 分类编辑页（CategoryEditScreen）：名称、线条图标选择网格、仅在当前账本显示、删除。
+- 分类编辑页（CategoryEditScreen）：名称、线条图标选择网格、仅在当前账本显示、删除；已真机验证新增与图标选择。
+- 愿望编辑页（DreamEditScreen）、预算设置页（BudgetEditScreen）、周期设置页（CycleEditScreen）：编译、单测、Lint 通过，未真机逐页操作。
 - 验证：编译、单测、Lint、`YimuCompletionInstrumentationTest`、真机标签/主题/关于页/分类新增。
 
 ## 未完成
