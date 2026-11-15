@@ -82,6 +82,8 @@ class YimuCaptureInstrumentationTest {
                     if (objects.size > wanted) objects[wanted].click()
                     else check(action.optBoolean("optional", false)) { "找不到控件：$action" }
                 }
+                // 自绘日历没有可点击的日期节点，只能按坐标选中指定日期
+                "click_xy" -> device.click(action.getInt("x"), action.getInt("y"))
                 "swipe" -> {
                     val from = action.getJSONArray("from")
                     val to = action.getJSONArray("to")
