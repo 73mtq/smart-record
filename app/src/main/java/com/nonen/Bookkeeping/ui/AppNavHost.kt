@@ -36,6 +36,7 @@ import com.nonen.Bookkeeping.ui.screens.AboutScreen
 import com.nonen.Bookkeeping.ui.screens.AssetManageScreen
 import com.nonen.Bookkeeping.ui.screens.AssetManageViewModel
 import com.nonen.Bookkeeping.ui.screens.GuideScreen
+import com.nonen.Bookkeeping.ui.screens.BudgetEditScreen
 import com.nonen.Bookkeeping.ui.screens.BudgetScreen
 import com.nonen.Bookkeeping.ui.screens.BudgetViewModel
 import com.nonen.Bookkeeping.ui.screens.CalendarScreen
@@ -79,6 +80,7 @@ object Routes {
     const val CATEGORY_MANAGE = "category_manage"
     const val CATEGORY_EDIT = "category_edit?parentId={parentId}&categoryId={categoryId}&type={type}"
     const val DREAM_EDIT = "dream_edit/{dreamId}"
+    const val BUDGET_EDIT = "budget_edit?year={year}&month={month}"
     const val ASSET_MANAGE = "asset_manage"
     const val BUDGET = "budget"
     const val PERIODIC = "periodic"
@@ -104,6 +106,7 @@ object Routes {
     fun categoryEdit(parentId: Int, categoryId: Int = 0, type: Int = 0) =
         "category_edit?parentId=$parentId&categoryId=$categoryId&type=$type"
     fun dreamEdit(dreamId: Long = 0L) = "dream_edit/$dreamId"
+    fun budgetEdit(year: Int, month: Int) = "budget_edit?year=$year&month=$month"
     fun editTemplate(templateId: Long, moduleType: Int = 0): String {
         require(moduleType in 0..1)
         return "add/0?templateId=$templateId&editTemplate=true&templateType=$moduleType"
@@ -361,13 +364,32 @@ fun AppNavHost(
             AssetManageScreen(vm = vm, onBack = { nav.popBackStack() })
         }
 
+        composable(
+            Routes.BUDGET_EDIT,
+            arguments = listOf(
+                navArgument("year") { type = NavType.IntType; defaultValue = 2026 },
+                navArgument("month") { type = NavType.IntType; defaultValue = 1 },
+            ),
+        ) { entry ->
+            BudgetEditScreen(
+                container = container,
+                year = entry.arguments?.getInt("year") ?: 2026,
+                month = entry.arguments?.getInt("month") ?: 1,
+                onBack = { nav.popBackStack() },
+            )
+        }
+
         composable(Routes.BUDGET) {
             val vm: BudgetViewModel = viewModel(
                 factory = vmFactory {
                     BudgetViewModel(container.budgetRepository)
                 },
             )
-            BudgetScreen(viewModel = vm, onBack = { nav.popBackStack() })
+            BudgetScreen(
+                viewModel = vm,
+                onBack = { nav.popBackStack() },
+                onOpenEdit = { year, month -> nav.navigate(Routes.budgetEdit(year, month)) },
+            )
         }
 
         composable(Routes.PERIODIC) {

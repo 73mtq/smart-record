@@ -63,12 +63,12 @@ import java.util.Locale
 fun BudgetScreen(
     viewModel: BudgetViewModel,
     onBack: () -> Unit,
+    onOpenEdit: (year: Int, month: Int) -> Unit = { _, _ -> },
 ) {
     val overview by viewModel.budgetOverview.collectAsState()
     val year by viewModel.currentYear.collectAsState()
     val month by viewModel.currentMonth.collectAsState()
 
-    var showTotalDialog by remember { mutableStateOf(false) }
     var showCategoryDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -82,23 +82,12 @@ fun BudgetScreen(
                 overview.usageRatio, overview.categoryDetails.size,
                 object : YimuBudgetNativeView.Listener {
                     override fun onBack() = back()
-                    override fun onEditTotal() { showTotalDialog = true }
+                    override fun onEditTotal() = onOpenEdit(year, month)
                     override fun onAddCategory() { showCategoryDialog = true }
                 },
             )
         },
     )
-
-    if (showTotalDialog) {
-        SetTotalBudgetDialog(
-            currentBudget = overview.totalBudget,
-            onDismiss = { showTotalDialog = false },
-            onConfirm = { amount ->
-                viewModel.setTotalBudget(amount)
-                showTotalDialog = false
-            },
-        )
-    }
 
     if (showCategoryDialog) {
         SetCategoryBudgetDialog(
@@ -249,48 +238,6 @@ fun CategoryBudgetItem(
             }
         }
     }
-}
-
-@Composable
-fun SetTotalBudgetDialog(
-    currentBudget: Double,
-    onDismiss: () -> Unit,
-    onConfirm: (Double) -> Unit,
-) {
-    var text by remember { mutableStateOf(if (currentBudget > 0) currentBudget.toString() else "") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("设定月度总预算") },
-        text = {
-            Column {
-                Text("请输入当月支出总预算金额：")
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    placeholder = { Text("例如 5000.00") },
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val amount = text.toDoubleOrNull() ?: 0.0
-                    onConfirm(amount)
-                },
-            ) {
-                Text("保存")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        },
-    )
 }
 
 @Composable
