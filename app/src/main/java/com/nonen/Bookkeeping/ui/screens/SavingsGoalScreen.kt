@@ -61,9 +61,9 @@ import java.util.Locale
 fun SavingsGoalScreen(
     viewModel: SavingsGoalViewModel,
     onBack: () -> Unit,
+    onOpenEdit: (dreamId: Long) -> Unit = {},
 ) {
     val goals by viewModel.goals.collectAsState()
-    var showCreateDialog by remember { mutableStateOf(false) }
     var actionGoalId by remember { mutableStateOf<Long?>(null) }
     var isDepositAction by remember { mutableStateOf(true) }
 
@@ -75,20 +75,10 @@ fun SavingsGoalScreen(
         update = { view ->
             view.bind(object : YimuDreamNativeView.Listener {
                 override fun onBack() = back()
-                override fun onAdd() { showCreateDialog = true }
+                override fun onAdd() = onOpenEdit(0L)
             })
         },
     )
-
-    if (showCreateDialog) {
-        CreateGoalDialog(
-            onDismiss = { showCreateDialog = false },
-            onConfirm = { name, target, initial, days, remark ->
-                viewModel.createGoal(name, target, initial, days, remark)
-                showCreateDialog = false
-            },
-        )
-    }
 
     if (actionGoalId != null) {
         DepositWithdrawDialog(
@@ -213,74 +203,6 @@ fun GoalCardItem(
             }
         }
     }
-}
-
-@Composable
-fun CreateGoalDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (name: String, target: Double, initial: Double, days: Int, remark: String?) -> Unit,
-) {
-    var nameText by remember { mutableStateOf("") }
-    var targetText by remember { mutableStateOf("") }
-    var initialText by remember { mutableStateOf("") }
-    var daysText by remember { mutableStateOf("30") }
-    var remarkText by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("新建储蓄愿望") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = nameText,
-                    onValueChange = { nameText = it },
-                    label = { Text("愿望名称") },
-                    singleLine = true,
-                    placeholder = { Text("例如 旅游基金 / 换新电脑") },
-                )
-                OutlinedTextField(
-                    value = targetText,
-                    onValueChange = { targetText = it },
-                    label = { Text("目标金额") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    placeholder = { Text("例如 5000.00") },
-                )
-                OutlinedTextField(
-                    value = initialText,
-                    onValueChange = { initialText = it },
-                    label = { Text("初始已存资金（可选）") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = daysText,
-                    onValueChange = { daysText = it },
-                    label = { Text("计划完成天数") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val target = targetText.toDoubleOrNull() ?: 0.0
-                    val initial = initialText.toDoubleOrNull() ?: 0.0
-                    val days = daysText.toIntOrNull() ?: 30
-                    val name = nameText.ifBlank { "储蓄目标" }
-                    onConfirm(name, target, initial, days, remarkText)
-                },
-            ) {
-                Text("创建")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        },
-    )
 }
 
 @Composable

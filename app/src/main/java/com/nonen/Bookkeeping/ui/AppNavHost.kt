@@ -41,6 +41,7 @@ import com.nonen.Bookkeeping.ui.screens.BudgetViewModel
 import com.nonen.Bookkeeping.ui.screens.CalendarScreen
 import com.nonen.Bookkeeping.ui.screens.CalendarViewModel
 import com.nonen.Bookkeeping.ui.screens.CategoryEditScreen
+import com.nonen.Bookkeeping.ui.screens.DreamEditScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageViewModel
 import com.nonen.Bookkeeping.ui.screens.MainScreen
@@ -77,6 +78,7 @@ object Routes {
     const val RULES = "rules"
     const val CATEGORY_MANAGE = "category_manage"
     const val CATEGORY_EDIT = "category_edit?parentId={parentId}&categoryId={categoryId}&type={type}"
+    const val DREAM_EDIT = "dream_edit/{dreamId}"
     const val ASSET_MANAGE = "asset_manage"
     const val BUDGET = "budget"
     const val PERIODIC = "periodic"
@@ -101,6 +103,7 @@ object Routes {
     fun guide(document: String, title: String) = "guide/$document?title=${Uri.encode(title)}"
     fun categoryEdit(parentId: Int, categoryId: Int = 0, type: Int = 0) =
         "category_edit?parentId=$parentId&categoryId=$categoryId&type=$type"
+    fun dreamEdit(dreamId: Long = 0L) = "dream_edit/$dreamId"
     fun editTemplate(templateId: Long, moduleType: Int = 0): String {
         require(moduleType in 0..1)
         return "add/0?templateId=$templateId&editTemplate=true&templateType=$moduleType"
@@ -395,13 +398,28 @@ fun AppNavHost(
             )
         }
 
+        composable(
+            Routes.DREAM_EDIT,
+            arguments = listOf(navArgument("dreamId") { type = NavType.LongType }),
+        ) { entry ->
+            DreamEditScreen(
+                container = container,
+                dreamId = entry.arguments?.getLong("dreamId") ?: 0L,
+                onBack = { nav.popBackStack() },
+            )
+        }
+
         composable(Routes.SAVINGS_GOAL) {
             val vm: SavingsGoalViewModel = viewModel(
                 factory = vmFactory {
                     SavingsGoalViewModel(container.savingsGoalRepository)
                 },
             )
-            SavingsGoalScreen(viewModel = vm, onBack = { nav.popBackStack() })
+            SavingsGoalScreen(
+                viewModel = vm,
+                onBack = { nav.popBackStack() },
+                onOpenEdit = { dreamId -> nav.navigate(Routes.dreamEdit(dreamId)) },
+            )
         }
 
         composable(Routes.CALENDAR) {
