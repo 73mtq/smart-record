@@ -73,11 +73,9 @@ import com.nonen.Bookkeeping.ui.theme.IncomeColor
 fun CategoryManageScreen(
     vm: CategoryManageViewModel,
     onBack: () -> Unit,
+    onOpenEdit: (parentId: Int, categoryId: Int, categoryType: Int) -> Unit = { _, _, _ -> },
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var showAddDialog by remember { mutableStateOf(false) }
-    var targetParentIdForAdd by remember { mutableStateOf(0) }
-    var categoryToEdit by remember { mutableStateOf<CategoryEntity?>(null) }
     var categoryToDelete by remember { mutableStateOf<CategoryEntity?>(null) }
     var usageCountToDelete by remember { mutableStateOf(0) }
 
@@ -97,11 +95,12 @@ fun CategoryManageScreen(
                     override fun onBack() = onBack()
                     override fun onTypeChanged(income: Boolean) = vm.setType(if (income) 1 else 0)
                     override fun onAdd(parentId: Int) {
-                        targetParentIdForAdd = parentId
-                        showAddDialog = true
+                        onOpenEdit(parentId, 0, vm.selectedType)
                     }
                     override fun onToggleExpand(categoryId: Int) = vm.toggleExpand(categoryId)
-                    override fun onEdit(category: CategoryEntity) { categoryToEdit = category }
+                    override fun onEdit(category: CategoryEntity) {
+                        onOpenEdit(category.parentId, category.categoryId, category.categoryType)
+                    }
                     override fun onDelete(category: CategoryEntity) {
                         vm.checkUsage(category.categoryId) { count ->
                             usageCountToDelete = count
@@ -118,34 +117,6 @@ fun CategoryManageScreen(
             )
         },
     )
-
-    if (showAddDialog) {
-        AddEditCategoryDialog(
-            title = if (targetParentIdForAdd == 0) "新增一级分类" else "新增二级分类",
-            initialName = "",
-            initialIcon = "ic_parent_other",
-            onDismiss = { showAddDialog = false },
-            onConfirm = { name, icon ->
-                vm.createCategory(name, targetParentIdForAdd, icon) {
-                    showAddDialog = false
-                }
-            },
-        )
-    }
-
-    categoryToEdit?.let { cat ->
-        AddEditCategoryDialog(
-            title = "编辑分类【${cat.categoryName}】",
-            initialName = cat.categoryName,
-            initialIcon = cat.iconUrl,
-            onDismiss = { categoryToEdit = null },
-            onConfirm = { name, icon ->
-                vm.updateCategory(cat, name, icon) {
-                    categoryToEdit = null
-                }
-            },
-        )
-    }
 
     categoryToDelete?.let { cat ->
         AlertDialog(
@@ -460,58 +431,4 @@ private fun ChildCategoryRow(
     }
 }
 
-@Composable
-private fun AddEditCategoryDialog(
-    title: String,
-    initialName: String,
-    initialIcon: String,
-    onDismiss: () -> Unit,
-    onConfirm: (name: String, icon: String) -> Unit,
-) {
-    var name by remember { mutableStateOf(initialName) }
-    var selectedIcon by remember { mutableStateOf(initialIcon) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("分类名称") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(12.dp))
-                Text("图标预览：", style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(6.dp))
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(text = Categories.emoji(name.ifEmpty { "其他" }), fontSize = 22.sp)
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (name.isNotBlank()) {
-                        onConfirm(name, selectedIcon)
-                    }
-                },
-            ) {
-                Text("保存")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        },
-    )
-}

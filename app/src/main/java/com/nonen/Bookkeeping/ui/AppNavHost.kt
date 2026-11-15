@@ -40,6 +40,7 @@ import com.nonen.Bookkeeping.ui.screens.BudgetScreen
 import com.nonen.Bookkeeping.ui.screens.BudgetViewModel
 import com.nonen.Bookkeeping.ui.screens.CalendarScreen
 import com.nonen.Bookkeeping.ui.screens.CalendarViewModel
+import com.nonen.Bookkeeping.ui.screens.CategoryEditScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageViewModel
 import com.nonen.Bookkeeping.ui.screens.MainScreen
@@ -75,6 +76,7 @@ object Routes {
         "?category={category}&subCategory={subCategory}&tag={tag}"
     const val RULES = "rules"
     const val CATEGORY_MANAGE = "category_manage"
+    const val CATEGORY_EDIT = "category_edit?parentId={parentId}&categoryId={categoryId}&type={type}"
     const val ASSET_MANAGE = "asset_manage"
     const val BUDGET = "budget"
     const val PERIODIC = "periodic"
@@ -97,6 +99,8 @@ object Routes {
     fun fromTemplate(templateId: Long) = "add/0?templateId=$templateId"
     fun tagEdit(tagId: Long, parentTagId: Long = 0L) = "tag_edit/$tagId?parentTagId=$parentTagId"
     fun guide(document: String, title: String) = "guide/$document?title=${Uri.encode(title)}"
+    fun categoryEdit(parentId: Int, categoryId: Int = 0, type: Int = 0) =
+        "category_edit?parentId=$parentId&categoryId=$categoryId&type=$type"
     fun editTemplate(templateId: Long, moduleType: Int = 0): String {
         require(moduleType in 0..1)
         return "add/0?templateId=$templateId&editTemplate=true&templateType=$moduleType"
@@ -319,7 +323,30 @@ fun AppNavHost(
                     CategoryManageViewModel(container.categoryRepository)
                 },
             )
-            CategoryManageScreen(vm = vm, onBack = { nav.popBackStack() })
+            CategoryManageScreen(
+                vm = vm,
+                onBack = { nav.popBackStack() },
+                onOpenEdit = { parentId, categoryId, categoryType ->
+                    nav.navigate(Routes.categoryEdit(parentId, categoryId, categoryType))
+                },
+            )
+        }
+
+        composable(
+            Routes.CATEGORY_EDIT,
+            arguments = listOf(
+                navArgument("parentId") { type = NavType.IntType; defaultValue = 0 },
+                navArgument("categoryId") { type = NavType.IntType; defaultValue = 0 },
+                navArgument("type") { type = NavType.IntType; defaultValue = 0 },
+            ),
+        ) { entry ->
+            CategoryEditScreen(
+                container = container,
+                parentId = entry.arguments?.getInt("parentId") ?: 0,
+                categoryId = entry.arguments?.getInt("categoryId") ?: 0,
+                categoryType = entry.arguments?.getInt("type") ?: 0,
+                onBack = { nav.popBackStack() },
+            )
         }
 
         composable(Routes.ASSET_MANAGE) {
