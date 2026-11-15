@@ -2,7 +2,6 @@ package com.nonen.Bookkeeping.export
 
 import android.content.Context
 import androidx.room.withTransaction
-import com.nonen.Bookkeeping.core.JsonUtil
 import com.nonen.Bookkeeping.data.db.AppDatabase
 import com.nonen.Bookkeeping.data.db.AssetEntity
 import com.nonen.Bookkeeping.data.db.BookEntity
@@ -29,8 +28,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -55,77 +52,9 @@ class FullBackupService(
 
     suspend fun exportBackup(outputStream: OutputStream): FullBackupResult = withContext(Dispatchers.IO) {
         try {
-            val transactions = database.transactionDao().getAll()
-            val assets = database.assetDao().getAll()
-            val books = database.bookDao().getAll()
-            val categories = database.categoryDao().getAll()
-            val transfers = database.transferDao().getAll()
-            val refunds = database.refundDao().getAll()
-            val reimbursements = database.reimbursementDao().getAll()
-            val lends = database.lendDao().getAll()
-            val instalments = database.instalmentDao().getAll()
-            val tags = database.tagDao().getAll()
-            val tagRefs = database.tagDao().getAllRefs()
-            val budgets = database.budgetDao().getAllBudgets()
-            val categoryBudgets = database.budgetDao().getAllCategoryBudgets()
-            val cycles = database.cycleDao().getAllCycles()
-            val cycleLogs = database.cycleDao().getAllCycleLogs()
-            val moduleBills = database.moduleBillDao().getAll()
-            val dreams = database.dreamDao().getAllDreams()
-            val dreamLogs = database.dreamDao().getAllDreamLogs()
-            val categoryRules = database.categoryRuleDao().getAll()
-            val merchantCategories = database.merchantCategoryDao().getAll()
-
-            val settingsMap = if (settingsStore != null) {
-                val s = settingsStore.snapshot()
-                mapOf(
-                    "autoRecordEnabled" to s.autoRecordEnabled.toString(),
-                    "listenScope" to s.listenScope.name,
-                    "notifyOnRecord" to s.notifyOnRecord.toString(),
-                    "learnOnEdit" to s.learnOnEdit.toString(),
-                    "themeMode" to s.themeMode.name,
-                    "dynamicColor" to s.dynamicColor.toString(),
-                    "hideAmount" to s.hideAmount.toString(),
-                    "appLockEnabled" to s.appLockEnabled.toString(),
-                    "fontOption" to s.fontOption,
-                    "navigationLabelsEnabled" to s.navigationLabelsEnabled.toString(),
-                    "selectedBookId" to s.selectedBookId.toString(),
-                    "noteFirst" to s.noteFirst.toString(),
-                    "simpleCategory" to s.simpleCategory.toString(),
-                    "showTransactionTime" to s.showTransactionTime.toString(),
-                    "showAssetIcon" to s.showAssetIcon.toString(),
-                    "templateTipHidden" to s.templateTipHidden.toString(),
-                )
-            } else emptyMap()
-
-            val tableCounts = mapOf(
-                "transactions" to transactions.size,
-                "assets" to assets.size,
-                "books" to books.size,
-                "categories" to categories.size,
-                "transfers" to transfers.size,
-                "refunds" to refunds.size,
-                "reimbursements" to reimbursements.size,
-                "lends" to lends.size,
-                "instalments" to instalments.size,
-                "tags" to tags.size,
-                "tagRefs" to tagRefs.size,
-                "budgets" to budgets.size,
-                "categoryBudgets" to categoryBudgets.size,
-                "cycles" to cycles.size,
-                "cycleLogs" to cycleLogs.size,
-                "moduleBills" to moduleBills.size,
-                "dreams" to dreams.size,
-                "dreamLogs" to dreamLogs.size,
-                "categoryRules" to categoryRules.size,
-                "merchantCategories" to merchantCategories.size,
-            )
-
-            val dataJson = serializeData(
-                transactions, assets, books, categories, transfers, refunds, reimbursements,
-                lends, instalments, tags, tagRefs, budgets, categoryBudgets, cycles, cycleLogs,
-                moduleBills, dreams, dreamLogs, categoryRules, merchantCategories, settingsMap,
-            )
+            val data = readBackupData()
+            val tableCounts = data.tableCounts
+            val dataJson = serializeData(data)
             val dataBytes = dataJson.toByteArray(StandardCharsets.UTF_8)
             val checksum = calculateSha256(dataBytes)
 
@@ -210,24 +139,22 @@ class FullBackupService(
                 }
             }
 
-            if (manifestBytes == null) {
-                return@withContext FullBackupResult(success = false, error = "无效的备份文件：缺少清单描述文件")
-            }
-            if (dataBytes == null) {
-                return@withContext FullBackupResult(success = false, error = "无效的备份文件：缺少核心数据内容")
-            }
+            val manifestContent = manifestBytes
+                ?: return@withContext FullBackupResult(success = false, error = "无效的备份文件：缺少清单描述文件")
+            val dataContent = dataBytes
+                ?: return@withContext FullBackupResult(success = false, error = "无效的备份文件：缺少核心数据内容")
 
-            val manifestObj = JSONObject(manifestBytes!!.toString(StandardCharsets.UTF_8))
+            val manifestObj = JSONObject(manifestContent.toString(StandardCharsets.UTF_8))
             if (manifestObj.optInt("formatVersion", -1) != FORMAT_VERSION) {
                 return@withContext FullBackupResult(success = false, error = "不支持的备份格式版本")
             }
             val expectedChecksum = manifestObj.optString("dataChecksum")
-            val actualChecksum = calculateSha256(dataBytes!!)
+            val actualChecksum = calculateSha256(dataContent)
             if (expectedChecksum != actualChecksum) {
                 return@withContext FullBackupResult(success = false, error = "备份校验失败：数据文件校验码不匹配")
             }
 
-            val dataObj = JSONObject(dataBytes!!.toString(StandardCharsets.UTF_8))
+            val dataObj = JSONObject(dataContent.toString(StandardCharsets.UTF_8))
             val data = deserializeData(dataObj)
 
             // 1. 附件写入 staging 阶段目录
@@ -246,19 +173,10 @@ class FullBackupService(
             }
 
             // 2. 写入 recovery_journal 记录阶段 STAGED
-            if (journalFile != null) {
-                val settingsJson = JSONObject()
-                data.settings.forEach { (k, v) -> settingsJson.put(k, v) }
-                val journalContent = JSONObject().apply {
-                    put("state", "STAGED")
-                    put("timestamp", System.currentTimeMillis())
-                    put("settings", settingsJson)
-                }.toString()
-                journalFile.writeText(journalContent, StandardCharsets.UTF_8)
-            }
+            journalFile?.let { writeRecoveryJournal(it, JOURNAL_STAGE_STAGED, data.settings) }
 
             // 测试中断 Hook：模拟在数据库事务提交前被杀
-            interruptionHook?.invoke("STAGED")
+            interruptionHook?.invoke(JOURNAL_STAGE_STAGED)
 
             // 3. 原子真实 Room 事务执行恢复
             try {
@@ -318,19 +236,10 @@ class FullBackupService(
             }
 
             // 4. 数据库提交成功，更新 journal 状态为 DB_COMMITTED
-            if (journalFile != null) {
-                val settingsJson = JSONObject()
-                data.settings.forEach { (k, v) -> settingsJson.put(k, v) }
-                val journalContent = JSONObject().apply {
-                    put("state", "DB_COMMITTED")
-                    put("timestamp", System.currentTimeMillis())
-                    put("settings", settingsJson)
-                }.toString()
-                journalFile.writeText(journalContent, StandardCharsets.UTF_8)
-            }
+            journalFile?.let { writeRecoveryJournal(it, JOURNAL_STAGE_DB_COMMITTED, data.settings) }
 
             // 测试中断 Hook：模拟在数据库事务提交后、附件原子替换前被杀
-            interruptionHook?.invoke("DB_COMMITTED")
+            interruptionHook?.invoke(JOURNAL_STAGE_DB_COMMITTED)
 
             // 5. 原子替换附件目录
             if (stagingDir != null && attachmentsDir != null && stagingDir.exists()) {
@@ -362,6 +271,63 @@ class FullBackupService(
         } catch (e: Exception) {
             FullBackupResult(success = false, error = "恢复失败，数据已完整回滚：${e.message}")
         }
+    }
+
+    private fun writeRecoveryJournal(file: File, stage: String, settings: Map<String, String>) {
+        val settingsJson = JSONObject()
+        settings.forEach { (key, value) -> settingsJson.put(key, value) }
+        val journal = JSONObject().apply {
+            put("state", stage)
+            put("timestamp", System.currentTimeMillis())
+            put("settings", settingsJson)
+        }
+        file.writeText(journal.toString(), StandardCharsets.UTF_8)
+    }
+
+    private suspend fun readBackupData(): FullBackupData = FullBackupData(
+        transactions = database.transactionDao().getAll(),
+        assets = database.assetDao().getAll(),
+        books = database.bookDao().getAll(),
+        categories = database.categoryDao().getAll(),
+        transfers = database.transferDao().getAll(),
+        refunds = database.refundDao().getAll(),
+        reimbursements = database.reimbursementDao().getAll(),
+        lends = database.lendDao().getAll(),
+        instalments = database.instalmentDao().getAll(),
+        tags = database.tagDao().getAll(),
+        transactionTags = database.tagDao().getAllRefs(),
+        budgets = database.budgetDao().getAllBudgets(),
+        categoryBudgets = database.budgetDao().getAllCategoryBudgets(),
+        cycles = database.cycleDao().getAllCycles(),
+        cycleLogs = database.cycleDao().getAllCycleLogs(),
+        moduleBills = database.moduleBillDao().getAll(),
+        dreams = database.dreamDao().getAllDreams(),
+        dreamLogs = database.dreamDao().getAllDreamLogs(),
+        categoryRules = database.categoryRuleDao().getAll(),
+        merchantCategories = database.merchantCategoryDao().getAll(),
+        settings = readBackupSettings(),
+    )
+
+    private suspend fun readBackupSettings(): Map<String, String> {
+        val settings = settingsStore?.snapshot() ?: return emptyMap()
+        return mapOf(
+            "autoRecordEnabled" to settings.autoRecordEnabled.toString(),
+            "listenScope" to settings.listenScope.name,
+            "notifyOnRecord" to settings.notifyOnRecord.toString(),
+            "learnOnEdit" to settings.learnOnEdit.toString(),
+            "themeMode" to settings.themeMode.name,
+            "dynamicColor" to settings.dynamicColor.toString(),
+            "hideAmount" to settings.hideAmount.toString(),
+            "appLockEnabled" to settings.appLockEnabled.toString(),
+            "fontOption" to settings.fontOption,
+            "navigationLabelsEnabled" to settings.navigationLabelsEnabled.toString(),
+            "selectedBookId" to settings.selectedBookId.toString(),
+            "noteFirst" to settings.noteFirst.toString(),
+            "simpleCategory" to settings.simpleCategory.toString(),
+            "showTransactionTime" to settings.showTransactionTime.toString(),
+            "showAssetIcon" to settings.showAssetIcon.toString(),
+            "templateTipHidden" to settings.templateTipHidden.toString(),
+        )
     }
 
     private suspend fun restoreSettingsFromMap(map: Map<String, String>) {
@@ -397,12 +363,12 @@ class FullBackupService(
             val backupDir = File(baseDir, ATTACHMENTS_BACKUP)
 
             when (state) {
-                "STAGED" -> {
+                JOURNAL_STAGE_STAGED -> {
                     if (stagingDir.exists()) stagingDir.deleteRecursively()
                     if (backupDir.exists()) backupDir.deleteRecursively()
                     journalFile.delete()
                 }
-                "DB_COMMITTED" -> {
+                JOURNAL_STAGE_DB_COMMITTED -> {
                     if (stagingDir.exists()) {
                         if (attachmentsDir.exists()) attachmentsDir.deleteRecursively()
                         val renamed = stagingDir.renameTo(attachmentsDir)
@@ -453,29 +419,7 @@ class FullBackupService(
             return hash.joinToString("") { "%02x".format(it) }
         }
 
-        internal fun serializeData(
-        transactions: List<TransactionEntity>,
-        assets: List<AssetEntity>,
-        books: List<BookEntity>,
-        categories: List<CategoryEntity>,
-        transfers: List<TransferEntity>,
-        refunds: List<RefundEntity>,
-        reimbursements: List<ReimbursementEntity>,
-        lends: List<LendEntity>,
-        instalments: List<InstalmentEntity>,
-        tags: List<TagEntity>,
-        tagRefs: List<TransactionTagCrossRef>,
-        budgets: List<BudgetEntity>,
-        categoryBudgets: List<CategoryBudgetEntity>,
-        cycles: List<CycleEntity>,
-        cycleLogs: List<CycleLogEntity>,
-        moduleBills: List<ModuleBillEntity>,
-        dreams: List<DreamEntity>,
-        dreamLogs: List<DreamLogEntity>,
-        categoryRules: List<CategoryRuleEntity>,
-        merchantCategories: List<MerchantCategoryEntity>,
-        settings: Map<String, String>,
-    ): String {
+        internal fun serializeData(data: FullBackupData): String = with(data) {
         val root = JSONObject()
 
         fun <T> putList(key: String, list: List<T>, serializer: (T) -> JSONObject) {
@@ -632,7 +576,7 @@ class FullBackupService(
             }
         }
 
-        putList("tagRefs", tagRefs) { ref ->
+        putList("tagRefs", transactionTags) { ref ->
             JSONObject().apply {
                 put("transactionId", ref.transactionId)
                 put("tagId", ref.tagId)
@@ -797,7 +741,7 @@ class FullBackupService(
         settings.forEach { (k, v) -> settingsObj.put(k, v) }
         root.put("settings", settingsObj)
 
-        return root.toString()
+        root.toString()
     }
 
     internal fun deserializeData(jsonString: String): FullBackupData =

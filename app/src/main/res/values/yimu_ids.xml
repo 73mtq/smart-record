@@ -32,6 +32,7 @@
     <item name="pay_type_list" type="id" />
     <item name="income_type_list" type="id" />
     <item name="category_type_tip" type="id" />
+    <item name="category_type_close" type="id" />
     <item name="type_name" type="id" />
     <item name="child_type" type="id" />
     <item name="arrow" type="id" />
@@ -79,6 +80,10 @@
     <item name="reimbursement" type="id" />
     <item name="remark_layout" type="id" />
     <item name="parent_layout" type="id" />
+    <item name="type_layout" type="id" />
+    <item name="type_icon" type="id" />
+    <item name="type" type="id" />
+    <item name="text_list" type="id" />
     <item name="background_layout" type="id" />
     <item name="add_account_book" type="id" />
     <item name="add_icon" type="id" />
@@ -258,4 +263,13 @@
     <item name="bill_num_color" type="id" />
     <item name="row_switch_lock" type="id" />
     <item name="row_switch_gesture" type="id" />
+    <item name="line" type="id" />
+    <item name="bill_num" type="id" />
+    <item name="percent" type="id" />
+    <item name="rate_text" type="id" />
+    <item name="progress_view" type="id" />
+    <item name="tag_color" type="id" />
+    <item name="tag_name" type="id" />
+    <item name="tag_num" type="id" />
+    <item name="more" type="id" />
 </resources>

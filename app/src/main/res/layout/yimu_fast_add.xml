@@ -37,7 +37,6 @@
                     android:layout_height="wrap_content"
                     android:textSize="14sp"
                     android:textColor="@color/textColorWhite"
-                    android:textStyle="bold"
                     android:text="@string/yimu_fast_add_default_book" />
 
                 <ImageView
@@ -71,6 +70,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/shape_bg_setting"
+                android:clipToOutline="true"
                 android:orientation="vertical">
 
                 <RelativeLayout

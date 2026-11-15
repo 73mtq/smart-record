@@ -5,7 +5,6 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -35,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.res.Configuration
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.unit.dp
 import com.nonen.Bookkeeping.data.prefs.ThemeMode
 import com.nonen.Bookkeeping.ui.AppNavHost
@@ -43,6 +44,22 @@ import com.nonen.Bookkeeping.ui.theme.BookkeepingTheme
 
 class MainActivity : ComponentActivity() {
     private var targetRoute by mutableStateOf(Routes.MAIN)
+
+    /** 主题模式通过同步缓存映射到 uiMode，原生 View 页面才能取到 values-night；不使用 AppCompat 全局替换。 */
+    override fun attachBaseContext(newBase: Context) {
+        val cached = newBase.getSharedPreferences("settings_theme_cache", Context.MODE_PRIVATE)
+            .getString("theme_mode", null)
+        val dark = when (cached) {
+            ThemeMode.DARK.name -> true
+            ThemeMode.LIGHT.name -> false
+            else -> (newBase.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+        }
+        val configuration = Configuration(newBase.resources.configuration)
+        configuration.uiMode = (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
+            (if (dark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO)
+        super.attachBaseContext(newBase.createConfigurationContext(configuration))
+    }
 
     private var appUnlockedState = mutableStateOf(false)
     private var isAppInForeground = false
@@ -62,6 +79,13 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
+
+            // 原生 View 页面依赖 Activity 资源的夜间限定符：模式变化后重建 Activity，由 attachBaseContext 生效
+            LaunchedEffect(mode) {
+                val currentNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                    Configuration.UI_MODE_NIGHT_YES
+                if (darkTheme != currentNight) recreate()
             }
 
             // 若未开启应用锁，自动视为已解锁

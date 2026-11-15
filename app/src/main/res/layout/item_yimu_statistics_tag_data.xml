@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 统计页标签数据行：原版 res/layout/item_statistics_tag_data.xml（adapter/rg.java 绑定）。 -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="55dp"
+    android:background="?android:selectableItemBackground"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="15dp"
+        android:layout_toStartOf="@id/cost_layout"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@id/tag_color"
+                android:layout_width="12dp"
+                android:layout_height="12dp" />
+
+            <TextView
+                android:id="@id/tag_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:singleLine="true"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@id/tag_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/textGray"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@id/cost_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="10dp"
+        android:layout_toStartOf="@id/more"
+        android:gravity="end"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@id/pay_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/moneyPay"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@id/income_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textColor="@color/moneyIncome"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@id/more"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:src="@mipmap/ic_more"
+        android:tint="@color/grey" />
+
+    <View
+        android:id="@id/line"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_alignParentBottom="true"
+        android:background="@color/divider" />
+</RelativeLayout>

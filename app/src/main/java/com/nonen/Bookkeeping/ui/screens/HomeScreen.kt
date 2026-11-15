@@ -1,6 +1,5 @@
 package com.nonen.Bookkeeping.ui.screens
 
-import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -31,120 +30,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.viewModelScope
 import com.nonen.Bookkeeping.R
-import com.nonen.Bookkeeping.core.TodayWatcher
 import com.nonen.Bookkeeping.data.db.TransactionEntity
-import com.nonen.Bookkeeping.data.repo.TransactionRepository
 import com.nonen.Bookkeeping.ui.components.DayHeader
 import com.nonen.Bookkeeping.ui.components.EmptyState
 import com.nonen.Bookkeeping.ui.components.TransactionRow
 import com.nonen.Bookkeeping.ui.components.localDateOf
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
-
-@OptIn(ExperimentalCoroutinesApi::class)
-class HomeViewModel(context: Context, private val repo: TransactionRepository) : ViewModel() {
-
-    /** 日历观察者：跨天/改时间/换时区后重新读今天，首页跟着走 */
-    private val todayWatcher = TodayWatcher.of(context)
-
-    /** 首页当前展示的月份；null = 跟随今天（用户没手动翻过月） */
-    private val pinnedMonth = MutableStateFlow<YearMonth?>(null)
-    private val selectedBookId = MutableStateFlow<Long?>(null)
-
-    fun selectBook(id: Long) { selectedBookId.value = id }
-
-    fun deleteSelected(ids: Set<Long>) {
-        viewModelScope.launch {
-            transactions.value.filter { it.id in ids }.forEach { repo.delete(it) }
-        }
-    }
-
-    /**
-     * 首页月份 = 用户手动选的月份，没选过就是今天所在的月份。
-     * 合并 today 流是为了让「跨月自动跳到新月份」经由同一条数据流生效：
-     * 今天跨过月末时，只要用户没手动翻过月，这里立刻变成新月份，
-     * 下面的账单列表也随之重新查询，不需要重启应用。
-     */
-    val month: StateFlow<YearMonth> =
-        combine(todayWatcher.today, pinnedMonth) { today, pinned -> pinned ?: YearMonth.from(today) }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, YearMonth.from(todayWatcher.today.value))
-
-    val transactions: StateFlow<List<TransactionEntity>> =
-        combine(month, selectedBookId) { month, book -> month to book }
-            .flatMapLatest { (month, book) -> repo.observeMonth(month, book) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** 当月的「今天」，UI 用来判断正看的是不是本月、要不要提示回本月 */
-    val today: StateFlow<LocalDate> = todayWatcher.today
-
-    /**
-     * 近7日（含今天）：独立于所选月份。
-     * `onStart` 让每次重新订阅都重新确认一次今天——回到首页时即使月份没变，跨天后的窗口也能刷新，
-     * 因此不需要额外的刷新计数器。
-     */
-    val weekTransactions: StateFlow<List<TransactionEntity>> =
-        todayWatcher.today
-            .onStart {
-                todayWatcher.refresh()
-                emit(todayWatcher.today.value)
-            }
-            .combine(selectedBookId) { date, book -> weekRangeOf(date) to book }
-            .flatMapLatest { (range, book) ->
-                val (start, end) = range
-                if (book == null) repo.observeRange(start, end) else repo.observeBookRange(start, end, book)
-            }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    init {
-        // 只在页面订阅本 ViewModel 时监听系统时间，离开页面即随作用域取消，不常驻后台
-        todayWatcher.wakeUps()
-            .onStart { todayWatcher.register(viewModelScope) }
-            .launchIn(viewModelScope)
-    }
-
-    fun prevMonth() {
-        pinnedMonth.value = month.value.minusMonths(1)
-    }
-
-    fun nextMonth() {
-        pinnedMonth.value = month.value.plusMonths(1)
-    }
-
-    /** 手动选月份。选回本月时清掉固定，重新跟随日历（跨月自动跳转恢复生效） */
-    fun selectMonth(m: YearMonth) {
-        pinnedMonth.value = pinnedMonthFor(m, todayWatcher.today.value)
-    }
-
-    /** 回到今天所在月份，并重新跟随日历（跨月自动跳转恢复生效） */
-    fun backToCurrentMonth() {
-        refreshToday()
-        pinnedMonth.value = null
-    }
-
-    /**
-     * 页面重新可见时调用：重新读取今天。
-     * 用户自己翻过月份就尊重他的选择，不强行跳走；没翻过则让月份跟着今天走。
-     */
-    fun refreshToday() {
-        todayWatcher.refresh()
-    }
-}
 
 /** 首页内容（作为 MainScreen 里 Pager 的一页，底栏由 MainScreen 提供） */
 @Composable

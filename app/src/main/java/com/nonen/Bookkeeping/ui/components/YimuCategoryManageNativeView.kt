@@ -3,6 +3,7 @@ package com.nonen.Bookkeeping.ui.components
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,7 +42,6 @@ class YimuCategoryManageNativeView @JvmOverloads constructor(
     private val payList: RecyclerView
     private val incomeList: RecyclerView
     private var listener: Listener? = null
-    private var selectedType = 0
 
     init {
         LayoutInflater.from(context).inflate(R.layout.yimu_category_manage, this, true)
@@ -62,6 +62,9 @@ class YimuCategoryManageNativeView @JvmOverloads constructor(
         incomeBtn.setOnClickListener { listener?.onTypeChanged(true) }
         shareCenter.setOnClickListener { listener?.onUnsupported() }
         rightIcon.setOnClickListener { listener?.onUnsupported() }
+        findViewById<View>(R.id.category_type_close).setOnClickListener {
+            findViewById<View>(R.id.category_type_tip).visibility = View.GONE
+        }
         addButton.setOnClickListener { listener?.onAdd(0) }
     }
 
@@ -74,17 +77,33 @@ class YimuCategoryManageNativeView @JvmOverloads constructor(
         this.listener = listener
         findViewById<View>(R.id.text_tip_layout)?.visibility = View.VISIBLE
         findViewById<View>(R.id.category_type_tip)?.visibility = View.VISIBLE
-        if (selectedType != type) {
-            selectedType = type
-            payBtn.setTextColor(ContextCompat.getColor(context, if (type == 0) R.color.black else R.color.grey))
-            payBtn.textSize = if (type == 0) 16f else 13f
-            incomeBtn.setTextColor(ContextCompat.getColor(context, if (type == 1) R.color.black else R.color.grey))
-            incomeBtn.textSize = if (type == 1) 16f else 13f
-            payList.visibility = if (type == 0) View.VISIBLE else View.GONE
-            incomeList.visibility = if (type == 1) View.VISIBLE else View.GONE
-        }
+        applyTypeSelection(type)
         val target = if (type == 0) payList else incomeList
         (target.adapter as CategoryAdapter).submit(listener, type == 1, categories, expandedParentIds)
+    }
+
+    /**
+     * 原版 CategoryEditActivity.e0():229 首屏即给 pay_btn 置 fakeBold；
+     * payBtn():604-609 与 incomeBtn():440-446 在切换时按选中态重设字号、颜色与 fakeBold。
+     */
+    private fun applyTypeSelection(type: Int) {
+        val selectedColor = ContextCompat.getColor(context, R.color.black)
+        val unselectedColor = ContextCompat.getColor(context, R.color.grey)
+        payBtn.setTextColor(if (type == 0) selectedColor else unselectedColor)
+        payBtn.setTextSizeIfChanged(if (type == 0) 16f else 13f)
+        payBtn.paint.isFakeBoldText = type == 0
+        incomeBtn.setTextColor(if (type == 1) selectedColor else unselectedColor)
+        incomeBtn.setTextSizeIfChanged(if (type == 1) 16f else 13f)
+        incomeBtn.paint.isFakeBoldText = type == 1
+        payList.visibility = if (type == 0) View.VISIBLE else View.GONE
+        incomeList.visibility = if (type == 1) View.VISIBLE else View.GONE
+    }
+
+    /** XML 已按原版 13dp/16dp 布局时不再重设字号，避免 float 取整造成 1px 基线差 */
+    private fun TextView.setTextSizeIfChanged(sizeSp: Float) {
+        val target = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sizeSp, resources.displayMetrics)
+        if (kotlin.math.abs(textSize - target) < 0.01f) return
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp)
     }
 
     private class CategoryAdapter(private val context: Context) : RecyclerView.Adapter<CategoryAdapter.Holder>() {

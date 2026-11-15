@@ -3,9 +3,11 @@ package com.nonen.Bookkeeping.ui.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -14,6 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.nonen.Bookkeeping.AppContainer
+import com.nonen.Bookkeeping.data.db.TransactionTagCrossRef
+import com.nonen.Bookkeeping.stats.aggregateCategoryRows
+import com.nonen.Bookkeeping.stats.aggregateDayForms
+import com.nonen.Bookkeeping.stats.aggregateMonthForms
+import com.nonen.Bookkeeping.stats.aggregateTagStats
 import com.nonen.Bookkeeping.ui.components.CategoryIconCatalog
 import com.nonen.Bookkeeping.ui.components.StatisticsBarUi
 import com.nonen.Bookkeeping.ui.components.StatisticsMonthUi
@@ -21,6 +28,7 @@ import com.nonen.Bookkeeping.ui.components.StatisticsNormalUi
 import com.nonen.Bookkeeping.ui.components.StatisticsSelfUi
 import com.nonen.Bookkeeping.ui.components.StatisticsYearUi
 import com.nonen.Bookkeeping.ui.components.StatisticsUiState
+import com.nonen.Bookkeeping.ui.components.YimuDateDialog
 import com.nonen.Bookkeeping.ui.components.YimuStatisticsNativeView
 import java.time.Instant
 import java.time.LocalDate
@@ -36,6 +44,8 @@ fun YimuStatisticsScreen(
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var expenseMode by rememberSaveable { mutableStateOf(true) }
+    var monthOffset by rememberSaveable { mutableIntStateOf(0) }
+    var yearIndex by rememberSaveable { mutableIntStateOf(1) }
     val context = LocalContext.current
     val today = LocalDate.now()
     val start = today.minusDays(6)
@@ -52,21 +62,26 @@ fun YimuStatisticsScreen(
     val budget by remember(bookId, budgetMonth) {
         container.budgetRepository.observeBudgetOverview(bookId, budgetMonth.first, budgetMonth.second)
     }.collectAsState(initial = null)
-    val month = YearMonth.now()
+    val month = YearMonth.now().minusMonths(monthOffset.toLong())
     val monthStart = month.atDay(1)
     val monthEnd = month.atEndOfMonth()
-    val selfStart = today.minusMonths(1)
-    val selfTransactions by remember(bookId, selfStart, today) {
+    var selfStartDay by rememberSaveable { mutableLongStateOf(today.minusMonths(1).toEpochDay()) }
+    var selfEndDay by rememberSaveable { mutableLongStateOf(today.toEpochDay()) }
+    val selfRawStart = LocalDate.ofEpochDay(selfStartDay)
+    val selfRawEnd = LocalDate.ofEpochDay(selfEndDay)
+    val selfStart = minOf(selfRawStart, selfRawEnd)
+    val selfEnd = maxOf(selfRawStart, selfRawEnd)
+    val selfTransactions by remember(bookId, selfStart, selfEnd) {
         container.transactionRepository.observeBookRange(
             selfStart.atStartOfDay(zone).toInstant().toEpochMilli(),
-            today.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli(),
+            selfEnd.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli(),
             bookId,
         )
     }.collectAsState(initial = emptyList())
-    val year = today.year
-    val yearStart = LocalDate.of(year, 1, 1)
-    val yearEnd = LocalDate.of(year, 12, 31)
-    val yearTransactions by remember(bookId, year) {
+    val displayYear = today.year - (yearIndex - 1).coerceAtLeast(0)
+    val yearStart = if (yearIndex == 0) LocalDate.of(2000, 1, 1) else LocalDate.of(displayYear, 1, 1)
+    val yearEnd = if (yearIndex == 0) LocalDate.of(today.year, 12, 31) else LocalDate.of(displayYear, 12, 31)
+    val yearTransactions by remember(bookId, yearIndex, displayYear) {
         container.transactionRepository.observeBookRange(
             yearStart.atStartOfDay(zone).toInstant().toEpochMilli(),
             yearEnd.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli(),
@@ -105,6 +120,9 @@ fun YimuStatisticsScreen(
     val monthPay = monthDailyPay.sumOf { it.toDouble() }
     val monthIncome = monthDailyIncome.sumOf { it.toDouble() }
     val iconCatalog = remember { CategoryIconCatalog(context) }
+    val tags by remember(container) { container.tagDao.getAllFlow() }.collectAsState(initial = emptyList())
+    var tagRefs by remember { mutableStateOf(emptyList<TransactionTagCrossRef>()) }
+    LaunchedEffect(container) { tagRefs = container.tagDao.getAllRefs() }
     val monthEntries = monthTransactions.filter { it.amount < 0 }
         .groupBy { iconCatalog.names(it.category, it.subCategory, false).first }
         .map { (category, records) -> category to -records.sumOf { it.amount } }
@@ -116,18 +134,18 @@ fun YimuStatisticsScreen(
         yearTransactions.filter { Instant.ofEpochMilli(it.timestamp).atZone(zone).toLocalDate().monthValue == m && it.amount > 0 }.sumOf { it.amount }.toFloat()
     }
     val yearDailyPay = (1..12).map { m ->
-        val ym = YearMonth.of(year, m)
+        val ym = YearMonth.of(displayYear, m)
         (1..ym.lengthOfMonth()).map { d ->
             -yearTransactions.filter { Instant.ofEpochMilli(it.timestamp).atZone(zone).toLocalDate() == ym.atDay(d) && it.amount < 0 }.sumOf { it.amount }.toFloat()
         }
     }
     val yearDailyIncome = (1..12).map { m ->
-        val ym = YearMonth.of(year, m)
+        val ym = YearMonth.of(displayYear, m)
         (1..ym.lengthOfMonth()).map { d ->
             yearTransactions.filter { Instant.ofEpochMilli(it.timestamp).atZone(zone).toLocalDate() == ym.atDay(d) && it.amount > 0 }.sumOf { it.amount }.toFloat()
         }
     }
-    val selfDates = generateSequence(selfStart) { it.plusDays(1) }.takeWhile { it <= today }.toList()
+    val selfDates = generateSequence(selfStart) { it.plusDays(1) }.takeWhile { it <= selfEnd }.toList()
     val selfDailyPay = selfDates.map { date ->
         -selfTransactions.filter { it.timestamp in dayRange(date, zone) && it.amount < 0 }.sumOf { it.amount }.toFloat()
     }
@@ -136,9 +154,29 @@ fun YimuStatisticsScreen(
     }
     val selfPayTotal = selfDailyPay.sumOf { it.toDouble() }
     val selfIncomeTotal = selfDailyIncome.sumOf { it.toDouble() }
+    val monthCategories = aggregateCategoryRows(monthTransactions, isIncome = false) {
+        iconCatalog.names(it.category, it.subCategory, false).first
+    }.map { it.copy(iconName = iconCatalog.get(it.name, null, false, null)) }
+    val yearCategories = aggregateCategoryRows(yearTransactions, isIncome = false) {
+        iconCatalog.names(it.category, it.subCategory, false).first
+    }.map { it.copy(iconName = iconCatalog.get(it.name, null, false, null)) }
+    val selfCategories = aggregateCategoryRows(selfTransactions, isIncome = false) {
+        iconCatalog.names(it.category, it.subCategory, false).first
+    }.map { it.copy(iconName = iconCatalog.get(it.name, null, false, null)) }
+    val monthIncomeCategories = aggregateCategoryRows(monthTransactions, isIncome = true) {
+        iconCatalog.names(it.category, it.subCategory, true).first
+    }.map { it.copy(iconName = iconCatalog.get(it.name, null, true, null)) }
+    val monthIncomeCategoryEntries = monthIncomeCategories.map { it.name to it.amount }
+    val yearCategoryEntries = yearCategories.map { it.name to it.amount }
+    val selfCategoryEntries = selfCategories.map { it.name to it.amount }
+    val monthTags = aggregateTagStats(monthTransactions, tags, tagRefs)
+    val yearTags = aggregateTagStats(yearTransactions, tags, tagRefs)
+    val selfTags = aggregateTagStats(selfTransactions, tags, tagRefs)
+    val monthDayForms = aggregateDayForms(monthTransactions)
+    val yearDayForms = aggregateMonthForms(yearTransactions)
     val yearLabels = buildList {
         add("所有"); add("今年"); add("去年")
-        for (y in year - 2 downTo year - 6) add("${y}年")
+        for (y in today.year - 2 downTo today.year - 6) add("${y}年")
     }
     val monthLabels = buildList {
         add("本月")
@@ -169,6 +207,7 @@ fun YimuStatisticsScreen(
             year = month.year,
             month = month.monthValue,
             monthLabels = monthLabels,
+            selectedIndex = monthOffset,
             pay = monthPay,
             income = monthIncome,
             balance = monthIncome - monthPay,
@@ -176,10 +215,16 @@ fun YimuStatisticsScreen(
             dailyIncome = monthDailyIncome,
             assetTrend = monthDays.map { 0f },
             categoryEntries = monthEntries,
+            categories = monthCategories,
+            incomeCategoryEntries = monthIncomeCategoryEntries,
+            incomeCategories = monthIncomeCategories,
+            dayForms = monthDayForms,
+            tags = monthTags,
         ),
         year = StatisticsYearUi(
-            year = year,
+            year = displayYear,
             yearLabels = yearLabels,
+            selectedIndex = yearIndex,
             pay = monthlyPay.sumOf { it.toDouble() },
             income = monthlyIncome.sumOf { it.toDouble() },
             balance = monthlyIncome.sumOf { it.toDouble() } - monthlyPay.sumOf { it.toDouble() },
@@ -189,18 +234,31 @@ fun YimuStatisticsScreen(
             dailyIncome = yearDailyIncome,
             maxPay = yearDailyPay.flatten().maxOrNull()?.toDouble() ?: 0.0,
             maxIncome = yearDailyIncome.flatten().maxOrNull()?.toDouble() ?: 0.0,
+            categoryEntries = yearCategoryEntries,
+            categories = yearCategories,
+            dayForms = yearDayForms,
+            tags = yearTags,
+            assetTrend = List(monthlyPay.size) { 0f },
         ),
         self = StatisticsSelfUi(
             startLabel = selfStart.format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日")),
-            endLabel = today.format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日")),
+            endLabel = selfEnd.format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日")),
             pay = selfPayTotal,
             income = selfIncomeTotal,
             balance = selfIncomeTotal - selfPayTotal,
             dailyPay = selfDailyPay,
             dailyIncome = selfDailyIncome,
+            categoryEntries = selfCategoryEntries,
+            categories = selfCategories,
+            tags = selfTags,
         ),
     )
     val openBudget = onBudget
+    fun pickSelfDate(current: LocalDate, onPick: (LocalDate) -> Unit) {
+        YimuDateDialog(context, current.atStartOfDay(zone).toInstant().toEpochMilli()) { millis ->
+            onPick(Instant.ofEpochMilli(millis).atZone(zone).toLocalDate())
+        }.show()
+    }
     AndroidView(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
         factory = { YimuStatisticsNativeView(it) },
@@ -211,6 +269,18 @@ fun YimuStatisticsScreen(
                 }
                 override fun onBudget() {
                     openBudget()
+                }
+                override fun onMonthSelected(index: Int) {
+                    monthOffset = index
+                }
+                override fun onYearSelected(index: Int) {
+                    yearIndex = index
+                }
+                override fun onSelfStartClick() {
+                    pickSelfDate(selfStart) { picked -> selfStartDay = picked.toEpochDay() }
+                }
+                override fun onSelfEndClick() {
+                    pickSelfDate(selfEnd) { picked -> selfEndDay = picked.toEpochDay() }
                 }
             })
         },

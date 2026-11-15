@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 一木记账「主题外观」复刻：原版 res/layout/activity_theme.xml（ThemeActivity，用户 2026-11-12 立项） -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundLight">
+
+    <LinearLayout
+        android:id="@+id/theme_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/status_bar_spacer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/white" />
+
+        <RelativeLayout
+            android:id="@id/tool_bar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/white"
+            android:elevation="3dp">
+
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/selectable_item_circle"
+                android:padding="16dp"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_back"
+                android:tint="@color/black" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true"
+                android:layout_toEndOf="@id/btn_back"
+                android:gravity="center"
+                android:maxWidth="180dp"
+                android:singleLine="true"
+                android:text="@string/yimu_theme_title"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/right_icon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/selectable_item_circle"
+                android:scaleType="centerInside"
+                android:src="@mipmap/ic_bar_more"
+                android:tint="@color/black" />
+        </RelativeLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="50dp">
+
+                <RelativeLayout
+                    android:id="@+id/theme_share"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:layout_margin="15dp"
+                    android:background="@drawable/shape_bg_setting"
+                    android:paddingStart="15dp"
+                    android:paddingEnd="15dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@mipmap/ic_more"
+                        android:tint="@color/grey" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/yimu_theme_share_center"
+                        android:textColor="@color/black"
+                        android:textSize="15sp" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginEnd="15dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@drawable/shape_bg_setting"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="15dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="10dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/yimu_theme_logo"
+                            android:textColor="@color/grey"
+                            android:textSize="13sp" />
+
+                        <LinearLayout
+                            android:id="@+id/more_logo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:padding="15dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/yimu_theme_more_logo"
+                                android:textColor="@color/textColorPrimary"
+                                android:textSize="13sp" />
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:layout_marginStart="3dp"
+                                android:src="@mipmap/ic_more"
+                                android:tint="@color/textColorPrimary" />
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/logo_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:overScrollMode="never"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="10dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginEnd="15dp"
+                    android:background="@drawable/shape_bg_setting"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="15dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="10dp"
+                            android:layout_marginBottom="15dp"
+                            android:text="@string/yimu_theme_background"
+                            android:textColor="@color/grey"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/theme_background_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:overScrollMode="never" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/theme_parent_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:overScrollMode="never" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+</RelativeLayout>

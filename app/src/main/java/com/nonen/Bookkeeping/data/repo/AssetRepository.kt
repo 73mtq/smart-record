@@ -8,17 +8,9 @@ import com.nonen.Bookkeeping.data.db.AssetEntity
 import com.nonen.Bookkeeping.data.db.TransactionDao
 import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.data.db.TransferDao
+import com.nonen.Bookkeeping.data.db.TransferEntity
 import kotlinx.coroutines.flow.Flow
 import java.util.Locale
-
-/**
- * 资产净值聚合统计模型。
- */
-data class AssetSummary(
-    val netAsset: Double = 0.0,
-    val totalAsset: Double = 0.0,
-    val totalLiability: Double = 0.0,
-)
 
 /**
  * 资产账户数据仓库：
@@ -26,9 +18,9 @@ data class AssetSummary(
  */
 class AssetRepository(
     private val assetDao: AssetDao,
-    private val transferDao: TransferDao? = null,
-    private val transactionDao: TransactionDao? = null,
-    private val database: AppDatabase? = null,
+    private val transferDao: TransferDao,
+    private val transactionDao: TransactionDao,
+    private val database: AppDatabase,
 ) {
     companion object {
         const val TYPE_FUND = 1       // 资金账户（现金、微信、支付宝、借记卡等）
@@ -53,49 +45,11 @@ class AssetRepository(
      * 计算资产净值、总资产与总负债。
      */
     fun calculateSummary(assets: List<AssetEntity>): AssetSummary {
-        var totalAsset = 0.0
-        var totalLiability = 0.0
-
-        for (asset in assets) {
-            if (!asset.intoTotalAsset) continue
-
-            when (asset.assetType) {
-                TYPE_CREDIT -> {
-                    // 信用卡：若配置了信用总额度，已用额度视为负债，溢缴款视为资产
-                    if (asset.totalQuota > 0.0) {
-                        if (asset.assetNumber < asset.totalQuota) {
-                            totalLiability += (asset.totalQuota - asset.assetNumber)
-                        } else {
-                            totalAsset += (asset.assetNumber - asset.totalQuota)
-                        }
-                    } else {
-                        if (asset.assetNumber < 0.0) {
-                            totalLiability += kotlin.math.abs(asset.assetNumber)
-                        } else {
-                            totalAsset += asset.assetNumber
-                        }
-                    }
-                }
-                TYPE_DEBT -> {
-                    // 借入债务账户：金额绝对值记为负债
-                    totalLiability += kotlin.math.abs(asset.assetNumber)
-                }
-                else -> {
-                    // 资金账户与债权账户：正余额记为资产，透支负余额记为负债
-                    if (asset.assetNumber >= 0.0) {
-                        totalAsset += asset.assetNumber
-                    } else {
-                        totalLiability += kotlin.math.abs(asset.assetNumber)
-                    }
-                }
-            }
-        }
-
-        val netAsset = totalAsset - totalLiability
+        val summary = summarizeAssets(assets)
         return AssetSummary(
-            netAsset = roundDouble(netAsset),
-            totalAsset = roundDouble(totalAsset),
-            totalLiability = roundDouble(totalLiability),
+            netAsset = roundDouble(summary.netAsset),
+            totalAsset = roundDouble(summary.totalAsset),
+            totalLiability = roundDouble(summary.totalLiability),
         )
     }
 
@@ -162,11 +116,7 @@ class AssetRepository(
         val currentBalance = asset.assetNumber
         val delta = roundDouble(targetBalance - currentBalance)
 
-        if (database != null) {
-            database.withTransaction {
-                executeAdjustBalance(asset, targetBalance, delta, generateBill, note)
-            }
-        } else {
+        database.withTransaction {
             executeAdjustBalance(asset, targetBalance, delta, generateBill, note)
         }
     }
@@ -182,7 +132,7 @@ class AssetRepository(
         val updated = asset.copy(assetNumber = roundDouble(targetBalance), updatedAt = now)
         assetDao.update(updated)
 
-        if (generateBill && kotlin.math.abs(delta) >= 0.01 && transactionDao != null) {
+        if (generateBill && kotlin.math.abs(delta) >= 0.01) {
             val isIncome = delta > 0.0
             val absDelta = kotlin.math.abs(delta)
             val signedAmount = if (isIncome) absDelta else -absDelta
@@ -237,11 +187,7 @@ class AssetRepository(
         }
         val asset = assetDao.findById(assetId) ?: return false
 
-        if (database != null) {
-            database.withTransaction {
-                executeDeleteAsset(asset)
-            }
-        } else {
+        database.withTransaction {
             executeDeleteAsset(asset)
         }
         return true
@@ -251,7 +197,7 @@ class AssetRepository(
         // 1. 将关联该账户的所有历史账单重定向至默认现金账户
         val defaultAsset = assetDao.findById(DEFAULT_ASSET_ID)
         val defaultAccountName = defaultAsset?.assetName ?: "现金"
-        transactionDao?.reassignAsset(asset.assetId, DEFAULT_ASSET_ID, defaultAccountName)
+        transactionDao.reassignAsset(asset.assetId, DEFAULT_ASSET_ID, defaultAccountName)
 
         // 2. 删除该资产记录
         assetDao.deleteById(asset.assetId)
@@ -269,9 +215,8 @@ class AssetRepository(
         time: Long = System.currentTimeMillis(),
     ): Boolean {
         if (fromAssetId == toAssetId || amount <= 0.0) return false
-        val tDao = transferDao ?: return false
         val now = System.currentTimeMillis()
-        val transfer = com.nonen.Bookkeeping.data.db.TransferEntity(
+        val transfer = TransferEntity(
             fromAssetId = fromAssetId,
             toAssetId = toAssetId,
             cost = roundDouble(amount),
@@ -282,16 +227,10 @@ class AssetRepository(
             createdAt = now,
         )
 
-        if (database != null) {
-            database.withTransaction {
-                assetDao.updateBalance(fromAssetId, -(amount + serviceCharge))
-                assetDao.updateBalance(toAssetId, amount)
-                tDao.insert(transfer)
-            }
-        } else {
+        database.withTransaction {
             assetDao.updateBalance(fromAssetId, -(amount + serviceCharge))
             assetDao.updateBalance(toAssetId, amount)
-            tDao.insert(transfer)
+            transferDao.insert(transfer)
         }
         return true
     }

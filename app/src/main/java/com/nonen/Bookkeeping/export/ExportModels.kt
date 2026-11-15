@@ -84,7 +84,31 @@ data class FullBackupData(
     val categoryRules: List<CategoryRuleEntity> = emptyList(),
     val merchantCategories: List<MerchantCategoryEntity> = emptyList(),
     val settings: Map<String, String> = emptyMap(),
-)
+) {
+    val tableCounts: Map<String, Int>
+        get() = mapOf(
+            "transactions" to transactions.size,
+            "assets" to assets.size,
+            "books" to books.size,
+            "categories" to categories.size,
+            "transfers" to transfers.size,
+            "refunds" to refunds.size,
+            "reimbursements" to reimbursements.size,
+            "lends" to lends.size,
+            "instalments" to instalments.size,
+            "tags" to tags.size,
+            "tagRefs" to transactionTags.size,
+            "budgets" to budgets.size,
+            "categoryBudgets" to categoryBudgets.size,
+            "cycles" to cycles.size,
+            "cycleLogs" to cycleLogs.size,
+            "moduleBills" to moduleBills.size,
+            "dreams" to dreams.size,
+            "dreamLogs" to dreamLogs.size,
+            "categoryRules" to categoryRules.size,
+            "merchantCategories" to merchantCategories.size,
+        )
+}
 
 /**
  * 备份与恢复执行结果。

@@ -36,7 +36,9 @@ class DateMonthView(context: Context) : MonthView(context) {
     }
 
     override fun onDrawSelected(canvas: Canvas, calendar: Calendar, x: Int, y: Int, hasScheme: Boolean): Boolean {
-        canvas.drawCircle(x + mItemWidth / 2f, y + mItemHeight / 2f + dayOffset, radius(), mSelectedPaint)
+        // 参考实测选中圆整体比当前绘制低 2px（2026-11-13 采集成对测量：ref 641..799 / impl 639..797）。
+        val circleOffset = dayOffset + 2f
+        canvas.drawCircle(x + mItemWidth / 2f, y + mItemHeight / 2f + circleOffset, radius(), mSelectedPaint)
         return true
     }
 

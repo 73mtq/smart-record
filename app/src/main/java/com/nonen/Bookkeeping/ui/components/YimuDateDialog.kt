@@ -14,6 +14,7 @@ import android.widget.TextView
 import com.haibin.calendarview.Calendar
 import com.haibin.calendarview.CalendarView
 import com.nonen.Bookkeeping.R
+import com.nonen.Bookkeeping.ui.calendar.calendarHeightPx
 import com.nonen.Bookkeeping.ui.calendar.YimuCalendarView
 import com.zyyoona7.wheel.WheelView
 import com.zyyoona7.wheel.adapter.ArrayWheelAdapter
@@ -67,6 +68,8 @@ class YimuDateDialog(
             }
             override fun onCalendarOutOfRange(calendar: Calendar) = Unit
         })
+        calendarView.setOnMonthChangeListener { year, month -> applyCalendarHeight(year, month) }
+        applyCalendarHeight(selected.year, selected.month)
         calendarView.post {
             calendarView.scrollToCalendar(selected.year, selected.month, selected.day, false)
         }
@@ -119,6 +122,16 @@ class YimuDateDialog(
             val shadowPadding = (6 * context.resources.displayMetrics.density).roundToInt()
             window.setLayout(dialogWidth(context) + shadowPadding * 2, WindowManager.LayoutParams.WRAP_CONTENT)
             window.attributes = window.attributes.apply { y = -1 }
+        }
+    }
+
+    /** 原版 CalendarView 为 wrap_content，高度随当月行数变化；固定 316.3dp 只对应五行的月份 */
+    private fun applyCalendarHeight(year: Int, month: Int) {
+        val height = calendarHeightPx(year, month, calendarView.resources.displayMetrics.density)
+        val params = calendarView.layoutParams
+        if (params.height != height) {
+            params.height = height
+            calendarView.layoutParams = params
         }
     }
 

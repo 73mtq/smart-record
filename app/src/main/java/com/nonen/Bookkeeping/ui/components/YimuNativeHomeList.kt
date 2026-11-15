@@ -229,6 +229,13 @@ private class NativeHomeAdapter(private val context: Context) : RecyclerView.Ada
 
     private fun money(amount: Double) = if (state.hideAmount) "***" else String.format(Locale.US, "%,.2f", amount)
 
+    /** 交易行金额：收入显示 + 前缀（参考实测 +3,507.66），汇总与分组头用 money() 不带 +。 */
+    private fun signedMoney(amount: Double) = when {
+        state.hideAmount -> "***"
+        amount > 0 -> "+" + String.format(Locale.US, "%,.2f", amount)
+        else -> String.format(Locale.US, "%,.2f", amount)
+    }
+
     private fun bindSummary(view: View) {
         val income = state.transactions.filter { it.amount > 0 }.sumOf { it.amount }
         val expense = -state.transactions.filter { it.amount < 0 }.sumOf { it.amount }
@@ -308,7 +315,7 @@ private class NativeHomeAdapter(private val context: Context) : RecyclerView.Ada
         view.findViewById<View>(R.id.second_layout).visibility =
             if (state.showTime || !transaction.note.isNullOrBlank()) View.VISIBLE else View.GONE
         view.text(R.id.cost).apply {
-            text = money(transaction.amount)
+            text = signedMoney(transaction.amount)
             setTextColor(if (transaction.amount < 0) YimuTokens.Pay.toArgb() else YimuTokens.Income.toArgb())
         }
         val hasAsset = state.showAssetIcon && !transaction.account.isNullOrBlank()

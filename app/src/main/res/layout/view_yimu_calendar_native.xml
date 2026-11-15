@@ -162,6 +162,7 @@
             app:selected_text_color="@color/white"
             app:selected_theme_color="@color/colorPrimary"
             app:week_background="@color/backgroundLight"
+            app:week_text_color="@color/black"
             app:week_view="com.nonen.Bookkeeping.ui.calendar.CustomWeekView" />
 
         <RelativeLayout
@@ -341,8 +342,8 @@
         android:focusable="true">
 
         <ImageView
-            android:layout_width="31.5dp"
-            android:layout_height="31.5dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_gravity="center"
             android:scaleType="fitCenter"
                 android:src="@mipmap/ic_add_ai_bill"

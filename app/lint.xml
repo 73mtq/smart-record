@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- 原生布局在 ComponentActivity 中使用 framework ImageView；minSdk 26 支持 android:tint。 -->
+    <issue id="UseAppTint">
+        <ignore path="src/main/res/layout/" />
+    </issue>
+</lint>

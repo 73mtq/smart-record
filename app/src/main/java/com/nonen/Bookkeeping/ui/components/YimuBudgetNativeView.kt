@@ -15,6 +15,8 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.nonen.Bookkeeping.R
+import java.time.LocalDate
+import java.time.YearMonth
 import java.util.Locale
 
 class YimuBudgetNativeView @JvmOverloads constructor(
@@ -35,6 +37,8 @@ class YimuBudgetNativeView @JvmOverloads constructor(
     private val dayPay: TextView
     private val budgetDay: TextView
     private val lineChart: LineChart
+    private val progressTrack: YimuCircleLineView
+    private val progressFill: YimuCircleLineView
     private val tipLayout: View
     private var listener: Listener? = null
 
@@ -48,7 +52,12 @@ class YimuBudgetNativeView @JvmOverloads constructor(
         dayPay = findViewById(R.id.day_pay)
         budgetDay = findViewById(R.id.budget_day_surplus)
         lineChart = findViewById(R.id.budget_line_chart)
+        progressTrack = findViewById(R.id.progress_view_one)
+        progressFill = findViewById(R.id.progress_view_two)
         tipLayout = findViewById(R.id.tip_layout)
+        progressTrack.setLineColor(ContextCompat.getColor(context, R.color.colorPrimaryAlpha10))
+        progressTrack.setProgress(100)
+        progressFill.setLineColor(ContextCompat.getColor(context, R.color.textColorPrimary))
         findViewById<View>(R.id.btn_back).setOnClickListener { listener?.onBack() }
         findViewById<View>(R.id.month_budget_layout).setOnClickListener { listener?.onEditTotal() }
         findViewById<View>(R.id.add_category_budget).setOnClickListener { listener?.onAddCategory() }
@@ -63,10 +72,13 @@ class YimuBudgetNativeView @JvmOverloads constructor(
         monthBudget.text = money(totalBudget)
         budgetSurplus.text = money(if (hasBudget) remaining else 0.0)
         monthPay.text = money(if (hasBudget) totalExpense else 0.0)
-        dayPay.text = money(if (hasBudget) totalExpense / 31.0 else 0.0)
-        budgetDay.text = money(totalBudget / 31.0)
+        // 原版 s0：日均 = 支出 / 已过天数；日预算 = 剩余 / 剩余天数（含当天）
+        val measure = budgetDays(year, month, LocalDate.now())
+        dayPay.text = money(if (hasBudget && measure.elapsedDays > 0) totalExpense / measure.elapsedDays else 0.0)
+        budgetDay.text = money(if (hasBudget && measure.remainingDays > 0) remaining / measure.remainingDays else 0.0)
+        progressFill.setProgress(budgetRemainingPercent(totalBudget, totalExpense))
         tipLayout.visibility = if (categoryCount == 0) View.VISIBLE else View.GONE
-        renderChart()
+        renderChart(year, month)
     }
 
     private fun configureChart() {
@@ -101,16 +113,13 @@ class YimuBudgetNativeView @JvmOverloads constructor(
             position = XAxis.XAxisPosition.BOTTOM
             textColor = ContextCompat.getColor(context, R.color.darkGrey)
             textSize = 7f
-            setLabelCount(15)
-            granularity = 2f
-            valueFormatter = object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String = (value.toInt() + 1).toString()
-            }
         }
     }
 
-    private fun renderChart() {
-        val entries = (0..30).map { Entry(it.toFloat(), 0f) }
+    private fun renderChart(year: Int, month: Int) {
+        // 原版 BudgetManagerActivity.B0():382-390 用当月第一天/最后一天逐日累加，数据点与 labelCount 均为当月天数
+        val days = budgetAxisDays(year, month)
+        val entries = (0 until days).map { Entry(it.toFloat(), 0f) }
         val pay = LineDataSet(entries, "支出").apply {
             color = ContextCompat.getColor(context, R.color.moneyPay)
             lineWidth = 2f
@@ -132,6 +141,10 @@ class YimuBudgetNativeView @JvmOverloads constructor(
         // 原版 budget 图 xAxis 无 min/max 钳制，首点贴 plot 左缘（-0.5 会使线缩进约 16px）
         lineChart.xAxis.resetAxisMinimum()
         lineChart.xAxis.resetAxisMaximum()
+        lineChart.xAxis.setLabelCount(days)
+        lineChart.xAxis.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String = budgetDayAxisLabel(value, 1, days)
+        }
         lineChart.data = LineData(listOf(pay, remaining))
         lineChart.invalidate()
     }
@@ -139,4 +152,42 @@ class YimuBudgetNativeView @JvmOverloads constructor(
     private fun money(value: Double): String = String.format(Locale.US, "%,.2f", value)
 
     private fun dp(value: Int): Int = Math.round(value * resources.displayMetrics.density)
+}
+
+internal fun budgetAxisDays(year: Int, month: Int): Int = YearMonth.of(year, month).lengthOfMonth()
+
+/** 原版 s0 的已过天数与剩余天数：剩余天数从当天算到月末，含当天。 */
+internal data class BudgetDays(val elapsedDays: Int, val remainingDays: Int)
+
+internal fun budgetDays(year: Int, month: Int, today: LocalDate): BudgetDays {
+    val days = budgetAxisDays(year, month)
+    val first = LocalDate.of(year, month, 1)
+    val last = LocalDate.of(year, month, days)
+    return when {
+        today.isAfter(last) -> BudgetDays(days, 0)
+        today.isBefore(first) -> BudgetDays(0, days)
+        else -> BudgetDays(today.dayOfMonth, days - today.dayOfMonth + 1)
+    }
+}
+
+/**
+ * 原版 BudgetManagerActivity.g.getFormattedValue(float)：
+ * (1 + value) % 2 == 0 返回空串；否则 (int) value + 起始日，超过当月天数则减去当月天数。
+ */
+internal fun budgetDayAxisLabel(value: Float, startDay: Int, daysInMonth: Int): String {
+    if ((1.0f + value) % 2.0f == 0.0f) return ""
+    var day = value.toInt() + startDay
+    if (day > daysInMonth) day -= daysInMonth
+    return day.toString()
+}
+
+/**
+ * 原版 BudgetManagerActivity.s0：进度条按剩余比例绘制，
+ * 预算减支出小于等于 0 时不绘制；百分比取整后由 CircleLineView 钳到 0..100。
+ */
+internal fun budgetRemainingPercent(totalBudget: Double, totalExpense: Double): Int {
+    if (totalBudget <= 0.0) return 0
+    val remaining = totalBudget - totalExpense
+    if (remaining <= 0.0) return 0
+    return ((remaining * 100.0) / totalBudget).toInt().coerceIn(0, 100)
 }

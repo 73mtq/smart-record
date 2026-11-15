@@ -48,11 +48,16 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     lint {
         // 发布构建的致命问题直接失败，避免带病出包；警告不阻断本地开发
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = false
+        // ExperimentalDetector 在分析 YimuStatisticsNativeView 的主构造属性时触发 Lint 自身的
+        // "Unexpected owner function: null" 崩溃（KaFirKotlinPropertyKtParameterBasedSymbol），
+        // 与代码正确性无关，按 Lint 建议禁用这两个实验性 API 检测项。
+        disable += listOf("UnsafeOptInUsageError", "UnsafeOptInUsageWarning")
     }
 }
 
@@ -98,6 +103,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.commons.csv)
+    compileOnly(libs.spotbugs.annotations)
     implementation(libs.jxl)
     implementation(libs.material.components)
     implementation(libs.androidx.appcompat)
@@ -115,7 +121,10 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // Room 的 schema 测试与被测 Debug 应用共享 serialization 运行库。
+    debugImplementation(libs.kotlinx.serialization.json)
 }

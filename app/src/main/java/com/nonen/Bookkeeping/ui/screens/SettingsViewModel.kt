@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.nonen.Bookkeeping.AppContainer
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.core.AccessibilityUtil
-import com.nonen.Bookkeeping.core.HashUtil
-import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.data.prefs.ListenScope
 import com.nonen.Bookkeeping.data.prefs.ThemeMode
 import com.nonen.Bookkeeping.export.BackupExporter
@@ -152,10 +150,25 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch { settings.setNavigationLabelsEnabled(v) }
     }
 
-    fun updateNoteFirst(value: Boolean) { noteFirst = value; viewModelScope.launch { settings.setNoteFirst(value) } }
-    fun updateSimpleCategory(value: Boolean) { simpleCategory = value; viewModelScope.launch { settings.setSimpleCategory(value) } }
-    fun updateShowTransactionTime(value: Boolean) { showTransactionTime = value; viewModelScope.launch { settings.setShowTransactionTime(value) } }
-    fun updateShowAssetIcon(value: Boolean) { showAssetIcon = value; viewModelScope.launch { settings.setShowAssetIcon(value) } }
+    fun updateNoteFirst(value: Boolean) {
+        noteFirst = value
+        viewModelScope.launch { settings.setNoteFirst(value) }
+    }
+
+    fun updateSimpleCategory(value: Boolean) {
+        simpleCategory = value
+        viewModelScope.launch { settings.setSimpleCategory(value) }
+    }
+
+    fun updateShowTransactionTime(value: Boolean) {
+        showTransactionTime = value
+        viewModelScope.launch { settings.setShowTransactionTime(value) }
+    }
+
+    fun updateShowAssetIcon(value: Boolean) {
+        showAssetIcon = value
+        viewModelScope.launch { settings.setShowAssetIcon(value) }
+    }
 
     /** 按当前分类规则重算全部历史账单的分类（覆盖手动改过的分类，学习规则优先） */
     fun reclassifyAll() {
@@ -196,36 +209,35 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     /** 导出一木 23 列标准 Excel 格式 */
-    fun exportBackup(uri: Uri) {
-        viewModelScope.launch {
-            statusMessage = runCatching {
-                val all = container.transactionRepository.getAll()
-                val assetMap = container.assetDao.getAll().associate { it.assetId to it.assetName }
-                val bookMap = container.bookDao.getAll().associate { it.bookId to it.bookName }
-                val catMap = container.categoryDao.getAll().associate { it.categoryId to it.categoryName }
-                val bytes = BackupExporter.buildXlsx(all, assetMap, bookMap, catMap)
-                container.appContext.contentResolver.openOutputStream(uri)
-                    ?.use { it.write(bytes) }
-                    ?: error(ctx.getString(R.string.error_cannot_write_file))
-                ctx.getString(R.string.status_backup_exported, all.size)
-            }.getOrElse { ctx.getString(R.string.status_backup_export_failed, it.message.orEmpty()) }
-        }
-    }
+    fun exportBackup(uri: Uri) = exportBillFile(uri, BillExportFormat.XLSX)
 
     /** 导出一木 23 列标准 CSV 格式 */
-    fun exportCsv(uri: Uri) {
+    fun exportCsv(uri: Uri) = exportBillFile(uri, BillExportFormat.CSV)
+
+    private fun exportBillFile(uri: Uri, format: BillExportFormat) {
         viewModelScope.launch {
             statusMessage = runCatching {
                 val all = container.transactionRepository.getAll()
                 val assetMap = container.assetDao.getAll().associate { it.assetId to it.assetName }
                 val bookMap = container.bookDao.getAll().associate { it.bookId to it.bookName }
                 val catMap = container.categoryDao.getAll().associate { it.categoryId to it.categoryName }
-                val bytes = BackupExporter.buildCsv(all, assetMap, bookMap, catMap)
+                val bytes = when (format) {
+                    BillExportFormat.XLSX -> BackupExporter.buildXlsx(all, assetMap, bookMap, catMap)
+                    BillExportFormat.CSV -> BackupExporter.buildCsv(all, assetMap, bookMap, catMap)
+                }
                 container.appContext.contentResolver.openOutputStream(uri)
                     ?.use { it.write(bytes) }
                     ?: error(ctx.getString(R.string.error_cannot_write_file))
-                "成功导出 ${all.size} 条账单至 CSV 文件"
-            }.getOrElse { "CSV 导出失败：${it.message}" }
+                when (format) {
+                    BillExportFormat.XLSX -> ctx.getString(R.string.status_backup_exported, all.size)
+                    BillExportFormat.CSV -> ctx.getString(R.string.status_csv_exported, all.size)
+                }
+            }.getOrElse {
+                when (format) {
+                    BillExportFormat.XLSX -> ctx.getString(R.string.status_backup_export_failed, it.message.orEmpty())
+                    BillExportFormat.CSV -> ctx.getString(R.string.status_csv_export_failed, it.message)
+                }
+            }
         }
     }
 
@@ -309,4 +321,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     private fun readBytesOrThrow(uri: Uri): ByteArray =
         container.appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: error(ctx.getString(R.string.error_cannot_read_file))
+
+    private enum class BillExportFormat { XLSX, CSV }
 }

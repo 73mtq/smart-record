@@ -423,8 +423,8 @@
                     android:id="@id/asset_list"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="15dp"
                     android:overScrollMode="never"
+                    android:paddingBottom="15dp"
                     android:visibility="gone" />
             </FrameLayout>
         </LinearLayout>
@@ -445,8 +445,8 @@
         android:focusable="true">
 
         <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_gravity="center"
             android:scaleType="fitCenter"
                 android:src="@mipmap/ic_add_asset"

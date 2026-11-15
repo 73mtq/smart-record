@@ -25,8 +25,8 @@
                         <TextView android:textSize="15.0sp" android:textStyle="bold" android:textColor="@color/textColorPrimary" android:id="@+id/month_budget" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5.0dp" android:text="546.00" />
                     </LinearLayout>
                     <RelativeLayout android:id="@+id/budget_progress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dp" android:layout_marginBottom="10.0dp" android:layout_below="@+id/month_budget_layout" android:layout_marginStart="13.0dp" android:layout_marginEnd="13.0dp">
-                        <View android:id="@+id/progress_view_one" android:layout_width="match_parent" android:layout_height="5dp" android:background="@drawable/budget_progress_track" />
-                        <View android:id="@+id/progress_view_two" android:layout_width="0dp" android:layout_height="5dp" />
+                        <com.nonen.Bookkeeping.ui.components.YimuCircleLineView android:id="@+id/progress_view_one" android:layout_width="match_parent" android:layout_height="5dp" />
+                        <com.nonen.Bookkeeping.ui.components.YimuCircleLineView android:id="@+id/progress_view_two" android:layout_width="match_parent" android:layout_height="5dp" />
                     </RelativeLayout>
                     <LinearLayout android:orientation="horizontal" android:id="@+id/data_layout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_below="@+id/budget_progress">
                         <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@+id/month_pay_layout" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0">

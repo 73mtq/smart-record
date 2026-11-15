@@ -3,7 +3,7 @@ package com.nonen.Bookkeeping.stats
 import com.nonen.Bookkeeping.data.db.AssetEntity
 import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.data.db.TransferEntity
-import com.nonen.Bookkeeping.data.repo.AssetRepository
+import com.nonen.Bookkeeping.data.repo.summarizeAssets
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -280,50 +280,16 @@ object StatsCalculator {
                 deltaMap[transfer.toAssetId] = (deltaMap[transfer.toAssetId] ?: 0.0) + transfer.toCost
             }
 
-            var totalAsset = 0.0
-            var totalDebt = 0.0
-
-            for (asset in currentAssets) {
-                if (!asset.intoTotalAsset) continue
+            val summary = summarizeAssets(currentAssets) { asset ->
                 val delta = deltaMap[asset.assetId] ?: 0.0
-                val balanceAtDate = asset.assetNumber - delta
-
-                when (asset.assetType) {
-                    AssetRepository.TYPE_CREDIT -> {
-                        if (asset.totalQuota > 0.0) {
-                            if (balanceAtDate < asset.totalQuota) {
-                                totalDebt += (asset.totalQuota - balanceAtDate)
-                            } else {
-                                totalAsset += (balanceAtDate - asset.totalQuota)
-                            }
-                        } else {
-                            if (balanceAtDate < 0.0) {
-                                totalDebt += abs(balanceAtDate)
-                            } else {
-                                totalAsset += balanceAtDate
-                            }
-                        }
-                    }
-                    AssetRepository.TYPE_DEBT -> {
-                        totalDebt += abs(balanceAtDate)
-                    }
-                    else -> {
-                        if (balanceAtDate >= 0.0) {
-                            totalAsset += balanceAtDate
-                        } else {
-                            totalDebt += abs(balanceAtDate)
-                        }
-                    }
-                }
+                asset.assetNumber - delta
             }
-
-            val netAsset = totalAsset - totalDebt
             AssetTrendPoint(
                 date = curDate,
                 timestamp = dayEndMillis,
-                netAsset = netAsset,
-                totalAsset = totalAsset,
-                totalDebt = totalDebt,
+                netAsset = summary.netAsset,
+                totalAsset = summary.totalAsset,
+                totalDebt = summary.totalLiability,
             )
         }
     }

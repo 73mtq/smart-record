@@ -1,34 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/total_layout"
     android:layout_width="match_parent"
     android:layout_height="55dp"
-    android:background="?android:selectableItemBackground"
+    android:background="@drawable/selectable_item_expand_mask"
     android:paddingStart="15dp"
     android:paddingEnd="15dp">
 
     <ImageView
-        android:id="@+id/asset_choice_icon"
+        android:id="@+id/icon"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:layout_alignTop="@+id/name_layout" />
+        android:layout_centerVertical="true" />
 
     <LinearLayout
         android:id="@+id/name_layout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_centerVertical="true"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
-        android:layout_toEndOf="@+id/asset_choice_icon"
+        android:layout_toStartOf="@+id/cost_layout"
+        android:layout_toEndOf="@+id/icon"
         android:gravity="center_vertical"
         android:orientation="vertical">
 
         <TextView
-            android:id="@id/name"
+            android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textColor="@color/black"
             android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/remark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/darkGrey"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/cost_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:gravity="end"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/cost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/credit_quota"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/grey"
+            android:textSize="11sp"
+            android:visibility="gone" />
     </LinearLayout>
 </RelativeLayout>

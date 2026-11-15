@@ -7,7 +7,6 @@ import com.nonen.Bookkeeping.data.entity.BudgetEntity
 import com.nonen.Bookkeeping.data.entity.CategoryBudgetEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import java.util.Calendar
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -54,31 +53,7 @@ class BudgetRepository(
         if (existing != null) {
             return existing
         }
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.YEAR, year)
-        cal.set(Calendar.MONTH, month - 1)
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        val startTime = cal.timeInMillis
-
-        cal.add(Calendar.MONTH, 1)
-        val endTime = cal.timeInMillis
-
-        val newBudget = BudgetEntity(
-            bookId = bookId,
-            budgetName = "${year}年${month}月总预算",
-            year = year,
-            month = month,
-            type = BudgetEntity.TYPE_MONTH,
-            startTime = startTime,
-            endTime = endTime,
-            num = defaultAmount,
-            addNum = 0.0,
-            updateTime = System.currentTimeMillis(),
-        )
+        val newBudget = newMonthBudget(bookId, year, month, defaultAmount, addNum = 0.0)
         val id = budgetDao.insertBudget(newBudget)
         return newBudget.copy(budgetId = id)
     }
@@ -105,32 +80,7 @@ class BudgetRepository(
             budgetDao.updateBudget(updated)
             existing.budgetId
         } else {
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.YEAR, year)
-            cal.set(Calendar.MONTH, month - 1)
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            val startTime = cal.timeInMillis
-            cal.add(Calendar.MONTH, 1)
-            val endTime = cal.timeInMillis
-
-            budgetDao.insertBudget(
-                BudgetEntity(
-                    bookId = bookId,
-                    budgetName = "${year}年${month}月总预算",
-                    year = year,
-                    month = month,
-                    type = BudgetEntity.TYPE_MONTH,
-                    startTime = startTime,
-                    endTime = endTime,
-                    num = roundAmount,
-                    addNum = roundAdd,
-                    updateTime = System.currentTimeMillis(),
-                ),
-            )
+            budgetDao.insertBudget(newMonthBudget(bookId, year, month, roundAmount, roundAdd))
         }
     }
 
@@ -182,18 +132,7 @@ class BudgetRepository(
         year: Int,
         month: Int,
     ): Flow<BudgetOverview> {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.YEAR, year)
-        cal.set(Calendar.MONTH, month - 1)
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        val startTime = cal.timeInMillis
-        cal.add(Calendar.MONTH, 1)
-        val endTime = cal.timeInMillis
-
+        val (startTime, endTime) = monthRange(year, month)
         val budgetFlow = budgetDao.observeBudget(bookId, year, month, BudgetEntity.TYPE_MONTH)
         val expensesFlow = transactionDao.observeExpensesBetween(bookId, startTime, endTime)
 
@@ -250,6 +189,37 @@ class BudgetRepository(
         if (existing != null) {
             budgetDao.deleteCategoryBudget(existing)
         }
+    }
+
+    private fun newMonthBudget(bookId: Long, year: Int, month: Int, amount: Double, addNum: Double): BudgetEntity {
+        val (startTime, endTime) = monthRange(year, month)
+        return BudgetEntity(
+            bookId = bookId,
+            budgetName = "${year}年${month}月总预算",
+            year = year,
+            month = month,
+            type = BudgetEntity.TYPE_MONTH,
+            startTime = startTime,
+            endTime = endTime,
+            num = amount,
+            addNum = addNum,
+            updateTime = System.currentTimeMillis(),
+        )
+    }
+
+    private fun monthRange(year: Int, month: Int): Pair<Long, Long> {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month - 1)
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startTime = calendar.timeInMillis
+        calendar.add(Calendar.MONTH, 1)
+        return startTime to calendar.timeInMillis
     }
 
     private fun roundToTwoDecimals(value: Double): Double {

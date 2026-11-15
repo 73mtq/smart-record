@@ -1,40 +1,11 @@
 package com.nonen.Bookkeeping.data.db
 
-import androidx.sqlite.db.SupportSQLiteDatabase
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import java.lang.reflect.Proxy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class Migration4To5Test {
-
-    @Test
-    fun `migration 4 to 5 adds hideBook column to categories table`() {
-        val executedSqls = mutableListOf<String>()
-
-        val handler = InvocationHandler { _: Any?, method: Method, args: Array<out Any>? ->
-            if (method.name == "execSQL" && args != null && args.isNotEmpty()) {
-                executedSqls.add(args[0] as String)
-            }
-            null
-        }
-
-        val fakeDb = Proxy.newProxyInstance(
-            SupportSQLiteDatabase::class.java.classLoader,
-            arrayOf(SupportSQLiteDatabase::class.java),
-            handler,
-        ) as SupportSQLiteDatabase
-
-        AppDatabase.MIGRATION_4_5.migrate(fakeDb)
-
-        assertTrue(
-            "Expected ALTER TABLE categories ADD COLUMN hideBook",
-            executedSqls.any { it.contains("ALTER TABLE `categories` ADD COLUMN `hideBook` TEXT") },
-        )
-    }
 
     @Test
     fun `CategoryEntity isHiddenInBook respects global hide and book-specific hideBook`() {

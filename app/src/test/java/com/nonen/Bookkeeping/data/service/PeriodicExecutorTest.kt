@@ -9,7 +9,7 @@ import java.util.Calendar
 
 /**
  * 周期任务匹配与推算纯算法单元测试。
- * 遵循无 Fake DAO、无 Mock 规范，直接验证纯函数算法的准确性。
+ * 验证周期匹配与待执行日期计算。
  */
 class PeriodicExecutorTest {
 

@@ -4,6 +4,8 @@ import com.nonen.Bookkeeping.data.db.CategoryRuleDao
 import com.nonen.Bookkeeping.data.db.CategoryRuleEntity
 import com.nonen.Bookkeeping.data.db.MerchantCategoryDao
 import com.nonen.Bookkeeping.data.db.MerchantCategoryEntity
+import com.nonen.Bookkeeping.core.nlp.ClassificationModelService
+import java.util.Locale
 
 /**
  * 分类依据快照：一次查库取全部依据，供批量 import 逐行复用。
@@ -24,8 +26,9 @@ class CategorizationRules(
  * 2. **自定义关键词规则**——用户在规则页显式写下的映射，同样属于用户意志；
  * 3. **平台自带分类**——支付宝「交易分类」/微信「交易类型」，覆盖面广但较泛，
  *    因此排在用户显式配置之后；
- * 4. **内置关键词规则**——预置的 500+ 条商户/场景词；
- * 5. 兜底「其他」。
+ * 4. **本地模型推断**——离线 SVM 模型达到既定置信度后的分类；
+ * 5. **内置关键词规则**——预置的 500+ 条商户/场景词；
+ * 6. 兜底「其他」。
  *
  * 每一层都用方向过滤（收入只落收入分类，反之亦然），避免「工资」被归进支出类。
  */
@@ -85,52 +88,44 @@ class RuleEngine(
             }
 
             val body = text.orEmpty()
-            val custom = rules.rules.filter { it.isCustom && it.category in allowed }
-            val builtin = rules.rules.filter { !it.isCustom && it.category in allowed }
-
-            // 2. 自定义关键词（用户显式配置，先于平台分类）
             if (body.isNotBlank()) {
-                custom.forEach {
-                    if (body.contains(it.keyword, ignoreCase = true)) {
-                        return MatchDetail(it.category, "自定义规则", it.keyword)
-                    }
-                }
+                matchKeyword(body, rules.rules, allowed, isCustom = true)?.let { return it }
             }
 
-            // 3. 平台自带分类
             PlatformCategories.resolve(platformCategory, isIncome)
                 ?.takeIf { it in allowed }
                 ?.let { return MatchDetail(it, "平台分类", platformCategory) }
 
-            // 4. 本地模型推断（离线 SVM 统计推断）
             if (body.isNotBlank()) {
-                val modelService = com.nonen.Bookkeeping.core.nlp.ClassificationModelService.getInstance()
-                if (modelService != null) {
-                    val predictions = modelService.predict(body)
-                    val top = predictions.maxByOrNull { it.value }
-                    if (top != null && top.value >= 0.15) {
-                        val parts = top.key.split("-")
-                        val parentCat = parts.getOrNull(0) ?: if (isIncome) "收入" else "其他"
-                        val childCat = parts.getOrNull(1)
-                        val mapped = CategoryMapping.resolve(parentCat, childCat, isIncome)
-                        val targetCat = mapped.parentName
-                        if (targetCat in allowed) {
-                            return MatchDetail(targetCat, "本地模型推断", "${top.key}:${String.format(java.util.Locale.US, "%.2f", top.value)}")
-                        }
-                    }
-                }
-            }
-
-            // 5. 内置关键词
-            if (body.isNotBlank()) {
-                builtin.forEach {
-                    if (body.contains(it.keyword, ignoreCase = true)) {
-                        return MatchDetail(it.category, "内置规则", it.keyword)
-                    }
-                }
+                matchLocalModel(body, isIncome, allowed)?.let { return it }
+                matchKeyword(body, rules.rules, allowed, isCustom = false)?.let { return it }
             }
 
             return MatchDetail(fallback, "兜底分类", null)
+        }
+
+        private fun matchKeyword(
+            text: String,
+            rules: List<CategoryRuleEntity>,
+            allowed: Set<String>,
+            isCustom: Boolean,
+        ): MatchDetail? {
+            val rule = rules.firstOrNull {
+                it.isCustom == isCustom && it.category in allowed && text.contains(it.keyword, ignoreCase = true)
+            } ?: return null
+            return MatchDetail(rule.category, if (isCustom) "自定义规则" else "内置规则", rule.keyword)
+        }
+
+        private fun matchLocalModel(text: String, isIncome: Boolean, allowed: Set<String>): MatchDetail? {
+            val model = ClassificationModelService.getInstance() ?: return null
+            val top = model.predict(text).maxByOrNull { it.value }
+                ?.takeIf { it.value >= 0.15 } ?: return null
+            val parts = top.key.split("-")
+            val mapped = CategoryMapping.resolve(parts.first(), parts.getOrNull(1), isIncome)
+            if (mapped.parentName !in allowed) return null
+            return MatchDetail(
+                mapped.parentName, "本地模型推断", "${top.key}:${String.format(Locale.US, "%.2f", top.value)}",
+            )
         }
 
         /**

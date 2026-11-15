@@ -29,11 +29,8 @@ class YimuAssetDialog(
     onManage: () -> Unit,
     onDismiss: () -> Unit,
 ) : BottomSheetDialog(context) {
-    private lateinit var contentView: View
-
     init {
         val content = LayoutInflater.from(context).inflate(R.layout.yimu_asset_dialog, null, false)
-        contentView = content
         val list = content.findViewById<RecyclerView>(R.id.data_list)
         list.layoutManager = LinearLayoutManager(context)
         list.adapter = AssetAdapter(assets,
@@ -59,7 +56,8 @@ class YimuAssetDialog(
                     addRoundRect(RectF(0f, 0f, view.width.toFloat(), view.height.toFloat()),
                         floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f), Path.Direction.CW)
                 }
-                outline.setPath(path)
+                @Suppress("DEPRECATION")
+                outline.setConvexPath(path)
             }
         }
         content.clipToOutline = true
@@ -106,16 +104,23 @@ class YimuAssetDialog(
             val asset = items[position]
             val context = holder.itemView.context
             val name = holder.itemView.findViewById<TextView>(R.id.name)
-            val icon = holder.itemView.findViewById<ImageView>(R.id.asset_choice_icon)
-            icon.translationY = -1f
+            val remark = holder.itemView.findViewById<TextView>(R.id.remark)
+            val cost = holder.itemView.findViewById<TextView>(R.id.cost)
+            val creditQuota = holder.itemView.findViewById<TextView>(R.id.credit_quota)
+            val icon = holder.itemView.findViewById<ImageView>(R.id.icon)
+            remark.visibility = View.GONE
+            creditQuota.visibility = View.GONE
             if (asset == null) {
                 name.setText(R.string.yimu_drawer_no_asset)
                 name.setTextColor(context.getColor(R.color.black))
+                cost.visibility = View.GONE
                 icon.setImageResource(R.mipmap.ic_no_asset)
                 icon.imageTintList = ColorStateList.valueOf(context.getColor(R.color.black))
             } else {
                 name.text = asset.assetName
                 name.setTextColor(context.getColor(R.color.black))
+                cost.visibility = View.VISIBLE
+                cost.text = String.format(java.util.Locale.US, "%,.2f", asset.assetNumber)
                 icon.setImageResource(R.mipmap.ic_main_account_book)
                 icon.imageTintList = ColorStateList.valueOf(context.getColor(R.color.textColorPrimary))
             }

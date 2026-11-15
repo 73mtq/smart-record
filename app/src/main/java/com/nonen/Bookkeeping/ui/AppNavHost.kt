@@ -10,8 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -51,6 +54,7 @@ import com.nonen.Bookkeeping.ui.screens.TemplateViewModel
 import com.nonen.Bookkeeping.ui.screens.SettingsScreen
 import com.nonen.Bookkeeping.ui.screens.SettingsViewModel
 import com.nonen.Bookkeeping.ui.screens.YimuAddEditScreen
+import com.nonen.Bookkeeping.ui.screens.YimuThemeScreen
 import com.nonen.Bookkeeping.ui.screens.SettingsPage
 import com.nonen.Bookkeeping.ui.screens.StatisticsBillFilter
 import com.nonen.Bookkeeping.ui.screens.StatisticsBillListScreen
@@ -114,8 +118,14 @@ fun AppNavHost(
     val reduced = rememberReducedMotion()
     val selectedBookId by container.settings.selectedBookId.collectAsState(initial = 1L)
     val books by remember(container) { container.bookDao.getAllFlow() }.collectAsState(initial = emptyList())
+    // 记录首次 startDestination：主题切换会触发 Activity 重建，NavController 恢复原返回栈后
+    // 不能再把 startDestination 压入一次，否则会从主题页跳回首页；只有新 intent 改变入口时才导航。
+    val entryRoute = rememberSaveable { mutableStateOf(startDestination) }
     LaunchedEffect(startDestination) {
-        if (nav.currentDestination != null) nav.navigate(startDestination) { launchSingleTop = true }
+        if (entryRoute.value != startDestination) {
+            nav.navigate(startDestination) { launchSingleTop = true }
+            entryRoute.value = startDestination
+        }
     }
 
     NavHost(
@@ -248,7 +258,14 @@ fun AppNavHost(
             )
         }
 
-        listOf(Routes.SETTINGS to SettingsPage.ROOT, Routes.APPEARANCE to SettingsPage.APPEARANCE,
+        composable(Routes.APPEARANCE) {
+            YimuThemeScreen(
+                onBack = { nav.popBackStack() },
+                onThemeMode = { mode -> scope.launch { container.settings.setThemeMode(mode) } },
+            )
+        }
+
+        listOf(Routes.SETTINGS to SettingsPage.ROOT,
             Routes.IMPORT_EXPORT to SettingsPage.IMPORT_EXPORT, Routes.BACKUP to SettingsPage.BACKUP).forEach { (route, page) ->
         composable(route) {
             val vm: SettingsViewModel = viewModel(factory = vmFactory { SettingsViewModel(container) })

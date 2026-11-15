@@ -2,6 +2,9 @@ package com.nonen.Bookkeeping.parse
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
+import org.apache.commons.csv.CSVPrinter
+import java.io.ByteArrayOutputStream
+import java.io.OutputStreamWriter
 import java.io.StringReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -101,15 +104,15 @@ object CsvSupport {
      * 将二维行数据输出为带 UTF-8 BOM 的 CSV 字节数组，确保外部表格软件直接打开不乱码。
      */
     fun buildCsv(rows: List<List<Any?>>): ByteArray {
-        val out = java.io.ByteArrayOutputStream()
+        val out = ByteArrayOutputStream()
         // 写入 UTF-8 BOM
         out.write(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()))
-        val writer = java.io.OutputStreamWriter(out, StandardCharsets.UTF_8)
-        val printer = org.apache.commons.csv.CSVPrinter(writer, CSVFormat.DEFAULT)
-        rows.forEach { row ->
-            printer.printRecord(row.map { it?.toString().orEmpty() })
+        val writer = OutputStreamWriter(out, StandardCharsets.UTF_8)
+        CSVPrinter(writer, CSVFormat.DEFAULT).use { printer ->
+            rows.forEach { row ->
+                printer.printRecord(row.map { it?.toString().orEmpty() })
+            }
         }
-        printer.flush()
         return out.toByteArray()
     }
 }

@@ -61,6 +61,9 @@ data class SettingsSnapshot(
 
 class SettingsStore(context: Context, private val store: DataStore<Preferences> = context.settingsDataStore) {
 
+    /** 主题模式同步缓存：MainActivity 在 super.onCreate 之前读取，避免 DataStore 异步首帧闪烁 */
+    private val themeCache = context.getSharedPreferences("settings_theme_cache", Context.MODE_PRIVATE)
+
     private val KEY_AUTO_RECORD = booleanPreferencesKey("auto_record_enabled")
     private val KEY_LISTEN_SCOPE = stringPreferencesKey("listen_scope")
     private val KEY_NOTIFY = booleanPreferencesKey("notify_on_record")
@@ -116,7 +119,13 @@ class SettingsStore(context: Context, private val store: DataStore<Preferences> 
     suspend fun setListenScope(value: ListenScope) = store.edit { it[KEY_LISTEN_SCOPE] = value.name }
     suspend fun setNotifyOnRecord(value: Boolean) = store.edit { it[KEY_NOTIFY] = value }
     suspend fun setLearnOnEdit(value: Boolean) = store.edit { it[KEY_LEARN] = value }
-    suspend fun setThemeMode(value: ThemeMode) = store.edit { it[KEY_THEME_MODE] = value.name }
+    suspend fun setThemeMode(value: ThemeMode) {
+        themeCache.edit().putString("theme_mode", value.name).apply()
+        store.edit { it[KEY_THEME_MODE] = value.name }
+    }
+
+    /** 仅供 Activity 启动时同步读取主题模式 */
+    fun cachedThemeMode(): ThemeMode = ThemeMode.from(themeCache.getString("theme_mode", null))
     suspend fun setDynamicColor(value: Boolean) = store.edit { it[KEY_DYNAMIC_COLOR] = value }
     suspend fun setHideAmount(value: Boolean) = store.edit { it[KEY_HIDE_AMOUNT] = value }
     suspend fun setAppLockEnabled(value: Boolean) = store.edit { it[KEY_APP_LOCK] = value }

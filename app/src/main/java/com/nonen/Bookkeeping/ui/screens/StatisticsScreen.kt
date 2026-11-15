@@ -27,7 +27,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,152 +35,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.nonen.Bookkeeping.R
-import com.nonen.Bookkeeping.data.repo.TransactionRepository
-import com.nonen.Bookkeeping.stats.StatsCalculator
 import com.nonen.Bookkeeping.stats.StatsData
 import com.nonen.Bookkeeping.stats.StatsPeriod
-import com.nonen.Bookkeeping.stats.StatsQuery
 import com.nonen.Bookkeeping.stats.StatsTitle
 import com.nonen.Bookkeeping.ui.components.AnimatedSegmented
 import com.nonen.Bookkeeping.ui.theme.ChartColors
-import com.nonen.Bookkeeping.data.repo.ReportRepository
-import com.nonen.Bookkeeping.stats.AssetTrendPoint
-import com.nonen.Bookkeeping.stats.CategoryDetailStat
 import com.nonen.Bookkeeping.ui.theme.ExpenseColor
 import com.nonen.Bookkeeping.ui.theme.IncomeColor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-
-class StatsViewModel(
-    private val repo: TransactionRepository,
-    private val reportRepo: ReportRepository? = null,
-    externalScope: CoroutineScope? = null,
-) : ViewModel() {
-
-    private val scope: CoroutineScope = externalScope ?: viewModelScope
-    private var selectedBookId: Long? = null
-
-    fun selectBook(id: Long) {
-        if (selectedBookId == id) return
-        selectedBookId = id
-        load()
-    }
-
-    var period by mutableStateOf(StatsPeriod.MONTH)
-    var isIncome by mutableStateOf(false)
-    var statsViewMode by mutableIntStateOf(0) // 0=分类分析, 1=资产走势
-    var expandedCategory by mutableStateOf<String?>(null)
-    var assetTrend by mutableStateOf<List<AssetTrendPoint>>(emptyList())
-        private set
-
-    /** 本年模式选中的月份（1-12），null = 整年 */
-    var monthSel by mutableStateOf<Int?>(null)
-    /** 本周/本月模式选中的切片：本周 0=本周、-1=上周；本月 1-based 周次，null = 整月 */
-    var weekSel by mutableStateOf<Int?>(null)
-    var customStart by mutableStateOf<LocalDate?>(null)
-    var customEnd by mutableStateOf<LocalDate?>(null)
-    var customRequest by mutableIntStateOf(0)
-        private set
-    var stats by mutableStateOf<StatsData?>(null)
-        private set
-
-    init {
-        load()
-    }
-
-    fun toggleCategoryExpand(catName: String) {
-        expandedCategory = if (expandedCategory == catName) null else catName
-    }
-
-    fun switchStatsViewMode(mode: Int) {
-        if (statsViewMode == mode) return
-        statsViewMode = mode
-        load()
-    }
-
-    fun updatePeriod(p: StatsPeriod) {
-        if (period == p) return
-        period = p
-        if (p == StatsPeriod.YEAR) weekSel = null
-        if (p == StatsPeriod.MONTH) monthSel = null
-        load()
-    }
-
-    fun requestCustom() {
-        period = StatsPeriod.CUSTOM
-        customRequest++
-    }
-
-    fun setType(income: Boolean) {
-        if (isIncome == income) return
-        isIncome = income
-        load()
-    }
-
-    fun selectMonth(m: Int?) {
-        if (monthSel == m) return
-        monthSel = m
-        load()
-    }
-
-    fun selectWeek(w: Int?) {
-        if (weekSel == w) return
-        weekSel = w
-        load()
-    }
-
-    fun setCustomRange(start: LocalDate, end: LocalDate) {
-        customStart = minOf(start, end)
-        customEnd = maxOf(start, end)
-        period = StatsPeriod.CUSTOM
-        load()
-    }
-
-    fun load() {
-        scope.launch {
-            stats = withContext(Dispatchers.Default) { computeStats() }
-            if (reportRepo != null && statsViewMode == 1) {
-                val today = LocalDate.now()
-                val (startDate, endDate) = when (period) {
-                    StatsPeriod.WEEK -> today.minusDays(6) to today
-                    StatsPeriod.MONTH -> today.withDayOfMonth(1) to today.withDayOfMonth(today.lengthOfMonth())
-                    StatsPeriod.YEAR -> today.withDayOfYear(1) to today.withDayOfYear(today.lengthOfYear())
-                    StatsPeriod.CUSTOM -> {
-                        val s = customStart ?: today.minusMonths(1)
-                        val e = customEnd ?: today
-                        minOf(s, e) to maxOf(s, e)
-                    }
-                }
-                assetTrend = withContext(Dispatchers.Default) {
-                    reportRepo.getAssetTrend(startDate, endDate)
-                }
-            }
-        }
-    }
-
-    private suspend fun computeStats(): StatsData? = StatsCalculator.compute(
-        query = StatsQuery(
-            period = period,
-            isIncome = isIncome,
-            monthSel = monthSel,
-            weekSel = weekSel,
-            customStart = customStart,
-            customEnd = customEnd,
-        ),
-        fetch = { start, end ->
-            val book = selectedBookId
-            if (book == null) repo.getRange(start, end) else repo.getBookRange(start, end, book)
-        },
-    )
-}
 
 @Composable
 fun StatisticsScreen(vm: StatsViewModel) {

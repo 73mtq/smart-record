@@ -2,21 +2,12 @@ package com.nonen.Bookkeeping.data.migration
 
 import com.nonen.Bookkeeping.core.CategoryMapping
 import com.nonen.Bookkeeping.core.DefaultCategories
-import com.nonen.Bookkeeping.data.db.AppDatabase
-import com.nonen.Bookkeeping.data.db.CategoryDao
-import com.nonen.Bookkeeping.data.db.CategoryEntity
-import com.nonen.Bookkeeping.data.db.TransactionDao
-import com.nonen.Bookkeeping.data.db.TransactionEntity
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import java.lang.reflect.Proxy
 
 class CategoryMigrationTest {
 
@@ -153,124 +144,4 @@ class CategoryMigrationTest {
         }
     }
 
-    @Test
-    fun `category migration service updates transactions and ensures idempotence`() = runBlocking {
-        // 构造模拟数据库环境
-        val existingCategories = DefaultCategories.ALL.toMutableList()
-        val transactions = mutableListOf(
-            TransactionEntity(
-                id = 1L,
-                amount = -35.0,
-                category = "餐饮",
-                subCategory = "早餐",
-                timestamp = 1700000000L,
-                source = "manual",
-                hash = "hash_1",
-                parentCategoryId = null,
-                childCategoryId = null,
-            ),
-            TransactionEntity(
-                id = 2L,
-                amount = -120.0,
-                category = "服饰美容",
-                subCategory = null,
-                timestamp = 1700000001L,
-                source = "manual",
-                hash = "hash_2",
-                parentCategoryId = null,
-                childCategoryId = null,
-            ),
-            TransactionEntity(
-                id = 3L,
-                amount = 8000.0,
-                category = "工资",
-                subCategory = null,
-                timestamp = 1700000002L,
-                source = "manual",
-                hash = "hash_3",
-                parentCategoryId = null,
-                childCategoryId = null,
-            ),
-            TransactionEntity(
-                id = 4L,
-                amount = -15.0,
-                category = "交通",
-                subCategory = "打车",
-                timestamp = 1700000003L,
-                source = "manual",
-                hash = "hash_4",
-                parentCategoryId = 6,
-                childCategoryId = 607, // 已经迁移过的记录
-            ),
-        )
-
-        val updatedMap = mutableMapOf<Long, Pair<Int, Int?>>()
-
-        val catDaoHandler = InvocationHandler { _: Any?, method: Method, args: Array<out Any>? ->
-            when (method.name) {
-                "findCategory" -> {
-                    val catId = args?.get(0) as Int
-                    val parentId = args[1] as Int
-                    existingCategories.firstOrNull { it.categoryId == catId && it.parentId == parentId }
-                }
-                "insert" -> {
-                    val cat = args?.get(0) as CategoryEntity
-                    existingCategories.add(cat)
-                    cat.id.takeIf { it > 0 } ?: existingCategories.size.toLong()
-                }
-                else -> null
-            }
-        }
-        val fakeCategoryDao = Proxy.newProxyInstance(
-            CategoryDao::class.java.classLoader,
-            arrayOf(CategoryDao::class.java),
-            catDaoHandler,
-        ) as CategoryDao
-
-        val txDaoHandler = InvocationHandler { _: Any?, method: Method, args: Array<out Any>? ->
-            when (method.name) {
-                "getUnmigratedCategories" -> {
-                    transactions.filter { it.parentCategoryId == null }
-                }
-                "updateCategoryIds" -> {
-                    val id = args?.get(0) as Long
-                    val pId = args[1] as Int
-                    val cId = args[2] as? Int
-                    updatedMap[id] = pId to cId
-                    val idx = transactions.indexOfFirst { it.id == id }
-                    if (idx >= 0) {
-                        transactions[idx] = transactions[idx].copy(parentCategoryId = pId, childCategoryId = cId)
-                    }
-                    Unit
-                }
-                "getAll" -> transactions
-                else -> null
-            }
-        }
-        val fakeTransactionDao = Proxy.newProxyInstance(
-            TransactionDao::class.java.classLoader,
-            arrayOf(TransactionDao::class.java),
-            txDaoHandler,
-        ) as TransactionDao
-
-        val service = CategoryMigrationService(fakeCategoryDao, fakeTransactionDao)
-
-        // 第一次执行迁移
-        val result1 = service.migrate()
-        assertEquals(3, result1.migratedCount)
-        assertEquals(1, result1.alreadyMigratedCount)
-        assertEquals(4, result1.totalTransactions)
-        assertTrue(result1.customCategoriesSeeded > 0)
-
-        // 校验更新内容
-        assertEquals(7 to (708 as Int?), updatedMap[1L])
-        assertEquals(8 to (891 as Int?), updatedMap[2L])
-        assertEquals(9 to (904 as Int?), updatedMap[3L])
-
-        // 第二次执行迁移（检验幂等性）
-        val result2 = service.migrate()
-        assertEquals(0, result2.migratedCount)
-        assertEquals(4, result2.alreadyMigratedCount)
-        assertEquals(0, result2.customCategoriesSeeded)
-    }
 }

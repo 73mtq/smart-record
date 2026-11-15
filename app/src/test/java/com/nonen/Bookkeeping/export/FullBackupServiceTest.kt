@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets
 
 /**
  * JVM 纯函数全量备份序列化与反序列化测试。
- * 遵循无 Fake DAO、无 Mock 规则，验证数据结构往返一致性与摘要算法。
+ * 验证数据结构往返一致性与摘要算法。
  */
 class FullBackupServiceTest {
 
@@ -304,17 +304,38 @@ class FullBackupServiceTest {
 
         // 直接调用 internal serializeData 与 deserializeData 进行纯数据层核验
         val jsonString = FullBackupService.serializeData(
-            originalTransactions, originalAssets, originalBooks, originalCategories,
-            originalTransfers, originalRefunds, originalReimbursements, originalLends,
-            originalInstalments, originalTags, originalTagRefs, originalBudgets,
-            originalCategoryBudgets, originalCycles, originalCycleLogs, originalModuleBills,
-            originalDreams, originalDreamLogs, originalCategoryRules, originalMerchantCategories,
-            originalSettings,
+            FullBackupData(
+                transactions = originalTransactions,
+                assets = originalAssets,
+                books = originalBooks,
+                categories = originalCategories,
+                transfers = originalTransfers,
+                refunds = originalRefunds,
+                reimbursements = originalReimbursements,
+                lends = originalLends,
+                instalments = originalInstalments,
+                tags = originalTags,
+                transactionTags = originalTagRefs,
+                budgets = originalBudgets,
+                categoryBudgets = originalCategoryBudgets,
+                cycles = originalCycles,
+                cycleLogs = originalCycleLogs,
+                moduleBills = originalModuleBills,
+                dreams = originalDreams,
+                dreamLogs = originalDreamLogs,
+                categoryRules = originalCategoryRules,
+                merchantCategories = originalMerchantCategories,
+                settings = originalSettings,
+            ),
         )
 
         assertTrue("序列化 JSON 必须非空且有效", jsonString.isNotEmpty())
         val jsonObj = JSONObject(jsonString)
         val restoredData = FullBackupService.deserializeData(jsonObj)
+
+        assertEquals(20, restoredData.tableCounts.size)
+        assertEquals(setOf(1), restoredData.tableCounts.values.toSet())
+        assertEquals(1, restoredData.tableCounts["tagRefs"])
 
         // 验证 20 表领域实体无损往返
         assertEquals(1, restoredData.transactions.size)

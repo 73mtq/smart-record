@@ -516,69 +516,59 @@ class AddEditViewModel(
         saving = true
         scope.launch {
             try {
-            if (saveAsRule) {
-                val keyword = merchant.trim().ifEmpty { note.trim() }
-                if (keyword.isNotEmpty()) {
-                    ruleRepo?.add(keyword, category, isIncome)
+                if (saveAsRule) {
+                    val keyword = merchant.trim().ifEmpty { note.trim() }
+                    if (keyword.isNotEmpty()) {
+                        ruleRepo?.add(keyword, category, isIncome)
+                    }
                 }
-            }
-            val existing = original
-            val currentParentId = parentCategoryId ?: CategoryMapping.resolve(category, subCategory.ifEmpty { null }, isIncome).parentId
-            val currentChildId = childCategoryId ?: CategoryMapping.resolve(category, subCategory.ifEmpty { null }, isIncome).childId
-            if (existing != null) {
-                val updated = existing.copy(
-                    amount = if (isIncome) value else -value,
-                    category = category,
-                    subCategory = subCategory.trim().ifEmpty { null },
-                    parentCategoryId = currentParentId,
-                    childCategoryId = currentChildId,
-                    bookId = bookId,
-                    assetId = assetId,
-                    note = note.trim().ifEmpty { null },
-                    merchant = merchant.trim().ifEmpty { null },
-                    account = account.trim().ifEmpty { null },
-                    tag = tag.trim().ifEmpty { null },
-                    transactionType = if (isIncome) "INCOME" else "EXPENSE",
-                    refundOriginalId = refundOriginalId,
-                    targetAccount = targetAccount.trim().ifEmpty { null },
-                    timestamp = timestamp,
-                )
-                repo.update(updated)
-                repo.learnFromEdit(updated, originalCategory)
-                onDone()
-            } else {
-                val signed = if (isIncome) value else -value
-                val m = merchant.trim().ifEmpty { null }
-                val entity = TransactionEntity(
-                    amount = signed,
-                    category = category,
-                    subCategory = subCategory.trim().ifEmpty { null },
-                    parentCategoryId = currentParentId,
-                    childCategoryId = currentChildId,
-                    bookId = bookId,
-                    assetId = assetId,
-                    note = note.trim().ifEmpty { null },
-                    merchant = m,
-                    account = account.trim().ifEmpty { null },
-                    tag = tag.trim().ifEmpty { null },
-                    transactionType = if (isIncome) "INCOME" else "EXPENSE",
-                    refundOriginalId = refundOriginalId,
-                    targetAccount = targetAccount.trim().ifEmpty { null },
-                    timestamp = timestamp,
-                    source = "manual",
-                    hash = HashUtil.transactionHash(timestamp, signed, m, "manual"),
-                )
-                if (repo.insertIfNew(entity)) {
+                val entity = buildTransaction(value)
+                if (original != null) {
+                    repo.update(entity)
+                    repo.learnFromEdit(entity, originalCategory)
+                    onDone()
+                } else if (repo.insertIfNew(entity)) {
                     repo.learnFromEdit(entity, null)
                     onDone()
                 } else {
                     errorMessageRes = R.string.error_duplicate_record
                 }
-            }
             } finally {
                 saving = false
             }
         }
+    }
+
+    private fun buildTransaction(value: Double): TransactionEntity {
+        val signedAmount = if (isIncome) value else -value
+        val merchantName = merchant.trim().ifEmpty { null }
+        val resolved = if (parentCategoryId == null || childCategoryId == null) {
+            CategoryMapping.resolve(category, subCategory.ifEmpty { null }, isIncome)
+        } else null
+        val existing = original ?: TransactionEntity(
+            amount = signedAmount,
+            category = category,
+            timestamp = timestamp,
+            source = "manual",
+            hash = HashUtil.transactionHash(timestamp, signedAmount, merchantName, "manual"),
+        )
+        return existing.copy(
+            amount = signedAmount,
+            category = category,
+            subCategory = subCategory.trim().ifEmpty { null },
+            parentCategoryId = parentCategoryId ?: resolved?.parentId,
+            childCategoryId = childCategoryId ?: resolved?.childId,
+            bookId = bookId,
+            assetId = assetId,
+            note = note.trim().ifEmpty { null },
+            merchant = merchantName,
+            account = account.trim().ifEmpty { null },
+            tag = tag.trim().ifEmpty { null },
+            transactionType = if (isIncome) "INCOME" else "EXPENSE",
+            refundOriginalId = refundOriginalId,
+            targetAccount = targetAccount.trim().ifEmpty { null },
+            timestamp = timestamp,
+        )
     }
 
     fun delete(onDone: () -> Unit) {

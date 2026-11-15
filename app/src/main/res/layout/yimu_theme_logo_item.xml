@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 原版 res/layout/item_logo.xml；宽高由适配器按 (屏宽-50dp)/5 设定 -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent"
+    android:layout_width="50dp"
+    android:layout_height="50dp"
+    android:paddingStart="5dp"
+    android:paddingTop="5dp"
+    android:paddingEnd="5dp"
+    android:paddingBottom="5dp">
+
+    <com.nonen.Bookkeeping.ui.components.YimuRoundRectImageView
+        android:id="@+id/logo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ImageView
+        android:id="@+id/check_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="2dp"
+        android:background="@drawable/shape_circle_white"
+        android:padding="1dp"
+        android:src="@mipmap/ic_select"
+        android:tint="@color/textColorPrimary"
+        android:visibility="gone" />
+</RelativeLayout>

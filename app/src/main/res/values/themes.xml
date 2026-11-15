@@ -12,4 +12,21 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowActionModeOverlay">true</item>
     </style>
+
+    <!-- 原版 EditDialogStyle（values/styles.xml:2939-2948）与 EditDialogAnimation（2935-2938） -->
+    <style name="YimuEditDialogAnimation" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/sheet_dialog_in</item>
+        <item name="android:windowExitAnimation">@anim/sheet_dialog_out</item>
+    </style>
+
+    <style name="YimuEditDialogStyle" parent="@style/Base.AlertDialog.AppCompat.Light">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@style/YimuEditDialogAnimation</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
 </resources>

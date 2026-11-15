@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="status_csv_exported">成功导出 %1$d 条账单至 CSV 文件</string>
+    <string name="status_csv_export_failed">CSV 导出失败：%1$s</string>
+</resources>

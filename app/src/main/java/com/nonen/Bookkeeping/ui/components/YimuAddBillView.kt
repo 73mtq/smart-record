@@ -1,5 +1,6 @@
 package com.nonen.Bookkeeping.ui.components
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
@@ -95,6 +96,8 @@ class YimuAddBillView @JvmOverloads constructor(
     private val tabIncome = findViewById<ViewGroup>(R.id.tab_income)
     private val tabTransfer = findViewById<ViewGroup>(R.id.tab_transfer)
     private val tabDebt = findViewById<ViewGroup>(R.id.tab_debt)
+    // yimu_add_bill 中的类型由当前布局决定，其他页面复用了相同的 resource ID。
+    @SuppressLint("WrongViewCast")
     private val editButton = findViewById<TextView>(R.id.edit)
     private val expenseList = findViewById<RecyclerView>(R.id.bill_parent_type_list)
     private val incomeList = findViewById<RecyclerView>(R.id.bill_income_type_list)
@@ -104,6 +107,7 @@ class YimuAddBillView @JvmOverloads constructor(
     private val categoryPager = findViewById<View>(R.id.category_pager)
     private val tagButton = findViewById<View>(R.id.tag_btn)
     private val tagName = findViewById<TextView>(R.id.tag_btn_name)
+    @SuppressLint("WrongViewCast")
     private val remark = findViewById<EditText>(R.id.remark)
     private val cost = findViewById<TextView>(R.id.cost)
     private val dateLayout = findViewById<View>(R.id.date_layout)

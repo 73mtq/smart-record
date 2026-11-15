@@ -332,7 +332,7 @@ abstract class AppDatabase : RoomDatabase() {
                 // 12. 播种默认账本与默认资产
                 val now = System.currentTimeMillis()
                 db.execSQL("INSERT OR IGNORE INTO `books` (`bookId`, `bookName`, `isDefault`, `positionWeight`, `createdAt`) VALUES (1, '默认账本', 1, 1, $now)")
-                db.execSQL("INSERT OR IGNORE INTO `assets` (`assetId`, `assetName`, `assetNumber`, `totalQuota`, `assetType`, `intoTotalAsset`, `hide`, `currency`, `groupName`, `positionWeight`, `createdAt`, `updatedAt`) VALUES (1, '现金', 0.0, 0.0, 1, 1, 0, 'CNY', '现金账户', 1, $now, $now)")
+                db.execSQL("INSERT OR IGNORE INTO `assets` (`assetId`, `assetName`, `assetNumber`, `totalQuota`, `assetType`, `intoTotalAsset`, `hide`, `currency`, `groupName`, `positionWeight`, `createdAt`, `updatedAt`) VALUES (1, '现金', 0.0, 0.0, 1, 1, 0, 'CNY', '资金账户', 1, $now, $now)")
 
                 // 13. 回填历史数据
                 db.execSQL("UPDATE `transactions` SET `assetId` = 1 WHERE `assetId` IS NULL OR `assetId` = 0")

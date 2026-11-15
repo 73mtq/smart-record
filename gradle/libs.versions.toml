@@ -20,6 +20,8 @@ calendarView = "3.7.1"
 mpAndroidChart = "v3.1.0"
 recyclerView = "1.1.0"
 pickerView = "2.0.7"
+serialization = "1.8.1"
+spotbugsAnnotations = "4.9.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +45,9 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+spotbugs-annotations = { group = "com.github.spotbugs", name = "spotbugs-annotations", version.ref = "spotbugsAnnotations" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 commons-csv = { group = "org.apache.commons", name = "commons-csv", version.ref = "commonsCsv" }
 jxl = { group = "net.sourceforge.jexcelapi", name = "jxl", version = "2.6.12" }

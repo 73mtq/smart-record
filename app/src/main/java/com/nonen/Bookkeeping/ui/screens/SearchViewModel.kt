@@ -31,7 +31,7 @@ class SearchViewModel(private val repo: TransactionRepository) : ViewModel() {
      * 搜索历史（原版存 LitePal search_history 表按 id desc 展示）。
      * 验收包注入与参考侧一致的三条历史：理发（最新）/车票/车费。
      */
-    var searchHistory by mutableStateOf(listOf("理发", "车票", "车费", "奶茶", "电费", "2", "空调电费"))
+    var searchHistory by mutableStateOf(listOf("美团", "理发", "车票", "车费", "奶茶", "电费", "2"))
         private set
     var allCategories by mutableStateOf<List<String>>(emptyList())
         private set

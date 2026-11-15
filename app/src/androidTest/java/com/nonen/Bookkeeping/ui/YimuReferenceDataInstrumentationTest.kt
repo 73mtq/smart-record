@@ -3,6 +3,7 @@ package com.nonen.Bookkeeping.ui
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.nonen.Bookkeeping.BookkeepingApp
+import com.nonen.Bookkeeping.data.db.CategoryRuleEntity
 import com.nonen.Bookkeeping.parse.BackupExcelParser
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -47,5 +48,19 @@ class YimuReferenceDataInstrumentationTest {
         assertEquals(expectedExpense, restored.filter { it.amount < 0 }.sumOf { (it.amount * 100).roundToLong() })
         assertEquals(expectedIncome, restored.filter { it.amount > 0 }.sumOf { (it.amount * 100).roundToLong() })
         println("YIMU_REFERENCE_DATA count=$expectedCount expense_cents=$expectedExpense income_cents=$expectedIncome source=$hash")
+    }
+
+    /** 验收包播种参考侧那条自定义智能分类，供 rules 页像素对比 */
+    @Test
+    fun seedCustomRule() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        check(context.packageName == "com.nonen.Bookkeeping.uivalidation")
+        val container = (context.applicationContext as BookkeepingApp).container
+        if (container.ruleDao.getAll().none { it.isCustom && it.keyword == "token" }) {
+            container.ruleDao.insert(
+                CategoryRuleEntity(keyword = "token", category = "文化教育-AI与订阅", isCustom = true),
+            )
+        }
+        println("YIMU_CUSTOM_RULE count=${container.ruleDao.getAll().count { it.isCustom }}")
     }
 }

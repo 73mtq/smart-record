@@ -21,6 +21,7 @@ import com.haibin.calendarview.CalendarView
 import com.nonen.Bookkeeping.R
 import com.nonen.Bookkeeping.data.db.TransactionEntity
 import com.nonen.Bookkeeping.stats.CalendarDaySummary
+import com.nonen.Bookkeeping.ui.calendar.calendarHeightPx
 import com.nonen.Bookkeeping.ui.calendar.YimuCalendarView
 import java.time.Instant
 import java.time.LocalDate
@@ -116,6 +117,7 @@ class YimuCalendarNativeView @JvmOverloads constructor(
         this.state = state
         this.listener = listener
         monthText.text = "${state.month.year}年${state.month.monthValue}月"
+        applyCalendarHeight(state.month)
         monthIncomeText.text = money(state.monthIncome)
         monthPayText.text = money(state.monthExpense)
         monthBalanceText.text = money(state.monthIncome - state.monthExpense)
@@ -139,6 +141,14 @@ class YimuCalendarNativeView @JvmOverloads constructor(
         dayBalanceText.text = money(income - pay)
         bindHeaderDate(state.selected, calendarView.selectedCalendar?.lunar.orEmpty())
         post { bindHeaderDate(state.selected, calendarView.selectedCalendar?.lunar.orEmpty()) }
+    }
+
+    /** 原版 CalendarView 高度随当月行数变化（wrap_content），固定 316.3dp 会让 6/4 行月份错位 */
+    private fun applyCalendarHeight(month: YearMonth) {
+        val height = calendarHeightPx(month.year, month.monthValue, resources.displayMetrics.density)
+        if (calendarView.layoutParams.height != height) {
+            calendarView.layoutParams = calendarView.layoutParams.apply { this.height = height }
+        }
     }
 
     private fun bindHeaderDate(date: LocalDate, lunar: String) {

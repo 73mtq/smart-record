@@ -39,7 +39,7 @@
                 android:gravity="center"
                 android:text="支出"
                 android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:textSize="16dp" />
 
             <TextView
                 android:id="@id/income_btn"
@@ -48,7 +48,7 @@
                 android:gravity="center"
                 android:text="收入"
                 android:textColor="@color/grey"
-                android:textSize="13sp" />
+                android:textSize="13dp" />
         </LinearLayout>
 
         <TextView
@@ -125,17 +125,30 @@
                     android:src="@mipmap/ic_tip_close" />
             </RelativeLayout>
 
-            <ImageView
+            <RelativeLayout
                 android:id="@id/category_type_tip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="15dp"
                 android:layout_marginStart="15dp"
                 android:layout_marginEnd="15dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitXY"
-                android:src="@mipmap/banner_category_type"
-                android:visibility="gone" />
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitXY"
+                    android:src="@mipmap/banner_category_type" />
+
+                <ImageView
+                    android:id="@id/category_type_close"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentEnd="true"
+                    android:padding="3dp"
+                    android:src="@mipmap/ic_tip_close" />
+            </RelativeLayout>
 
             <LinearLayout
                 android:id="@id/add_btn"
