@@ -13,6 +13,7 @@ import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -234,6 +235,11 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
     private var yearTagExpenseMode = true
     private var selfTagExpenseMode = true
     private var monthCategoryExpenseMode = true
+    private var monthDayFormSort = 0
+    private var monthTagSort = 0
+    private var yearDayFormSort = 0
+    private var yearTagSort = 0
+    private var selfTagSort = 0
     private val tagAdapter = TagAdapter()
     private val yearTagAdapter = TagAdapter()
     private val selfTagAdapter = TagAdapter()
@@ -372,8 +378,33 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
         renderMonthBars(state.dailyPay)
         renderAssetLine(monthLine, state.assetTrend)
         renderMonthCategoryBlock(state)
-        dayFormAdapter.submit(state.dayForms)
+        dayFormAdapter.submit(sortDayForms(state.dayForms, monthDayFormSort))
+        val sortBtn = monthView.findViewById<View>(R.id.form_sort_btn)
+        sortBtn.setOnClickListener { showDayFormSort(sortBtn, state) }
         renderMonthTags(state)
+    }
+
+    private fun showDayFormSort(anchor: View, state: StatisticsMonthUi) {
+        val popup = PopupMenu(context, anchor)
+        DAY_FORM_SORT_LABELS.forEachIndexed { index, label -> popup.menu.add(0, index, index, label) }
+        popup.setOnMenuItemClickListener { item ->
+            monthDayFormSort = item.itemId
+            renderMonth(state)
+            true
+        }
+        popup.show()
+    }
+
+    /** 报表排序：原版 StatisticsSort 的日期/收入/支出/结余 与升序降序组合。 */
+    private fun sortDayForms(rows: List<DayFormRow>, mode: Int): List<DayFormRow> {
+        val field = mode / 2
+        val comparator = when (field) {
+            0 -> compareBy<DayFormRow> { it.label }
+            1 -> compareBy { it.income }
+            2 -> compareBy { it.pay }
+            else -> compareBy { it.balance }
+        }
+        return if (mode % 2 == 1) rows.sortedWith(comparator.reversed()) else rows.sortedWith(comparator)
     }
 
     /** 分类占比区块：原版 i4.U1/T1，中心提示按支出与收入数据是否都非空决定是否可点击切换。 */
@@ -424,11 +455,35 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             checkTip = monthTagCheckTip,
             list = monthTagList,
             adapter = tagAdapter,
-            rows = state.tags,
+            rows = sortTags(state.tags, monthTagSort),
             expenseMode = monthTagExpenseMode,
             showAmount = monthTagNumCheck.isChecked,
             onExpenseModeChange = { monthTagExpenseMode = it; renderMonthTags(state) },
         )
+        val sortBtn = monthView.findViewById<View>(R.id.tag_sort_btn)
+        sortBtn.setOnClickListener { showTagSort(sortBtn, state) }
+    }
+
+    private fun showTagSort(anchor: View, state: StatisticsMonthUi) {
+        val popup = PopupMenu(context, anchor)
+        TAG_SORT_LABELS.forEachIndexed { index, label -> popup.menu.add(0, index, index, label) }
+        popup.setOnMenuItemClickListener { item ->
+            monthTagSort = item.itemId
+            renderMonthTags(state)
+            true
+        }
+        popup.show()
+    }
+
+    /** 标签排序：原版按笔数、支出、收入三个字段的正序与降序。 */
+    private fun sortTags(rows: List<TagStat>, mode: Int): List<TagStat> {
+        val field = mode / 2
+        val comparator = when (field) {
+            0 -> compareBy<TagStat> { it.billCount }
+            1 -> compareBy { it.pay }
+            else -> compareBy { it.income }
+        }
+        return if (mode % 2 == 1) rows.sortedWith(comparator.reversed()) else rows.sortedWith(comparator)
     }
 
     private fun renderMonthCategory(entries: List<Pair<String, Double>>) {
@@ -649,8 +704,21 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
         renderAssetLine(yearLine, state.assetTrend)
         renderCategoryPie(yearCategoryChart, state.categoryEntries)
         yearCategoryAdapter.submit(state.categories)
-        yearDayFormAdapter.submit(state.dayForms)
+        yearDayFormAdapter.submit(sortDayForms(state.dayForms, yearDayFormSort))
+        val sortBtn = yearView.findViewById<View>(R.id.form_sort_btn)
+        sortBtn.setOnClickListener { showYearDayFormSort(sortBtn, state) }
         renderYearTags(state)
+    }
+
+    private fun showYearDayFormSort(anchor: View, state: StatisticsYearUi) {
+        val popup = PopupMenu(context, anchor)
+        DAY_FORM_SORT_LABELS.forEachIndexed { index, label -> popup.menu.add(0, index, index, label) }
+        popup.setOnMenuItemClickListener { item ->
+            yearDayFormSort = item.itemId
+            renderYear(state)
+            true
+        }
+        popup.show()
     }
 
     private fun renderYearTags(state: StatisticsYearUi) {
@@ -662,11 +730,22 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             checkTip = yearTagCheckTip,
             list = yearTagList,
             adapter = yearTagAdapter,
-            rows = state.tags,
+            rows = sortTags(state.tags, yearTagSort),
             expenseMode = yearTagExpenseMode,
             showAmount = yearTagNumCheck.isChecked,
             onExpenseModeChange = { yearTagExpenseMode = it; renderYearTags(state) },
         )
+        val sortBtn = yearView.findViewById<View>(R.id.tag_sort_btn)
+        sortBtn.setOnClickListener {
+            val popup = PopupMenu(context, sortBtn)
+            TAG_SORT_LABELS.forEachIndexed { index, label -> popup.menu.add(0, index, index, label) }
+            popup.setOnMenuItemClickListener { item ->
+                yearTagSort = item.itemId
+                renderYearTags(state)
+                true
+            }
+            popup.show()
+        }
     }
 
     private fun configureYearBarChart(chart: BarChart) {
@@ -786,11 +865,22 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
             checkTip = selfTagCheckTip,
             list = selfTagList,
             adapter = selfTagAdapter,
-            rows = state.tags,
+            rows = sortTags(state.tags, selfTagSort),
             expenseMode = selfTagExpenseMode,
             showAmount = selfTagNumCheck.isChecked,
             onExpenseModeChange = { selfTagExpenseMode = it; renderSelfTags(state) },
         )
+        val sortBtn = selfView.findViewById<View>(R.id.tag_sort_btn)
+        sortBtn.setOnClickListener {
+            val popup = PopupMenu(context, sortBtn)
+            TAG_SORT_LABELS.forEachIndexed { index, label -> popup.menu.add(0, index, index, label) }
+            popup.setOnMenuItemClickListener { item ->
+                selfTagSort = item.itemId
+                renderSelfTags(state)
+                true
+            }
+            popup.show()
+        }
     }
 
     /** 原版 i4.Q0：轴开启、labelCount(5,false)、左轴 colorPrimary 线、7sp darkGrey、offsets(40,20,15,5)。 */
@@ -1081,6 +1171,9 @@ class YimuStatisticsNativeView @JvmOverloads constructor(
     private fun trim(value: Double): String =
         String.format(Locale.US, "%.2f", value).trimEnd('0').trimEnd('.')
 }
+
+private val DAY_FORM_SORT_LABELS = listOf("日期↑", "日期↓", "收入↑", "收入↓", "支出↑", "支出↓", "结余↑", "结余↓")
+private val TAG_SORT_LABELS = listOf("笔数↑", "笔数↓", "支出↑", "支出↓", "收入↑", "收入↓")
 
 private val PIE_COLORS = intArrayOf(
     0xFF00ADB5.toInt(), 0xFFF08A5D.toInt(), 0xFFF9ED69.toInt(), 0xFF95E1D3.toInt(),
