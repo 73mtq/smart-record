@@ -26,6 +26,7 @@
 - 分类编辑页（CategoryEditScreen）：名称、线条图标选择网格、仅在当前账本显示、删除；已真机验证新增与图标选择。
 - 愿望编辑页（DreamEditScreen）、预算设置页（BudgetEditScreen）、周期设置页（CycleEditScreen）：编译、单测、Lint 通过，未真机逐页操作。
 - 验证：编译、单测、Lint、`YimuCompletionInstrumentationTest`、真机标签/主题/关于页/分类新增。
+- 2026-11-15 晚：参考侧重新导出 2121 条，验收包重建，同日双端 31 页回归 23 通过、8 失败（系统阴影/抗锯齿/用户自定义图标）。
 
 ## 未完成
 
