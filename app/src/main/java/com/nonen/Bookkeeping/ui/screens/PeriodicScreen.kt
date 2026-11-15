@@ -65,9 +65,9 @@ import java.util.Locale
 fun PeriodicScreen(
     viewModel: PeriodicViewModel,
     onBack: () -> Unit,
+    onOpenEdit: () -> Unit = {},
 ) {
     val cycles by viewModel.cycles.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -79,28 +79,11 @@ fun PeriodicScreen(
         update = { view ->
             view.bind(object : YimuPeriodicNativeView.Listener {
                 override fun onBack() = back()
-                override fun onAdd() { showAddDialog = true }
+                override fun onAdd() = onOpenEdit()
             })
         },
     )
 
-    if (showAddDialog) {
-        AddCycleDialog(
-            onDismiss = { showAddDialog = false },
-            onConfirm = { cost, cycleType, dateMode, monthDay, monthLast, weekdays, remark ->
-                viewModel.createCycle(
-                    cost = cost,
-                    cycleType = cycleType,
-                    dateMode = dateMode,
-                    monthDay = monthDay,
-                    monthLast = monthLast,
-                    weekdays = weekdays,
-                    remark = remark,
-                )
-                showAddDialog = false
-            },
-        )
-    }
 }
 
 @Composable

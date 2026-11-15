@@ -42,6 +42,7 @@ import com.nonen.Bookkeeping.ui.screens.BudgetViewModel
 import com.nonen.Bookkeeping.ui.screens.CalendarScreen
 import com.nonen.Bookkeeping.ui.screens.CalendarViewModel
 import com.nonen.Bookkeeping.ui.screens.CategoryEditScreen
+import com.nonen.Bookkeeping.ui.screens.CycleEditScreen
 import com.nonen.Bookkeeping.ui.screens.DreamEditScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageScreen
 import com.nonen.Bookkeeping.ui.screens.CategoryManageViewModel
@@ -81,6 +82,7 @@ object Routes {
     const val CATEGORY_EDIT = "category_edit?parentId={parentId}&categoryId={categoryId}&type={type}"
     const val DREAM_EDIT = "dream_edit/{dreamId}"
     const val BUDGET_EDIT = "budget_edit?year={year}&month={month}"
+    const val CYCLE_EDIT = "cycle_edit"
     const val ASSET_MANAGE = "asset_manage"
     const val BUDGET = "budget"
     const val PERIODIC = "periodic"
@@ -392,13 +394,21 @@ fun AppNavHost(
             )
         }
 
+        composable(Routes.CYCLE_EDIT) {
+            CycleEditScreen(container = container, onBack = { nav.popBackStack() })
+        }
+
         composable(Routes.PERIODIC) {
             val vm: PeriodicViewModel = viewModel(
                 factory = vmFactory {
                     PeriodicViewModel(container.periodicRepository, container.periodicTransactionExecutor)
                 },
             )
-            PeriodicScreen(viewModel = vm, onBack = { nav.popBackStack() })
+            PeriodicScreen(
+                viewModel = vm,
+                onBack = { nav.popBackStack() },
+                onOpenEdit = { nav.navigate(Routes.CYCLE_EDIT) },
+            )
         }
 
         composable(Routes.TEMPLATE) {
